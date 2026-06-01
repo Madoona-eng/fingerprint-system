@@ -1,0 +1,57 @@
+<div class="login-page" dir="rtl">
+  <div class="background-shape shape-one"></div>
+  <div class="background-shape shape-two"></div>
+  <div class="background-shape shape-three"></div>
+
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-circle">
+        <span>🔐</span>
+      </div>
+
+      <h2>تسجيل الدخول للنظام</h2>
+      <p>مرحباً بك، قم بإدخال بياناتك للوصول إلى لوحة التحكم</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="form-control-group">
+        <label for="username">اسم المستخدم</label>
+
+        <div class="input-box">
+          <span class="input-icon">👤</span>
+          <input
+            id="username"
+            type="text"
+            formControlName="userName"
+            placeholder="أدخل اسم المستخدم"
+            autocomplete="username"
+          />
+        </div>
+      </div>
+
+      <div class="form-control-group">
+        <label for="password">كلمة المرور</label>
+
+        <div class="input-box">
+          <span class="input-icon">🔑</span>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="أدخل كلمة المرور"
+            autocomplete="current-password"
+          />
+        </div>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" [disabled]="loginForm.invalid || isLoading">
+        <span *ngIf="isLoading" class="loader"></span>
+        <span>{{ isLoading ? 'جاري التحميل...' : 'تسجيل الدخول' }}</span>
+      </button>
+    </form>
+  </div>
+</div>

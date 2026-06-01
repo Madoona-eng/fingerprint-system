@@ -1,0 +1,120 @@
+<div class="dashboard-page" dir="rtl">
+  <div class="bg-glow glow-one"></div>
+  <div class="bg-glow glow-two"></div>
+
+  <header class="dash-header">
+    <div class="header-content">
+      <div class="user-info">
+        <div class="avatar">
+          <span>👩‍💻</span>
+        </div>
+
+        <div>
+          <h2>مرحباً بك يا باشمهندسة، {{ userName }} 👋</h2>
+          <p>لوحة التحكم الخاصة بنظام البصمة الإلكتروني</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <span class="role-badge">{{ userRole }}</span>
+        <button class="logout-btn" (click)="logout()">
+          تسجيل الخروج
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dash-content">
+    <section class="hero-card">
+      <div class="hero-text">
+        <span class="system-badge">نظام ذكي لإدارة الحضور</span>
+        <h1>نظام البصمة الإلكتروني</h1>
+        <p>
+          لوحة تحكم احترافية لمتابعة الحضور والانصراف، إدارة الموظفين، ومراجعة التقارير اليومية بسهولة.
+        </p>
+      </div>
+
+      <div class="fingerprint-icon">
+        🆔
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div>
+          <h3>إجمالي الموظفين</h3>
+          <strong>128</strong>
+          <p>موظف مسجل بالنظام</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div>
+          <h3>حضور اليوم</h3>
+          <strong>96</strong>
+          <p>عملية حضور مسجلة</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">⏰</div>
+        <div>
+          <h3>تأخير اليوم</h3>
+          <strong>12</strong>
+          <p>حالات تأخير</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div>
+          <h3>تقارير النظام</h3>
+          <strong>24</strong>
+          <p>تقرير متاح</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-grid">
+      <div class="panel-card">
+        <div class="panel-header">
+          <h3>اختصارات سريعة</h3>
+          <span>⚡</span>
+        </div>
+
+        <div class="quick-actions">
+          <button>إدارة الموظفين</button>
+          <button>تقرير الحضور</button>
+          <button>تقرير الانصراف</button>
+          <button>إعدادات الأجهزة</button>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <div class="panel-header">
+          <h3>نشاط النظام</h3>
+          <span>🕘</span>
+        </div>
+
+        <div class="activity-list">
+          <div class="activity-item">
+            <span></span>
+            <p>تم تسجيل حضور 15 موظف خلال آخر ساعة</p>
+          </div>
+
+          <div class="activity-item">
+            <span></span>
+            <p>تم إنشاء تقرير حضور جديد لهذا اليوم</p>
+          </div>
+
+          <div class="activity-item">
+            <span></span>
+            <p>جهاز البصمة الرئيسي يعمل بشكل طبيعي</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
