@@ -1,0 +1,52 @@
+<div class="dashboard-layout" dir="rtl">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🆔</div>
+      <div>
+        <h2>نظام البصمة</h2>
+        <p>لوحة التحكم</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-menu">
+      <a routerLink="/dashboard/employees" routerLinkActive="active">
+        <span>👥</span>
+        <b>الموظفين</b>
+      </a>
+
+     <a routerLink="/dashboard/attendance" routerLinkActive="active">
+  <span>📅</span>
+  <b>الحضور والانصراف</b>
+</a>
+
+      <a>
+        <span>📊</span>
+        <b>التقارير</b>
+      </a>
+
+      <a>
+        <span>⚙️</span>
+        <b>الإعدادات</b>
+      </a>
+    </nav>
+
+    <button class="logout-btn" (click)="logout()">
+      🚪 تسجيل الخروج
+    </button>
+  </aside>
+
+  <section class="main-area">
+    <header class="topbar">
+      <div>
+        <h2>مرحباً بك يا باشمهندسة، {{ userName }} 👋</h2>
+        <p>إدارة نظام البصمة الإلكتروني</p>
+      </div>
+
+      <span class="role-badge">{{ userRole }}</span>
+    </header>
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </section>
+</div>

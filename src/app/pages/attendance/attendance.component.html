@@ -1,0 +1,78 @@
+<div class="attendance-page" dir="rtl">
+  <section class="attendance-card">
+    <div class="upload-info">
+      <span class="small-title">Attendance Import</span>
+      <h1>استيراد الحضور والانصراف</h1>
+      <p>
+        ارفعي شيت الحضور، وسيتم استخراج كود الموظف، التاريخ، وقت الحضور، ووقت الانصراف ثم حفظهم في السيستم.
+      </p>
+    </div>
+
+    <label
+      class="upload-box"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onFileDrop($event)"
+    >
+      <input
+        type="file"
+        accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+        (change)="onAttendanceSheetSelected($event)"
+      />
+
+      <span>📁 اختاري ملف Excel أو اسحبيه هنا</span>
+    </label>
+
+    <div *ngIf="excelFileName" class="file-name">
+      الملف المختار: {{ excelFileName }}
+    </div>
+
+    <div *ngIf="successMessage" class="success-message">
+      {{ successMessage }}
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <ul *ngIf="rowErrors.length > 0" class="row-errors">
+      <li *ngFor="let rowError of rowErrors | slice:0:6">
+        {{ rowError }}
+      </li>
+
+      <li *ngIf="rowErrors.length > 6">
+        ويوجد {{ rowErrors.length - 6 }} أخطاء أخرى...
+      </li>
+    </ul>
+
+    <div class="actions" *ngIf="attendanceRows.length > 0">
+      <button
+        type="button"
+        class="import-btn"
+        [disabled]="isImporting || hasImportedCurrentSheet"
+        (click)="importAttendance()"
+      >
+        {{
+          isImporting
+            ? 'جاري الحفظ...'
+            : hasImportedCurrentSheet
+              ? 'تم الحفظ في السيستم'
+              : 'استيراد الحضور للسيستم'
+        }}
+      </button>
+
+      <button type="button" class="ghost-btn" (click)="clearData()">
+        مسح بيانات الشيت
+      </button>
+    </div>
+  </section>
+
+  <section *ngIf="attendanceRows.length > 0" class="json-preview-card">
+    <div class="table-header">
+      <h3>JSON المستخرج من شيت الحضور</h3>
+      <span>{{ attendanceRows.length }} سجل</span>
+    </div>
+
+    <pre>{{ attendanceRows | json }}</pre>
+  </section>
+</div>
