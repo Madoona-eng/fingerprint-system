@@ -37,6 +37,7 @@
     >
       ➕ إضافة موظف
     </button>
+    
   </section>
 
   <ng-container [ngSwitch]="activeEmployeePage">
@@ -209,7 +210,7 @@
                 <th>الحضور</th>
                 <th>الانصراف</th>
                 <th>السماح</th>
-                <th>إجراء</th>
+              <th class="actions-col">إجراء</th>
               </tr>
             </thead>
 
@@ -222,12 +223,20 @@
                 <td>{{ timeForInput(emp.scheduleOut) }}</td>
                 <td>{{ timeForInput(emp.graceTime) }}</td>
                 <td>
-      <div class="table-actions">
-    <button type="button" class="edit-btn" (click)="editEmployee(emp)">
+  <div class="employee-actions">
+    <button
+      type="button"
+      class="table-action-btn edit-action"
+      (click)="editEmployee(emp)"
+    >
       تعديل
     </button>
 
-    <button type="button" class="details-btn" (click)="openEmployeeDetails(emp)">
+    <button
+      type="button"
+      class="table-action-btn details-action"
+      (click)="openEmployeeDetails(emp)"
+    >
       تفاصيل
     </button>
   </div>
@@ -270,128 +279,172 @@
     <!-- صفحة تفاصيل الموظف -->
 <!-- صفحة تفاصيل الموظف -->
 <!-- صفحة تفاصيل الموظف -->
-<section *ngSwitchCase="'details'" class="employee-sub-page">
-  <div class="employees-table-card details-card">
-
-    <div class="table-header">
-      <div>
-        <h3>تفاصيل الموظف</h3>
-
-        <p *ngIf="selectedEmployeeForDetails">
-          {{ selectedEmployeeForDetails.name }}
-          -
-          كود: {{ selectedEmployeeForDetails.employeeCode }}
-        </p>
-      </div>
-
-      <button type="button" class="clear-search-btn" (click)="backToEmployeesList()">
+<section *ngSwitchCase="'details'" class="employee-details-page" dir="rtl">
+  <div class="employee-details-hero">
+    <div class="hero-top">
+      <button
+        type="button"
+        class="details-back-btn"
+        (click)="backToEmployeesList()"
+      >
         رجوع للقائمة
       </button>
-    </div>
 
-    <div class="employees-search-box details-filter-box">
-      <div class="filter-field">
-        <label>من تاريخ</label>
-        <input
-          type="date"
-          [(ngModel)]="employeeDetailsFrom"
-          [ngModelOptions]="{ standalone: true }"
-        />
+      <div class="hero-title">
+        <span class="hero-badge">تفاصيل الموظف</span>
+        <h1>{{ selectedEmployeeForDetails?.name || '-' }}</h1>
+        <p>
+          كود الموظف:
+          <strong>{{ selectedEmployeeForDetails?.employeeCode || '-' }}</strong>
+        </p>
       </div>
-
-      <div class="filter-field">
-        <label>إلى تاريخ</label>
-        <input
-          type="date"
-          [(ngModel)]="employeeDetailsTo"
-          [ngModelOptions]="{ standalone: true }"
-        />
-      </div>
-
-      <button type="button" (click)="applyEmployeeDetailsDateFilter()">
-        تطبيق الفلتر
-      </button>
-
-      <button type="button" class="clear-search-btn" (click)="clearEmployeeDetailsDateFilter()">
-        مسح الفلتر
-      </button>
     </div>
 
-    <div *ngIf="isLoadingEmployeeDetails" class="loading-box">
-      جاري تحميل تفاصيل الموظف...
-    </div>
-
-    <div *ngIf="!isLoadingEmployeeDetails && employeeDetailsInfo" class="details-summary">
-      <h4>بيانات الموظف</h4>
-
-      <div class="summary-grid">
-        <div>
-          <span>ID</span>
-          <strong>{{ employeeDetailsInfo.id }}</strong>
-        </div>
-
-        <div>
-  <span>الكود</span>
-  <strong>
-    {{ employeeDetailsInfo.employeeCode || selectedEmployeeForDetails?.employeeCode }}
-  </strong>
+    <div class="details-filter-card">
+     <div class="filter-field">
+  <label>من تاريخ</label>
+  <input
+    class="date-text-input"
+    type="text"
+    inputmode="numeric"
+    maxlength="10"
+    placeholder="31/03/2026"
+    [(ngModel)]="employeeDetailsFromDisplay"
+    [ngModelOptions]="{ standalone: true }"
+    (input)="formatEmployeeDetailsDateWhileTyping('from')"
+  />
 </div>
 
-      <div>
-  <span>الاسم</span>
-  <strong>
-    {{ employeeDetailsInfo.name || selectedEmployeeForDetails?.name }}
-  </strong>
+      <div class="filter-field">
+  <label>إلى تاريخ</label>
+  <input
+    class="date-text-input"
+    type="text"
+    inputmode="numeric"
+    maxlength="10"
+    placeholder="31/03/2026"
+    [(ngModel)]="employeeDetailsToDisplay"
+    [ngModelOptions]="{ standalone: true }"
+    (input)="formatEmployeeDetailsDateWhileTyping('to')"
+  />
 </div>
 
-        <div>
-          <span>موعد الحضور</span>
-          <strong>{{ employeeDetailsInfo.scheduleIn }}</strong>
-        </div>
+      <button
+        type="button"
+        class="details-main-btn"
+        [disabled]="isLoadingEmployeeDetails"
+        (click)="applyEmployeeDetailsDateFilter()"
+      >
+        {{ isLoadingEmployeeDetails ? 'جاري التحميل...' : 'تطبيق الفترة' }}
+      </button>
 
-        <div>
-          <span>موعد الانصراف</span>
-          <strong>{{ employeeDetailsInfo.scheduleOut }}</strong>
-        </div>
+      <button
+        type="button"
+        class="details-secondary-btn"
+        (click)="clearEmployeeDetailsDateFilter()"
+      >
+        مسح الفترة
+      </button>
+    </div>
+  </div>
 
-        <div>
-          <span>وقت السماح</span>
-          <strong>{{ employeeDetailsInfo.graceTime }}</strong>
-        </div>
+  <div class="employee-info-card">
+    <div class="section-title-row">
+      <h2>بيانات الموظف</h2>
+      <span>{{ employeeDetailsTotalCount || employeeDetailsRows.length }} سجل</span>
+    </div>
+
+    <div class="employee-info-grid">
+      <div class="info-box">
+        <span>ID</span>
+        <strong>{{ selectedEmployeeForDetails?.id || '-' }}</strong>
+      </div>
+
+      <div class="info-box">
+        <span>الكود</span>
+        <strong>{{ selectedEmployeeForDetails?.employeeCode || '-' }}</strong>
+      </div>
+
+      <div class="info-box large-info">
+        <span>الاسم</span>
+        <strong>{{ selectedEmployeeForDetails?.name || '-' }}</strong>
+      </div>
+
+      <div class="info-box">
+        <span>القسم</span>
+        <strong>
+          {{ selectedEmployeeForDetails?.departmentName || selectedEmployeeForDetails?.departmentId || '-' }}
+        </strong>
+      </div>
+
+      <div class="info-box">
+        <span>موعد الحضور</span>
+        <strong>{{ selectedEmployeeForDetails?.scheduleIn || '-' }}</strong>
+      </div>
+
+      <div class="info-box">
+        <span>موعد الانصراف</span>
+        <strong>{{ selectedEmployeeForDetails?.scheduleOut || '-' }}</strong>
+      </div>
+
+      <div class="info-box">
+        <span>وقت السماح</span>
+        <strong>{{ selectedEmployeeForDetails?.graceTime || '-' }}</strong>
       </div>
     </div>
+  </div>
 
-    <div
-      *ngIf="!isLoadingEmployeeDetails && employeeDetailsInfo && employeeDetailsRows.length === 0"
-      class="empty-message"
-    >تم العثور على بيانات الموظف، ولا توجد سجلات حضور في الفترة المحددة    لا توجد سجلات حضور لهذا الموظف في الفترة المحددة
+  <div class="employee-details-table-card">
+    <div class="section-title-row">
+      <h2>سجلات الحضور والانصراف</h2>
+      <span *ngIf="isLoadingEmployeeDetails">جاري التحميل...</span>
+      <span *ngIf="!isLoadingEmployeeDetails">{{ employeeDetailsRows.length }} نتيجة</span>
     </div>
 
-    <div *ngIf="!isLoadingEmployeeDetails && employeeDetailsRows.length > 0" class="table-wrapper">
+    <div *ngIf="!isLoadingEmployeeDetails && employeeDetailsRows.length > 0" class="details-table-wrapper">
       <table>
         <thead>
           <tr>
             <th>التاريخ</th>
             <th>الحضور الفعلي</th>
             <th>الانصراف الفعلي</th>
+            <th>الحالة</th>
+            <th>ملاحظات</th>
           </tr>
         </thead>
 
         <tbody>
           <tr *ngFor="let row of employeeDetailsRows">
-            <td>{{ row.date || row.Date }}</td>
-            <td>{{ row.actualIn || row.actualInTime || row.ActualIn }}</td>
-            <td>{{ row.actualOut || row.actualOutTime || row.ActualOut }}</td>
+            <td>{{ row.date || row.attendanceDate || row.from || '-' }}</td>
+
+            <td>{{ row.actualIn || row.checkIn || row.in || '-' }}</td>
+
+            <td>{{ row.actualOut || row.checkOut || row.out || '-' }}</td>
+
+            <td>
+              <span class="details-status-badge">
+                {{ row.status || '-' }}
+              </span>
+            </td>
+
+            <td>{{ row.notes || '-' }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="pagination-box" *ngIf="employeeDetailsTotalPages > 1">
+    <div *ngIf="!isLoadingEmployeeDetails && employeeDetailsRows.length === 0" class="details-empty">
+      لا توجد سجلات حضور لهذا الموظف في الفترة المحددة.
+    </div>
+
+    <div
+      *ngIf="employeeDetailsTotalPages > 1"
+      class="details-pagination"
+    >
       <button
         type="button"
+        [disabled]="employeeDetailsPageNumber <= 1"
         (click)="previousEmployeeDetailsPage()"
-        [disabled]="employeeDetailsPageNumber === 1"
       >
         السابق
       </button>
@@ -402,38 +455,19 @@
 
       <button
         type="button"
+        [disabled]="employeeDetailsPageNumber >= employeeDetailsTotalPages"
         (click)="nextEmployeeDetailsPage()"
-        [disabled]="employeeDetailsPageNumber === employeeDetailsTotalPages"
       >
         التالي
       </button>
     </div>
-
   </div>
 </section>
 
 
 
 
-<div *ngIf="!isLoadingEmployeeDetails && employeeDetailsRows.length > 0" class="table-wrapper">
-  <table>
-    <thead>
-      <tr>
-        <th>التاريخ</th>
-        <th>الحضور الفعلي</th>
-        <th>الانصراف الفعلي</th>
-      </tr>
-    </thead>
 
-    <tbody>
-      <tr *ngFor="let row of employeeDetailsRows">
-        <td>{{ row.date || row.Date }}</td>
-        <td>{{ row.actualIn || row.actualInTime || row.ActualIn }}</td>
-        <td>{{ row.actualOut || row.actualOutTime || row.ActualOut }}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
 
     <!-- صفحة إضافة / تعديل موظف -->
     <section *ngSwitchCase="'form'" class="employee-sub-page">

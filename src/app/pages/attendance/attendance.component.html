@@ -109,7 +109,7 @@
       <section *ngIf="attendanceRows.length > 0" class="json-preview-card">
         <div class="table-header">
           <h3>JSON المستخرج من شيت الحضور</h3>
-          <span>{{ attendanceRows.length }} سجل</span>
+       <span>{{ filteredDateRangeRows.length }} سجل</span>
         </div>
 
         <pre>{{ attendanceRows | json }}</pre>
@@ -128,23 +128,47 @@
         </div>
 
         <div class="attendance-filter-box">
-          <div class="filter-field">
-            <label>من تاريخ</label>
-            <input
-              type="date"
-              [(ngModel)]="dateRangeFrom"
-              [ngModelOptions]="{ standalone: true }"
-            />
-          </div>
+        <div class="filter-field">
+  <label>من تاريخ</label>
+  <input
+    class="date-text-input"
+    type="text"
+    inputmode="numeric"
+    maxlength="10"
+    placeholder="10/06/2026"
+    [(ngModel)]="dateRangeFromDisplay"
+    [ngModelOptions]="{ standalone: true }"
+    (input)="formatDateDisplayWhileTyping('from')"
+  />
+</div>
 
-          <div class="filter-field">
-            <label>إلى تاريخ</label>
-            <input
-              type="date"
-              [(ngModel)]="dateRangeTo"
-              [ngModelOptions]="{ standalone: true }"
-            />
-          </div>
+        <div class="filter-field">
+  <label>إلى تاريخ</label>
+  <input
+    class="date-text-input"
+    type="text"
+    inputmode="numeric"
+    maxlength="10"
+    placeholder="10/06/2026"
+    [(ngModel)]="dateRangeToDisplay"
+    [ngModelOptions]="{ standalone: true }"
+    (input)="formatDateDisplayWhileTyping('to')"
+  />
+</div>
+          <div class="date-shortcuts">
+  <button type="button" (click)="setTodayDateRange()">اليوم</button>
+  <button type="button" (click)="setYesterdayDateRange()">أمس</button>
+  <button type="button" (click)="setCurrentMonthDateRange()">من أول الشهر</button>
+</div>
+          <div class="filter-field search-field">
+  <label>بحث عن موظف</label>
+  <input
+    type="text"
+    placeholder="اكتبي اسم الموظف أو الكود"
+    [(ngModel)]="employeeSearchTerm"
+    [ngModelOptions]="{ standalone: true }"
+  />
+</div>
 
           <div class="filter-field">
             <label>القسم</label>
@@ -211,42 +235,92 @@
           <span>{{ dateRangeTotalCount || dateRangeRows.length }} سجل</span>
         </div>
 
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>الكود</th>
-                <th>الاسم</th>
-                <th>القسم</th>
-                <th>التاريخ</th>
-                <th>الحضور</th>
-                <th>الانصراف</th>
-                <th>الحالة</th>
-                <th>ملاحظات</th>
-                <th>تعديل</th>
-              </tr>
-            </thead>
+<div class="table-wrapper" *ngIf="dateRangeRows.length > 0">
+  <table>
+    <thead>
+      <tr>
+        <th>الكود</th>
+        <th>اسم الموظف</th>
+        <th>القسم</th>
+        <th>التاريخ</th>
+        <th>الحضور</th>
+        <th>الانصراف</th>
+        <th>الحالة</th>
+        <th>ملاحظات</th>
+        <th>المراجعة</th>
+        <th>تعديل</th>
+      </tr>
+    </thead>
 
-            <tbody>
-              <tr *ngFor="let row of dateRangeRows">
-                <td>{{ row.employeeCode || row.employee?.employeeCode || '-' }}</td>
-                <td>{{ row.employeeName || row.name || row.employee?.name || '-' }}</td>
-                <td>{{ row.departmentName || row.employee?.departmentName || '-' }}</td>
-                <td>{{ row.date || row.attendanceDate || '-' }}</td>
-                <td>{{ row.actualIn || '-' }}</td>
-                <td>{{ row.actualOut || '-' }}</td>
+    <tbody>
+     <tr *ngFor="let row of filteredDateRangeRows">
+        <td>
+          {{ row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-' }}
+        </td>
 
-                <td>
-                  <span class="status-badge" [ngClass]="getStatusClass(row.status)">
-                    {{ getStatusLabel(row.status) }}
-                  </span>
-                </td>
+        <td>
+          {{ row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-' }}
+        </td>
 
-                <td>{{ getNotesLabel(row.notes) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <td>
+          {{ row.departmentName || row.employee?.departmentName || row.department?.name || '-' }}
+        </td>
+
+        <td>
+          {{ row.date || row.attendanceDate || '-' }}
+        </td>
+
+        <td>
+          {{ row.actualIn || '-' }}
+        </td>
+
+        <td>
+          {{ row.actualOut || '-' }}
+        </td>
+
+        <td>
+          <span class="status-badge" [ngClass]="getStatusClass(row.status)">
+            {{ getStatusLabel(row.status) }}
+          </span>
+        </td>
+
+        <td>
+          {{ getNotesLabel(row.notes) }}
+        </td>
+
+        <td>
+          <button
+            *ngIf="needsReview(row)"
+            type="button"
+            class="review-btn"
+            [disabled]="reviewingAttendanceId === getAttendanceId(row)"
+            (click)="markAttendanceReviewed(row)"
+          >
+            {{ reviewingAttendanceId === getAttendanceId(row) ? 'جاري...' : 'تمت المراجعة' }}
+          </button>
+
+          <span *ngIf="isReviewed(row)" class="reviewed-badge">
+            تمت المراجعة
+          </span>
+
+          <span *ngIf="!needsReview(row) && !isReviewed(row)" class="no-review-needed">
+            -
+          </span>
+        </td>
+
+        <td>
+          <button
+            type="button"
+            class="edit-attendance-btn"
+            (click)="openAttendanceEdit(row)"
+          >
+            تعديل
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
         <div class="pagination-box" *ngIf="dateRangeTotalPages > 1">
           <button
@@ -291,23 +365,39 @@
         </div>
 
         <div class="attendance-filter-box late-summary-filter">
-          <div class="filter-field">
-            <label>من تاريخ</label>
-            <input
-              type="date"
-              [(ngModel)]="lateSummaryFrom"
-              [ngModelOptions]="{ standalone: true }"
-            />
-          </div>
+         <div class="filter-field">
+  <label>من تاريخ</label>
+  <input
+    class="date-text-input"
+    type="text"
+    inputmode="numeric"
+    maxlength="10"
+    placeholder="10/06/2026"
+    [(ngModel)]="lateSummaryFromDisplay"
+    [ngModelOptions]="{ standalone: true }"
+    (input)="formatLateDateDisplayWhileTyping('from')"
+  />
+</div>
 
           <div class="filter-field">
-            <label>إلى تاريخ</label>
-            <input
-              type="date"
-              [(ngModel)]="lateSummaryTo"
-              [ngModelOptions]="{ standalone: true }"
-            />
-          </div>
+  <label>إلى تاريخ</label>
+  <input
+    class="date-text-input"
+    type="text"
+    inputmode="numeric"
+    maxlength="10"
+    placeholder="10/06/2026"
+    [(ngModel)]="lateSummaryToDisplay"
+    [ngModelOptions]="{ standalone: true }"
+    (input)="formatLateDateDisplayWhileTyping('to')"
+  />
+</div>
+
+<div class="date-shortcuts">
+  <button type="button" (click)="setTodayLateSummaryDateRange()">اليوم</button>
+  <button type="button" (click)="setYesterdayLateSummaryDateRange()">أمس</button>
+  <button type="button" (click)="setCurrentMonthLateSummaryDateRange()">من أول الشهر</button>
+</div>
 
           <div class="filter-field">
             <label>رقم الموظف ID</label>
@@ -359,10 +449,165 @@
   لا توجد بيانات تأخير لهذا الموظف في الفترة المحددة
 </div>
 
-<pre *ngIf="lateSummaryData && lateSummaryData.length > 0">
-{{ lateSummaryData | json }}
-</pre>
+<section
+  *ngIf="lateSummaryRows.length > 0"
+  class="json-preview-card late-summary-result"
+>
+  <div class="table-header">
+    <h3>نتيجة ملخص التأخير</h3>
+    <span>Employee ID: {{ lateSummaryEmployeeId }}</span>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>كود الموظف</th>
+          <th>اسم الموظف</th>
+          <th>من تاريخ</th>
+          <th>إلى تاريخ</th>
+          <th>إجمالي دقائق التأخير</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let row of lateSummaryRows">
+          <td>{{ row.employeeCode || '-' }}</td>
+          <td>{{ row.employeeName || '-' }}</td>
+          <td>{{ row.from || '-' }}</td>
+          <td>{{ row.to || '-' }}</td>
+
+          <td>
+            <span class="late-minutes-badge">
+              {{ row.totalLateMinutes || 0 }} دقيقة
+            </span>
+          </td>
+
+          <td>
+            <span
+              class="status-badge"
+              [ngClass]="(row.totalLateMinutes || 0) > 0 ? 'status-late' : 'status-present'"
+            >
+              {{ (row.totalLateMinutes || 0) > 0 ? 'يوجد تأخير' : 'لا يوجد تأخير' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div
+  *ngIf="lateSummaryData && lateSummaryRows.length === 0"
+  class="empty-message"
+>
+  لا يوجد ملخص تأخير لهذا الموظف في الفترة المحددة.
+</div>
       </section>
     </section>
+    <section *ngSwitchCase="'edit'" class="attendance-sub-page">
+  <section class="attendance-card edit-attendance-card">
+    <div class="upload-info">
+      <span class="small-title">تعديل الحضور</span>
+      <h1>تعديل سجل الحضور والانصراف</h1>
+      <p>عدلي وقت الحضور أو الانصراف أو الحالة ثم اضغطي حفظ.</p>
+    </div>
+
+    <div class="edit-attendance-summary">
+      <div>
+        <span>كود الموظف</span>
+        <strong>{{ attendanceEditEmployeeCode || '-' }}</strong>
+      </div>
+
+      <div>
+        <span>اسم الموظف</span>
+        <strong>{{ attendanceEditEmployeeName || '-' }}</strong>
+      </div>
+
+      <div>
+        <span>القسم</span>
+        <strong>{{ attendanceEditDepartmentName || '-' }}</strong>
+      </div>
+
+      <div>
+        <span>التاريخ</span>
+        <strong>{{ attendanceEditDate || '-' }}</strong>
+      </div>
+    </div>
+
+    <div class="attendance-edit-form">
+      <div class="filter-field">
+        <label>وقت الحضور</label>
+        <input
+          type="time"
+          [(ngModel)]="attendanceEditActualIn"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+
+      <div class="filter-field">
+        <label>وقت الانصراف</label>
+        <input
+          type="time"
+          [(ngModel)]="attendanceEditActualOut"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+
+      <div class="filter-field">
+        <label>الحالة</label>
+        <select
+          [(ngModel)]="attendanceEditStatus"
+          [ngModelOptions]="{ standalone: true }"
+        >
+          <option
+            *ngFor="let status of statusOptions"
+            [ngValue]="status.value"
+          >
+            {{ status.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-field full-field">
+        <label>ملاحظات</label>
+        <input
+          type="text"
+          placeholder="اكتبي ملاحظة"
+          [(ngModel)]="attendanceEditNotes"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+    </div>
+
+    <div *ngIf="attendanceEditSuccessMessage" class="success-message">
+      {{ attendanceEditSuccessMessage }}
+    </div>
+
+    <div *ngIf="attendanceEditErrorMessage" class="error-message">
+      {{ attendanceEditErrorMessage }}
+    </div>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="import-btn"
+        [disabled]="isSavingAttendanceEdit"
+        (click)="saveAttendanceEdit()"
+      >
+        {{ isSavingAttendanceEdit ? 'جاري الحفظ...' : 'حفظ التعديل' }}
+      </button>
+
+      <button
+        type="button"
+        class="ghost-btn"
+        (click)="cancelAttendanceEdit()"
+      >
+        رجوع
+      </button>
+    </div>
+  </section>
+</section>
   </ng-container>
 </div>

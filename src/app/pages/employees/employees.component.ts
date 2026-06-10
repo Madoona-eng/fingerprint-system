@@ -20,7 +20,9 @@ interface UnknownDepartment {
   key: string;
   name: string;
   id: number | null;
+  
 }
+type EmployeePage = 'upload' | 'list' | 'form' | 'details' | 'analytics';
 
 @Component({
   selector: 'app-employees',
@@ -59,17 +61,40 @@ employeeDetailsInfo: any = null;
 
   employeeDetailsFrom = '';
   employeeDetailsTo = '';
+  employeeDetailsFromDisplay = '';
+  employeeDetailsToDisplay = '';
   employeeDetailsPageNumber = 1;
   employeeDetailsPageSize = 10;
   employeeDetailsTotalCount = 0;
   employeeDetailsTotalPages = 0;
 
-  activeEmployeePage: 'upload' | 'list' | 'form' | 'details' = 'upload';
+  activeEmployeePage: EmployeePage = 'upload';
 
   excelEmployees: Employee[] = [];
   excelFileName = '';
   excelErrorMessage = '';
   excelSuccessMessage = '';
+  analyticsDate = '';
+analyticsDateDisplay = '';
+
+isLoadingEmployeesAnalytics = false;
+employeesAnalyticsErrorMessage = '';
+employeesAnalyticsSuccessMessage = '';
+
+employeesAnalyticsRaw: any = null;
+employeesAnalyticsRows: any[] = [];
+
+analyticsStats = {
+  total: 0,
+  present: 0,
+  absent: 0,
+  late: 0,
+  earlyDeparture: 0,
+  needsReview: 0,
+  reviewed: 0
+};
+
+analyticsDepartmentRows: any[] = [];
   excelRowErrors: string[] = [];
 
   bulkImportResults: any[] = [];
@@ -304,21 +329,14 @@ getDepartmentNameById(id: number | null | undefined): string {
     this.loadEmployees();
   }
 
-  openEmployeePage(page: 'upload' | 'list' | 'form' | 'details'): void {
-    this.activeEmployeePage = page;
+openEmployeePage(page: EmployeePage): void {
+  this.activeEmployeePage = page;
 
-    if (page === 'list') {
-      this.loadEmployees();
-    }
-
-    if (page === 'form') {
-      this.selectedEmployeeId = null;
-      this.employeeForm.reset();
-      this.errorMessage = '';
-      this.successMessage = '';
-    }
+  if (page === 'analytics' && !this.analyticsDateDisplay) {
+    this.setTodayAnalyticsDate();
+    this.loadEmployeesAnalytics();
   }
-
+}
   initForm(): void {
     this.employeeForm = this.fb.group({
       employeeCode: ['', Validators.required],
@@ -374,6 +392,327 @@ getDepartmentNameById(id: number | null | undefined): string {
         }
       });
   }
+  setTodayAnalyticsDate(): void {
+  const today = new Date();
+
+  this.analyticsDate = this.analyticsDateToApi(today);
+  this.analyticsDateDisplay = this.analyticsDateToDisplay(today);
+}
+
+formatAnalyticsDateWhileTyping(): void {
+  let value = String(this.analyticsDateDisplay || '')
+    .replace(/\D/g, '')
+    .slice(0, 8);
+
+  if (value.length > 4) {
+    value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
+  } else if (value.length > 2) {
+    value = `${value.slice(0, 2)}/${value.slice(2)}`;
+  }
+
+  this.analyticsDateDisplay = value;
+}
+
+loadEmployeesAnalytics(): void {
+  const apiDate = this.analyticsDisplayDateToApi(this.analyticsDateDisplay);
+
+  if (!apiDate) {
+    this.employeesAnalyticsErrorMessage =
+      'من فضلك اكتبي التاريخ بطريقة صحيحة مثل: 31/03/2026';
+    return;
+  }
+
+  this.analyticsDate = apiDate;
+  this.analyticsDateDisplay = this.analyticsApiDateToDisplay(apiDate);
+
+  this.isLoadingEmployeesAnalytics = true;
+  this.employeesAnalyticsErrorMessage = '';
+  this.employeesAnalyticsSuccessMessage = '';
+
+  this.employeesService.getEmployeesSummary(this.analyticsDate).subscribe({
+    next: (response: any) => {
+      console.log('Employees Summary Response:', response);
+
+      const data = response?.data || response;
+
+      this.employeesAnalyticsRaw = data;
+      this.employeesAnalyticsRows = this.extractAnalyticsRows(data);
+      this.analyticsStats = this.buildAnalyticsStats(data, this.employeesAnalyticsRows);
+      this.analyticsDepartmentRows = this.buildDepartmentAnalyticsRows(
+        this.employeesAnalyticsRows
+      );
+
+      this.employeesAnalyticsSuccessMessage = 'تم تحميل تحليل البيانات بنجاح';
+      this.isLoadingEmployeesAnalytics = false;
+    },
+    error: (err) => {
+      console.log('Employees analytics error:', err);
+
+      this.employeesAnalyticsRaw = null;
+      this.employeesAnalyticsRows = [];
+      this.analyticsDepartmentRows = [];
+
+      this.analyticsStats = {
+        total: 0,
+        present: 0,
+        absent: 0,
+        late: 0,
+        earlyDeparture: 0,
+        needsReview: 0,
+        reviewed: 0
+      };
+
+      this.employeesAnalyticsErrorMessage =
+        err?.error?.message ||
+        err?.message ||
+        'حدث خطأ أثناء تحميل تحليل البيانات';
+
+      this.isLoadingEmployeesAnalytics = false;
+    }
+  });
+}
+
+clearEmployeesAnalytics(): void {
+  this.analyticsDate = '';
+  this.analyticsDateDisplay = '';
+  this.employeesAnalyticsRaw = null;
+  this.employeesAnalyticsRows = [];
+  this.analyticsDepartmentRows = [];
+  this.employeesAnalyticsErrorMessage = '';
+  this.employeesAnalyticsSuccessMessage = '';
+
+  this.analyticsStats = {
+    total: 0,
+    present: 0,
+    absent: 0,
+    late: 0,
+    earlyDeparture: 0,
+    needsReview: 0,
+    reviewed: 0
+  };
+}
+
+get attendancePercent(): number {
+  if (!this.analyticsStats.total) return 0;
+  return Math.round((this.analyticsStats.present / this.analyticsStats.total) * 100);
+}
+
+get latePercent(): number {
+  if (!this.analyticsStats.total) return 0;
+  return Math.round((this.analyticsStats.late / this.analyticsStats.total) * 100);
+}
+
+get absencePercent(): number {
+  if (!this.analyticsStats.total) return 0;
+  return Math.round((this.analyticsStats.absent / this.analyticsStats.total) * 100);
+}
+
+private extractAnalyticsRows(data: any): any[] {
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.employees)) return data.employees;
+  if (Array.isArray(data?.details)) return data.details;
+  if (Array.isArray(data?.rows)) return data.rows;
+  if (Array.isArray(data)) return data;
+
+  return [];
+}
+
+private buildAnalyticsStats(data: any, rows: any[]): any {
+  const apiStats = {
+    total: this.pickNumber(data, ['total', 'totalEmployees', 'employeeCount', 'count']),
+    present: this.pickNumber(data, ['present', 'presentCount', 'totalPresent']),
+    absent: this.pickNumber(data, ['absent', 'absentCount', 'totalAbsent']),
+    late: this.pickNumber(data, ['late', 'lateCount', 'totalLate']),
+    earlyDeparture: this.pickNumber(data, [
+      'earlyDeparture',
+      'earlyDepartureCount',
+      'totalEarlyDeparture'
+    ]),
+    needsReview: this.pickNumber(data, ['needsReview', 'needsReviewCount']),
+    reviewed: this.pickNumber(data, ['reviewed', 'reviewedCount'])
+  };
+
+  const hasApiStats = Object.values(apiStats).some((value) => value > 0);
+
+  if (hasApiStats) {
+    return apiStats;
+  }
+
+  const stats = {
+    total: rows.length,
+    present: 0,
+    absent: 0,
+    late: 0,
+    earlyDeparture: 0,
+    needsReview: 0,
+    reviewed: 0
+  };
+
+  rows.forEach((row: any) => {
+    const status = String(
+      row.status || row.attendanceStatus || row.todayStatus || ''
+    ).trim();
+
+    const notes = String(row.notes || '').toLowerCase();
+
+    if (status === 'Present') {
+      stats.present++;
+    } else if (status === 'Absent') {
+      stats.absent++;
+    } else if (status === 'Late') {
+      stats.late++;
+    } else if (status === 'EarlyDeparture') {
+      stats.earlyDeparture++;
+    }
+
+    if (
+      notes.includes('needs review') ||
+      notes.includes('يحتاج مراجعة') ||
+      status === 'Incomplete' ||
+      status === 'MissingIn' ||
+      status === 'MissingOut'
+    ) {
+      stats.needsReview++;
+    }
+
+    if (
+      row.isReviewed === true ||
+      row.reviewed === true ||
+      notes.includes('reviewed') ||
+      notes.includes('تمت المراجعة')
+    ) {
+      stats.reviewed++;
+    }
+  });
+
+  return stats;
+}
+
+private buildDepartmentAnalyticsRows(rows: any[]): any[] {
+  const map = new Map<string, any>();
+
+  rows.forEach((row: any) => {
+    const departmentName =
+      row.departmentName ||
+      row.employee?.departmentName ||
+      row.department?.name ||
+      'غير محدد';
+
+    const status = String(
+      row.status || row.attendanceStatus || row.todayStatus || ''
+    ).trim();
+
+    if (!map.has(departmentName)) {
+      map.set(departmentName, {
+        departmentName,
+        total: 0,
+        present: 0,
+        absent: 0,
+        late: 0,
+        earlyDeparture: 0
+      });
+    }
+
+    const item = map.get(departmentName);
+
+    item.total++;
+
+    if (status === 'Present') {
+      item.present++;
+    } else if (status === 'Absent') {
+      item.absent++;
+    } else if (status === 'Late') {
+      item.late++;
+    } else if (status === 'EarlyDeparture') {
+      item.earlyDeparture++;
+    }
+  });
+
+  return Array.from(map.values());
+}
+
+private pickNumber(data: any, keys: string[]): number {
+  for (const key of keys) {
+    const value = Number(data?.[key]);
+
+    if (Number.isFinite(value)) {
+      return value;
+    }
+  }
+
+  return 0;
+}
+
+private analyticsDateToApi(date: Date): string {
+  const year = date.getFullYear();
+  const month = this.analyticsPad(date.getMonth() + 1);
+  const day = this.analyticsPad(date.getDate());
+
+  return `${year}-${month}-${day}`;
+}
+
+private analyticsDateToDisplay(date: Date): string {
+  const day = this.analyticsPad(date.getDate());
+  const month = this.analyticsPad(date.getMonth() + 1);
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
+private analyticsDisplayDateToApi(displayDate: string): string {
+  const text = String(displayDate || '').trim();
+
+  if (!text) return '';
+
+  const normalizedText = text.replace(/[.\-]/g, '/');
+
+  let day = 0;
+  let month = 0;
+  let year = 0;
+
+  const slashMatch = normalizedText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+  if (slashMatch) {
+    day = Number(slashMatch[1]);
+    month = Number(slashMatch[2]);
+    year = Number(slashMatch[3]);
+  } else {
+    const digits = normalizedText.replace(/\D/g, '');
+
+    if (!/^\d{8}$/.test(digits)) {
+      return '';
+    }
+
+    day = Number(digits.slice(0, 2));
+    month = Number(digits.slice(2, 4));
+    year = Number(digits.slice(4, 8));
+  }
+
+  const date = new Date(year, month - 1, day);
+
+  const isValidDate =
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day;
+
+  if (!isValidDate) return '';
+
+  return `${year}-${this.analyticsPad(month)}-${this.analyticsPad(day)}`;
+}
+
+private analyticsApiDateToDisplay(apiDate: string): string {
+  if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
+    return '';
+  }
+
+  const [year, month, day] = apiDate.split('-');
+
+  return `${day}/${month}/${year}`;
+}
+
+private analyticsPad(value: number): string {
+  return value.toString().padStart(2, '0');
+}
 
 openEmployeeDetails(employee: Employee): void {
   if (!employee.id) {
@@ -465,6 +804,12 @@ openEmployeeDetails(employee: Employee): void {
 }
 
   applyEmployeeDetailsDateFilter(): void {
+    this.employeeDetailsFrom = this.formatEmployeeDetailsDateToApi(
+      this.employeeDetailsFromDisplay
+    );
+    this.employeeDetailsTo = this.formatEmployeeDetailsDateToApi(
+      this.employeeDetailsToDisplay
+    );
     this.employeeDetailsPageNumber = 1;
     this.loadEmployeeDetails();
   }
@@ -472,8 +817,48 @@ openEmployeeDetails(employee: Employee): void {
   clearEmployeeDetailsDateFilter(): void {
     this.employeeDetailsFrom = '';
     this.employeeDetailsTo = '';
+    this.employeeDetailsFromDisplay = '';
+    this.employeeDetailsToDisplay = '';
     this.employeeDetailsPageNumber = 1;
     this.loadEmployeeDetails();
+  }
+
+  formatEmployeeDetailsDateWhileTyping(field: 'from' | 'to'): void {
+    const currentValue =
+      field === 'from'
+        ? this.employeeDetailsFromDisplay
+        : this.employeeDetailsToDisplay;
+
+    const normalized = String(currentValue || '')
+      .replace(/\D/g, '')
+      .slice(0, 8);
+
+    const formatted =
+      normalized.length > 4
+        ? `${normalized.slice(0, 2)}/${normalized.slice(2, 4)}/${normalized.slice(4)}`
+        : normalized.length > 2
+          ? `${normalized.slice(0, 2)}/${normalized.slice(2)}`
+          : normalized;
+
+    if (field === 'from') {
+      this.employeeDetailsFromDisplay = formatted;
+    } else {
+      this.employeeDetailsToDisplay = formatted;
+    }
+  }
+
+  private formatEmployeeDetailsDateToApi(value: string): string {
+    const digits = String(value || '').replace(/\D/g, '');
+
+    if (digits.length !== 8) {
+      return '';
+    }
+
+    const day = digits.slice(0, 2);
+    const month = digits.slice(2, 4);
+    const year = digits.slice(4, 8);
+
+    return `${year}-${month}-${day}`;
   }
 
   nextEmployeeDetailsPage(): void {

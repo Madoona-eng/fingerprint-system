@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+
 export interface EmployeePayload {
   employeeCode: string;
   name: string;
@@ -89,6 +90,14 @@ export class EmployeesService {
       params
     });
   }
+  getEmployeesSummary(date: string): Observable<any> {
+  const params = new HttpParams().set('date', date);
+
+  return this.http.get<any>(`${this.apiUrl}/summary`, {
+    headers: this.getHeaders(),
+    params
+  });
+}
 
   addEmployee(employee: EmployeePayload): Observable<ApiResponse<Employee | boolean>> {
     const payload: EmployeePayload = {

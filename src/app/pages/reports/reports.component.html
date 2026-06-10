@@ -1,0 +1,153 @@
+<div class="reports-page" dir="rtl">
+  <section class="reports-hero-card">
+    <div>
+      <span class="reports-badge">Reports Dashboard</span>
+      <h1>تحليل بيانات الحضور والانصراف</h1>
+      <p>اختاري التاريخ لعرض لوحة تحليل حضور وانصراف الموظفين.</p>
+    </div>
+
+    <div class="reports-filter-box">
+      <div class="filter-field">
+        <label>التاريخ</label>
+        <input
+          type="text"
+          class="date-text-input"
+          inputmode="numeric"
+          maxlength="10"
+          placeholder="31/03/2026"
+          [(ngModel)]="analyticsDateDisplay"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="formatAnalyticsDateWhileTyping()"
+        />
+      </div>
+
+      <button type="button" class="ghost-btn" (click)="setTodayDate()">
+        اليوم
+      </button>
+
+      <button type="button" class="ghost-btn" (click)="setYesterdayDate()">
+        أمس
+      </button>
+
+      <button
+        type="button"
+        class="main-btn"
+        [disabled]="isLoading"
+        (click)="loadAnalytics()"
+      >
+        {{ isLoading ? 'جاري التحميل...' : 'عرض التحليل' }}
+      </button>
+
+      <button type="button" class="ghost-btn" (click)="clearAnalytics()">
+        مسح
+      </button>
+    </div>
+  </section>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+
+  <section class="analytics-cards-grid">
+    <div class="analytics-card">
+      <span>إجمالي الموظفين</span>
+      <strong>{{ analyticsStats.total }}</strong>
+    </div>
+
+<div class="analytics-card present-card">
+  <span>حاضر منتظم</span>
+  <strong>{{ regularPresentCount }}</strong>
+</div>
+    <div class="analytics-card absent-card">
+      <span>غائب</span>
+      <strong>{{ analyticsStats.absent }}</strong>
+    </div>
+
+    <div class="analytics-card late-card">
+      <span>متأخر</span>
+      <strong>{{ analyticsStats.late }}</strong>
+    </div>
+
+    <div class="analytics-card early-card">
+      <span>ترك عمل</span>
+      <strong>{{ analyticsStats.earlyDeparture }}</strong>
+    </div>
+
+   <div class="analytics-card review-card">
+  <span>يحتاج مراجعة</span>
+  <strong>{{ analyticsStats.needsReview }}</strong>
+  <small>تنبيه مستقل</small>
+</div>
+  </section>
+
+  <section class="analytics-progress-card">
+    <h2>مؤشرات اليوم</h2>
+
+    <div class="progress-item">
+      <div>
+        <span>نسبة الحضور</span>
+        <strong>{{ attendancePercent }}%</strong>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill present-fill" [style.width.%]="attendancePercent"></div>
+      </div>
+    </div>
+
+    <div class="progress-item">
+      <div>
+        <span>نسبة التأخير</span>
+        <strong>{{ latePercent }}%</strong>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill late-fill" [style.width.%]="latePercent"></div>
+      </div>
+    </div>
+
+    <div class="progress-item">
+      <div>
+        <span>نسبة الغياب</span>
+        <strong>{{ absencePercent }}%</strong>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill absent-fill" [style.width.%]="absencePercent"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="analytics-table-card" *ngIf="departmentRows.length > 0">
+    <div class="section-title-row">
+      <h2>تحليل الأقسام</h2>
+      <span>{{ departmentRows.length }} قسم</span>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>القسم</th>
+            <th>الإجمالي</th>
+            <th>حاضر</th>
+            <th>غائب</th>
+            <th>متأخر</th>
+            <th>ترك عمل</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let row of departmentRows">
+            <td>{{ row.departmentName }}</td>
+            <td>{{ row.total }}</td>
+            <td>{{ row.present }}</td>
+            <td>{{ row.absent }}</td>
+            <td>{{ row.late }}</td>
+            <td>{{ row.earlyDeparture }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
