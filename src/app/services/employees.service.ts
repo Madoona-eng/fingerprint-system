@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-
 export interface EmployeePayload {
   employeeCode: string;
   name: string;
@@ -64,8 +63,7 @@ export class EmployeesService {
       localStorage.getItem('jwt');
 
     let headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Accept: 'application/json'
+      'Content-Type': 'application/json'
     });
 
     if (token) {
@@ -80,7 +78,7 @@ export class EmployeesService {
     pageNumber: number = 1,
     pageSize: number = 10
   ): Observable<ApiResponse<EmployeesPagedData>> {
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('search', search || '')
       .set('pageNumber', String(pageNumber))
       .set('pageSize', String(pageSize));
@@ -90,26 +88,11 @@ export class EmployeesService {
       params
     });
   }
-  getEmployeesSummary(date: string): Observable<any> {
-  const params = new HttpParams().set('date', date);
 
-  return this.http.get<any>(`${this.apiUrl}/summary`, {
-    headers: this.getHeaders(),
-    params
-  });
-}
-
-  addEmployee(employee: EmployeePayload): Observable<ApiResponse<Employee | boolean>> {
-    const payload: EmployeePayload = {
-      employeeCode: String(employee.employeeCode || '').trim(),
-      name: String(employee.name || '').trim(),
-      departmentId: Number(employee.departmentId),
-      scheduleIn: String(employee.scheduleIn || '').trim(),
-      scheduleOut: String(employee.scheduleOut || '').trim(),
-      graceTime: String(employee.graceTime || '').trim()
-    };
-
-    return this.http.post<ApiResponse<Employee | boolean>>(this.apiUrl, payload, {
+  addEmployee(
+    employee: EmployeePayload
+  ): Observable<ApiResponse<Employee | boolean>> {
+    return this.http.post<ApiResponse<Employee | boolean>>(this.apiUrl, employee, {
       headers: this.getHeaders()
     });
   }
@@ -118,18 +101,9 @@ export class EmployeesService {
     id: number,
     employee: EmployeePayload
   ): Observable<ApiResponse<Employee | boolean>> {
-    const payload: EmployeePayload = {
-      employeeCode: String(employee.employeeCode || '').trim(),
-      name: String(employee.name || '').trim(),
-      departmentId: Number(employee.departmentId),
-      scheduleIn: String(employee.scheduleIn || '').trim(),
-      scheduleOut: String(employee.scheduleOut || '').trim(),
-      graceTime: String(employee.graceTime || '').trim()
-    };
-
     return this.http.put<ApiResponse<Employee | boolean>>(
       `${this.apiUrl}/${id}`,
-      payload,
+      employee,
       {
         headers: this.getHeaders()
       }
@@ -139,45 +113,46 @@ export class EmployeesService {
   bulkImportEmployees(
     employees: BulkImportEmployeePayload[]
   ): Observable<ApiResponse<any>> {
-    const payload: BulkImportEmployeePayload[] = employees.map((employee) => ({
-      employeeCode: String(employee.employeeCode || '').trim(),
-      name: String(employee.name || '').trim(),
-      departmentName: String(employee.departmentName || '').trim(),
-      scheduleIn: String(employee.scheduleIn || '').trim(),
-      scheduleOut: String(employee.scheduleOut || '').trim(),
-      graceTime: String(employee.graceTime || '').trim()
-    }));
-
     return this.http.post<ApiResponse<any>>(
       `${this.apiUrl}/bulk-import`,
-      payload,
+      employees,
       {
         headers: this.getHeaders()
       }
     );
   }
+
   getEmployeeById(
-  id: number,
-  from: string = '',
-  to: string = '',
-  pageNumber: number = 1,
-  pageSize: number = 10
-): Observable<any> {
-  let params = new HttpParams()
-    .set('pageNumber', String(pageNumber))
-    .set('pageSize', String(pageSize));
+    id: number,
+    from: string = '',
+    to: string = '',
+    pageNumber: number = 1,
+    pageSize: number = 10
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('pageNumber', String(pageNumber))
+      .set('pageSize', String(pageSize));
 
-  if (from) {
-    params = params.set('from', from);
+    if (from) {
+      params = params.set('from', from);
+    }
+
+    if (to) {
+      params = params.set('to', to);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders(),
+      params
+    });
   }
 
-  if (to) {
-    params = params.set('to', to);
-  }
+  getEmployeesSummary(date: string): Observable<any> {
+    const params = new HttpParams().set('date', date);
 
-  return this.http.get<any>(`${this.apiUrl}/${id}`, {
-    headers: this.getHeaders(),
-    params
-  });
-}
+    return this.http.get<any>(`${this.apiUrl}/summary`, {
+      headers: this.getHeaders(),
+      params
+    });
+  }
 }

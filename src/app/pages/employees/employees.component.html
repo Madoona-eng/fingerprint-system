@@ -301,32 +301,70 @@
     </div>
 
     <div class="details-filter-card">
-     <div class="filter-field">
+    <div class="filter-field date-field">
   <label>من تاريخ</label>
-  <input
-    class="date-text-input"
-    type="text"
-    inputmode="numeric"
-    maxlength="10"
-    placeholder="31/03/2026"
-    [(ngModel)]="employeeDetailsFromDisplay"
-    [ngModelOptions]="{ standalone: true }"
-    (input)="formatEmployeeDetailsDateWhileTyping('from')"
-  />
+
+  <div class="date-input-wrap">
+    <input
+      class="date-text-input"
+      type="text"
+      inputmode="numeric"
+      maxlength="10"
+      placeholder="31/03/2026"
+      [(ngModel)]="employeeDetailsFromDisplay"
+      [ngModelOptions]="{ standalone: true }"
+      (input)="formatEmployeeDetailsDateWhileTyping('from')"
+    />
+
+    <button
+      type="button"
+      class="calendar-btn"
+      (click)="openEmployeeDetailsDatePicker(employeeDetailsFromPicker)"
+    >
+      📅
+    </button>
+
+    <input
+      #employeeDetailsFromPicker
+      class="native-date-picker"
+      type="date"
+      [value]="employeeDetailsFrom"
+      (change)="onEmployeeDetailsNativeDatePicked($event, 'from')"
+    />
+  </div>
 </div>
 
-      <div class="filter-field">
+ <div class="filter-field date-field">
   <label>إلى تاريخ</label>
-  <input
-    class="date-text-input"
-    type="text"
-    inputmode="numeric"
-    maxlength="10"
-    placeholder="31/03/2026"
-    [(ngModel)]="employeeDetailsToDisplay"
-    [ngModelOptions]="{ standalone: true }"
-    (input)="formatEmployeeDetailsDateWhileTyping('to')"
-  />
+
+  <div class="date-input-wrap">
+    <input
+      class="date-text-input"
+      type="text"
+      inputmode="numeric"
+      maxlength="10"
+      placeholder="31/03/2026"
+      [(ngModel)]="employeeDetailsToDisplay"
+      [ngModelOptions]="{ standalone: true }"
+      (input)="formatEmployeeDetailsDateWhileTyping('to')"
+    />
+
+    <button
+      type="button"
+      class="calendar-btn"
+      (click)="openEmployeeDetailsDatePicker(employeeDetailsToPicker)"
+    >
+      📅
+    </button>
+
+    <input
+      #employeeDetailsToPicker
+      class="native-date-picker"
+      type="date"
+      [value]="employeeDetailsTo"
+      (change)="onEmployeeDetailsNativeDatePicked($event, 'to')"
+    />
+  </div>
 </div>
 
       <button
@@ -481,6 +519,8 @@
               type="text"
               formControlName="employeeCode"
               placeholder="مثال: EMP-001"
+              autocomplete="off"
+              [readonly]="selectedEmployeeId !== null"
             />
           </div>
 

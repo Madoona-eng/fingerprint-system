@@ -72,14 +72,18 @@ dateRangeToDisplay = '';
   lateSummaryFrom = '';
   lateSummaryTo = '';
   lateSummaryEmployeeId: number | null = null;
+  lateSummaryDepartmentId: number | null = null;
 lateSummaryFromDisplay = '';
 lateSummaryToDisplay = '';
   lateSummaryData: any = null;
   lateSummaryRows: any[] = [];
-
+lateSummaryEmployeeSearch = '';
+lateSummarySelectedEmployee: any = null;
   isLoadingLateSummary = false;
   lateSummaryErrorMessage = '';
   lateSummarySuccessMessage = '';
+
+  private lateSummarySearchTimer: any = null;
 
   departmentOptions: { id: number; name: string }[] = [
     { id: 1, name: 'إدارة الأزمات' },
@@ -124,13 +128,13 @@ lateSummaryToDisplay = '';
     { id: 40, name: 'مكتب مفوض الدولة' }
   ];
 
-  statusOptions: { value: string; label: string }[] = [
-    { value: '', label: 'كل الحالات' },
-    { value: 'Present', label: 'حاضر' },
-    { value: 'Absent', label: 'غائب' },
-    { value: 'Late', label: 'متأخر' },
-    { value: 'EarlyDeparture', label: 'ترك عمل' }
-  ];
+statusOptions: { value: string; label: string }[] = [
+  { value: '', label: 'كل الحالات' },
+  { value: 'Present', label: 'حاضر' },
+  { value: 'Absent', label: 'غائب' },
+  { value: 'Late', label: 'متأخر' },
+  { value: 'EarlyDeparture', label: 'ترك عمل' }
+];
 
 private setDateRangeFromDates(from: Date, to: Date): void {
   this.dateRangeFrom = this.formatDateToApi(from);
@@ -138,6 +142,74 @@ private setDateRangeFromDates(from: Date, to: Date): void {
 
   this.dateRangeFromDisplay = this.formatDateToDisplay(from);
   this.dateRangeToDisplay = this.formatDateToDisplay(to);
+}
+private getApiErrorMessage(err: any): string {
+  const errors = err?.error?.errors;
+
+  if (errors && typeof errors === 'object') {
+    const messages = Object.keys(errors)
+      .map((key) => `${key}: ${errors[key].join(' - ')}`)
+      .join(' | ');
+
+    return messages || 'حدث خطأ في التحقق من البيانات';
+  }
+
+  return (
+    err?.error?.message ||
+    err?.error?.title ||
+    err?.message ||
+    'حدث خطأ أثناء الحفظ'
+  );
+}
+
+onDateRangeInputChange(value: string, field: 'from' | 'to'): void {
+  const apiDate = value || '';
+
+  if (field === 'from') {
+    this.dateRangeFrom = apiDate;
+    this.dateRangeFromDisplay = this.apiDateToDisplay(apiDate);
+    return;
+  }
+
+  this.dateRangeTo = apiDate;
+  this.dateRangeToDisplay = this.apiDateToDisplay(apiDate);
+}
+openNativeDatePicker(input: HTMLInputElement): void {
+  if ((input as any).showPicker) {
+    (input as any).showPicker();
+    return;
+  }
+
+  input.click();
+}
+onNativeDatePicked(event: Event, field: 'from' | 'to'): void {
+  const input = event.target as HTMLInputElement;
+  const apiDate = input.value; // YYYY-MM-DD
+
+  if (!apiDate) {
+    return;
+  }
+
+  if (field === 'from') {
+    this.dateRangeFrom = apiDate;
+    this.dateRangeFromDisplay = this.apiDateToDisplay(apiDate);
+  } else {
+    this.dateRangeTo = apiDate;
+    this.dateRangeToDisplay = this.apiDateToDisplay(apiDate);
+  }
+}
+
+onLateSummaryDateInputChange(value: string, field: 'from' | 'to'): void {
+  const apiDate = value || '';
+
+  if (field === 'from') {
+    this.lateSummaryFrom = apiDate;
+    this.lateSummaryFromDisplay = this.apiDateToDisplay(apiDate);
+    return;
+  }
+
+  this.lateSummaryTo = apiDate;
+  this.lateSummaryToDisplay = this.apiDateToDisplay(apiDate);
 }
 
 formatDateDisplayWhileTyping(field: 'from' | 'to'): void {
@@ -175,6 +247,26 @@ private formatDateToDisplay(date: Date): string {
   const year = date.getFullYear();
 
   return `${day}/${month}/${year}`;
+}
+onLateSummaryNativeDatePicked(event: Event, field: 'from' | 'to'): void {
+  const input = event.target as HTMLInputElement;
+  const apiDate = input.value; // YYYY-MM-DD
+
+  if (!apiDate) {
+    return;
+  }
+
+  if (field === 'from') {
+    this.lateSummaryFrom = apiDate;
+    this.lateSummaryFromDisplay = this.apiDateToDisplay(apiDate);
+  } else {
+    this.lateSummaryTo = apiDate;
+    this.lateSummaryToDisplay = this.apiDateToDisplay(apiDate);
+  }
+}
+
+displayDateToNative(displayDate: string): string {
+  return this.displayDateToApi(displayDate);
 }
 
 private apiDateToDisplay(apiDate: string): string {
@@ -231,7 +323,7 @@ private displayDateToApi(displayDate: string): string {
 
   return `${year}-${this.pad(month)}-${this.pad(day)}`;
 }
-  constructor(private attendanceService: AttendanceService) {}
+ constructor(private attendanceService: AttendanceService) {}
 
  openAttendancePage(page: 'import' | 'report' | 'lateSummary' | 'edit'): void {
   this.activeAttendancePage = page;
@@ -1193,153 +1285,222 @@ markAttendanceReviewed(row: any): void {
     this.activeAttendancePage = 'report';
   }
 
-  saveAttendanceEdit(): void {
-    if (!this.attendanceEditId) {
-      this.attendanceEditErrorMessage = 'رقم سجل الحضور غير موجود';
-      return;
-    }
+saveAttendanceEdit(): void {
+  if (!this.attendanceEditId) {
+    this.attendanceEditErrorMessage = 'رقم سجل الحضور غير موجود';
+    return;
+  }
 
-    if (!this.attendanceEditStatus) {
-      this.attendanceEditErrorMessage = 'من فضلك اختاري الحالة';
-      return;
-    }
+  const actualIn = this.normalizeTimeForApi(this.attendanceEditActualIn);
+  const actualOut = this.normalizeTimeForApi(this.attendanceEditActualOut);
+  const notes = String(this.attendanceEditNotes || '').trim();
 
-    this.isSavingAttendanceEdit = true;
-    this.attendanceEditErrorMessage = '';
-    this.attendanceEditSuccessMessage = '';
+  let finalStatus = String(this.attendanceEditStatus || '').trim();
 
-    const timePayload = {
-      actualIn: this.normalizeTimeForApi(this.attendanceEditActualIn),
-      actualOut: this.normalizeTimeForApi(this.attendanceEditActualOut),
-      notes: this.attendanceEditNotes || ''
-    };
+  if (
+    actualIn &&
+    actualOut &&
+    (
+      finalStatus === '' ||
+      finalStatus === 'Absent' ||
+      finalStatus === 'غائب' ||
+      finalStatus === 'MissingIn' ||
+      finalStatus === 'MissingOut' ||
+      finalStatus === 'Incomplete'
+    )
+  ) {
+    finalStatus = 'Present';
+  }
 
-    const statusPayload = {
-      status: this.attendanceEditStatus,
-      notes: this.attendanceEditNotes || ''
-    };
+  if (!finalStatus) {
+    this.attendanceEditErrorMessage =
+      'من فضلك اختاري الحالة أو أدخلي وقت الحضور والانصراف';
+    return;
+  }
 
-    this.attendanceService
-      .updateAttendanceTime(this.attendanceEditId, timePayload)
-      .subscribe({
-        next: (timeResponse: any) => {
-          console.log('Update Attendance Time Response:', timeResponse);
+  const timePayload = {
+    actualIn,
+    actualOut,
+    notes
+  };
 
-          if (timeResponse?.isSuccess === false) {
+  const statusPayload = {
+    status: finalStatus,
+    notes
+  };
+
+  console.log('Attendance Edit ID:', this.attendanceEditId);
+  console.log('Time Payload:', timePayload);
+  console.log('Status Payload:', statusPayload);
+
+  this.isSavingAttendanceEdit = true;
+  this.attendanceEditErrorMessage = '';
+  this.attendanceEditSuccessMessage = '';
+
+  this.attendanceService.updateAttendanceTime(this.attendanceEditId, timePayload).subscribe({
+    next: (timeResponse: any) => {
+      console.log('Update Attendance Time Response:', timeResponse);
+
+      if (timeResponse?.isSuccess === false) {
+        this.attendanceEditErrorMessage =
+          timeResponse?.message || 'فشل تعديل وقت الحضور والانصراف';
+        this.isSavingAttendanceEdit = false;
+        return;
+      }
+
+      this.attendanceService.updateAttendanceStatus(this.attendanceEditId!, statusPayload).subscribe({
+        next: (statusResponse: any) => {
+          console.log('Update Attendance Status Response:', statusResponse);
+
+          if (statusResponse?.isSuccess === false) {
             this.attendanceEditErrorMessage =
-              timeResponse?.message || 'فشل تعديل وقت الحضور والانصراف';
+              statusResponse?.message || 'تم تعديل الوقت ولكن فشل تعديل الحالة';
             this.isSavingAttendanceEdit = false;
             return;
           }
 
-          this.attendanceService
-            .updateAttendanceStatus(this.attendanceEditId!, statusPayload)
-            .subscribe({
-              next: (statusResponse: any) => {
-                console.log('Update Attendance Status Response:', statusResponse);
+          this.attendanceEditStatus = finalStatus;
+          this.attendanceEditSuccessMessage =
+            'تم تعديل وقت وحالة سجل الحضور بنجاح';
 
-                if (statusResponse?.isSuccess === false) {
-                  this.attendanceEditErrorMessage =
-                    statusResponse?.message || 'تم تعديل الوقت ولكن فشل تعديل الحالة';
-                  this.isSavingAttendanceEdit = false;
-                  return;
-                }
+          this.isSavingAttendanceEdit = false;
 
-                this.isSavingAttendanceEdit = false;
-                this.attendanceEditSuccessMessage = 'تم تعديل سجل الحضور بنجاح';
-
-                this.activeAttendancePage = 'report';
-                this.loadAttendanceByDateRange();
-              },
-              error: (err) => {
-                console.log('Update attendance status error:', err);
-
-                this.attendanceEditErrorMessage =
-                  err?.error?.message ||
-                  err?.message ||
-                  'تم تعديل الوقت ولكن حدث خطأ أثناء تعديل الحالة';
-
-                this.isSavingAttendanceEdit = false;
-              }
-            });
-            
+          this.activeAttendancePage = 'report';
+          this.loadAttendanceByDateRange();
         },
-        
-        error: (err) => {
-          console.log('Update attendance time error:', err);
+        error: (err: any) => {
+          console.log('Update attendance status error:', err);
 
-          this.attendanceEditErrorMessage =
-            err?.error?.message ||
-            err?.message ||
-            'حدث خطأ أثناء تعديل وقت الحضور والانصراف';
-
+          this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
           this.isSavingAttendanceEdit = false;
         }
       });
-  }
+    },
+    error: (err: any) => {
+      console.log('Update attendance time error:', err);
+
+      this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
+      this.isSavingAttendanceEdit = false;
+    }
+  });
+}
   
 
-  loadLateSummary(): void {
-    const fromApiDate = this.lateDisplayDateToApi(this.lateSummaryFromDisplay);
-    const toApiDate = this.lateDisplayDateToApi(this.lateSummaryToDisplay);
+ resolveAttendanceStatusAfterTimeEdit(
+  currentStatus: string | null | undefined,
+  actualIn: string | null,
+  actualOut: string | null
+): string {
+  const status = String(currentStatus || '').trim();
 
-    if (!fromApiDate || !toApiDate || !this.lateSummaryEmployeeId) {
-      this.lateSummaryErrorMessage =
-        'من فضلك اكتبي التاريخ بطريقة صحيحة مثل: 10/06/2026 ورقم الموظف';
-      return;
-    }
+  const hasActualIn = !!String(actualIn || '').trim();
+  const hasActualOut = !!String(actualOut || '').trim();
 
-    this.lateSummaryFrom = fromApiDate;
-    this.lateSummaryTo = toApiDate;
-
-    this.lateSummaryFromDisplay = this.lateApiDateToDisplay(fromApiDate);
-    this.lateSummaryToDisplay = this.lateApiDateToDisplay(toApiDate);
-
-    this.isLoadingLateSummary = true;
-    this.lateSummaryErrorMessage = '';
-    this.lateSummarySuccessMessage = '';
-
-    this.attendanceService
-      .getLateSummary(
-        this.lateSummaryFrom,
-        this.lateSummaryTo,
-        Number(this.lateSummaryEmployeeId)
-      )
-      .subscribe({
-        next: (response: any) => {
-          this.isLoadingLateSummary = false;
-
-          const data = response?.data ?? response;
-          this.lateSummaryData = Array.isArray(data) ? data : data ? [data] : [];
-          this.lateSummaryRows = Array.isArray(this.lateSummaryData)
-            ? this.lateSummaryData
-            : [];
-          this.lateSummarySuccessMessage =
-            response?.message || 'تم عرض ملخص التأخير بنجاح';
-        },
-        error: (err) => {
-          this.isLoadingLateSummary = false;
-          this.lateSummaryErrorMessage =
-            err?.error?.message ||
-            err?.message ||
-            'حدث خطأ أثناء جلب ملخص التأخير';
-          this.lateSummaryData = null;
-          this.lateSummaryRows = [];
-        }
-      });
+  // لو مفيش حضور وانصراف مع بعض، سيبي الحالة زي ما هي
+  if (!hasActualIn || !hasActualOut) {
+    return status;
   }
+
+  // الحالات اللي لو اتضاف لها حضور وانصراف تتحول لحاضر
+  const absentStatuses = [
+    '',
+    'Absent',
+    'غائب',
+    'MissingIn',
+    'MissingOut',
+    'Incomplete',
+    'حضور ناقص',
+    'انصراف ناقص',
+    'بيانات ناقصة'
+  ];
+
+  if (absentStatuses.includes(status)) {
+    return 'Present';
+  }
+
+  // لو المستخدم مختار Late أو EarlyDeparture سيبيها زي ما هي
+  return status;
+}
+
+onLateSummarySearchInput(): void {
+  if (this.lateSummarySearchTimer) {
+    clearTimeout(this.lateSummarySearchTimer);
+  }
+
+  this.lateSummarySearchTimer = setTimeout(() => {
+    this.loadLateSummary();
+  }, 300);
+}
+
+loadLateSummary(): void {
+  const fromApiDate = this.displayDateToApi(this.lateSummaryFromDisplay);
+  const toApiDate = this.displayDateToApi(this.lateSummaryToDisplay);
+
+  if (!fromApiDate || !toApiDate) {
+    this.lateSummaryErrorMessage =
+      'من فضلك اكتبي التاريخ بطريقة صحيحة مثل: 31/03/2026';
+    return;
+  }
+
+  this.isLoadingLateSummary = true;
+  this.lateSummaryErrorMessage = '';
+  this.lateSummarySuccessMessage = '';
+
+  this.lateSummaryFrom = fromApiDate;
+  this.lateSummaryTo = toApiDate;
+  this.lateSummaryFromDisplay = this.apiDateToDisplay(fromApiDate);
+  this.lateSummaryToDisplay = this.apiDateToDisplay(toApiDate);
+
+  this.attendanceService
+    .getLateSummary(
+      this.lateSummaryFrom,
+      this.lateSummaryTo,
+      this.lateSummaryEmployeeSearch || null,
+      this.lateSummaryDepartmentId
+    )
+    .subscribe({
+      next: (response: any) => {
+        this.isLoadingLateSummary = false;
+
+        const data = response?.data ?? response;
+        this.lateSummaryData = Array.isArray(data) ? data : data ? [data] : [];
+        this.lateSummaryRows = Array.isArray(this.lateSummaryData)
+          ? this.lateSummaryData
+          : [];
+
+        this.lateSummarySuccessMessage =
+          response?.message || 'تم عرض ملخص التأخير بنجاح';
+      },
+      error: (err: any) => {
+        this.isLoadingLateSummary = false;
+
+        this.lateSummaryErrorMessage =
+          err?.error?.message ||
+          err?.message ||
+          'حدث خطأ أثناء جلب ملخص التأخير';
+
+        this.lateSummaryData = null;
+        this.lateSummaryRows = [];
+      }
+    });
+}
 
   clearLateSummary(): void {
-    this.lateSummaryFrom = '';
-    this.lateSummaryTo = '';
-    this.lateSummaryFromDisplay = '';
-    this.lateSummaryToDisplay = '';
-    this.lateSummaryEmployeeId = null;
-    this.lateSummaryData = null;
-    this.lateSummaryRows = [];
-    this.lateSummaryErrorMessage = '';
-    this.lateSummarySuccessMessage = '';
-  }
+  this.lateSummaryFrom = '';
+  this.lateSummaryTo = '';
+  this.lateSummaryFromDisplay = '';
+  this.lateSummaryToDisplay = '';
+
+  this.lateSummaryEmployeeId = null;
+  this.lateSummaryEmployeeSearch = '';
+  this.lateSummarySelectedEmployee = null;
+  this.lateSummaryDepartmentId = null;
+
+  this.lateSummaryData = null;
+  this.lateSummaryRows = [];
+  this.lateSummaryErrorMessage = '';
+  this.lateSummarySuccessMessage = '';
+}
 
   clearData(): void {
     this.attendanceRows = [];
@@ -1351,23 +1512,53 @@ markAttendanceReviewed(row: any): void {
     this.hasImportedCurrentSheet = false;
   }
 
-  normalizeTimeForApi(value: string | null | undefined): string | null {
-    if (!value || String(value).trim() === '') {
-      return null;
-    }
-
-    const text = String(value).trim();
-
-    if (/^\d{2}:\d{2}$/.test(text)) {
-      return `${text}:00`;
-    }
-
-    if (/^\d{2}:\d{2}:\d{2}/.test(text)) {
-      return text.substring(0, 8);
-    }
-
-    return text;
+normalizeTimeForApi(value: string | null | undefined): string | null {
+  if (!value || String(value).trim() === '') {
+    return null;
   }
+
+  let text = String(value).trim().toUpperCase();
+
+  // يشيل (+1) أو -- لو موجودين
+  text = text.replace(/\(\s*\+\s*\d+\s*\)/g, '').trim();
+  text = text.replace(/\s*[-–—]{2,}\s*$/g, '').trim();
+
+  // لو جاي HH:mm:ss.000Z نخليه HH:mm:ss
+  const zMatch = text.match(/^(\d{1,2}):(\d{2}):(\d{2})\.\d{3}Z$/);
+  if (zMatch) {
+    return `${this.pad(Number(zMatch[1]))}:${zMatch[2]}:${zMatch[3]}`;
+  }
+
+  // يقبل 09:00 أو 09:00:00 أو 12:15 PM
+  const match = text.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/);
+
+  if (!match) {
+    return null;
+  }
+
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const seconds = Number(match[3] || 0);
+  const meridiem = match[4];
+
+  if (minutes > 59 || seconds > 59) {
+    return null;
+  }
+
+  if (meridiem === 'PM' && hours < 12) {
+    hours += 12;
+  }
+
+  if (meridiem === 'AM' && hours === 12) {
+    hours = 0;
+  }
+
+  if (hours < 0 || hours > 23) {
+    return null;
+  }
+
+  return `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
+}
 
   timeForInput(value: string | null | undefined): string {
     if (!value) {

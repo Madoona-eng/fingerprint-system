@@ -687,3 +687,45 @@
   background: rgba(245, 158, 11, 0.15);
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
+.date-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-input-wrap .date-text-input {
+  flex: 1;
+  direction: ltr;
+  text-align: center;
+  letter-spacing: 0.5px;
+  font-weight: 900;
+}
+
+.calendar-btn {
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #65e4e9, #2dd4bf);
+  color: #07111f;
+  font-size: 18px;
+  font-weight: 900;
+  box-shadow: 0 8px 18px rgba(45, 212, 191, 0.22);
+}
+
+.calendar-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(45, 212, 191, 0.32);
+}
+
+.native-date-picker {
+  position: absolute;
+  inset-inline-end: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

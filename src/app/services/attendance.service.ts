@@ -15,10 +15,12 @@ export interface ApiResponse<T> {
   errorCode: string;
   message: string;
 }
+
 export interface AttendanceStatusPayload {
   status: string;
   notes: string;
 }
+
 export interface AttendanceTimePayload {
   actualIn: string | null;
   actualOut: string | null;
@@ -29,7 +31,8 @@ export interface AttendanceTimePayload {
   providedIn: 'root'
 })
 export class AttendanceService {
-  private readonly apiUrl = 'https://civil-protect.minya.gov.eg:1089/api/Attendance';
+  private readonly apiUrl =
+    'https://civil-protect.minya.gov.eg:1089/api/Attendance';
 
   constructor(private http: HttpClient) {}
 
@@ -51,7 +54,9 @@ export class AttendanceService {
     return headers;
   }
 
-  bulkImportAttendance(attendance: AttendancePayload[]): Observable<ApiResponse<any>> {
+  bulkImportAttendance(
+    attendance: AttendancePayload[]
+  ): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(
       `${this.apiUrl}/bulk-import`,
       attendance,
@@ -60,62 +65,78 @@ export class AttendanceService {
       }
     );
   }
-  updateAttendanceTime(
-  id: number,
-  payload: AttendanceTimePayload
-): Observable<any> {
-  return this.http.put(`${this.apiUrl}/${id}/time`, payload, {
-    headers: this.getHeaders()
-  });
-}
-  updateAttendanceStatus(
-  id: number,
-  payload: AttendanceStatusPayload
-): Observable<any> {
-  return this.http.put(`${this.apiUrl}/${id}/status`, payload, {
-    headers: this.getHeaders()
-  });
-}
-  getLateSummary(
-  from: string,
-  to: string,
-  employeeId: number
-): Observable<any> {
-  const params = new HttpParams()
-    .set('from', from)
-    .set('to', to)
-    .set('employeeId', String(employeeId));
 
-  return this.http.get<any>(`${this.apiUrl}/late-summary`, {
-    headers: this.getHeaders(),
-    params
-  });
-}
   getAttendanceByDateRange(
-  from: string,
-  to: string,
-  departmentId: number | null = null,
-  status: string = '',
-  pageNumber: number = 1,
-  pageSize: number = 10
-): Observable<any> {
-  let params = new HttpParams()
-    .set('from', from)
-    .set('to', to)
-    .set('pageNumber', String(pageNumber))
-    .set('pageSize', String(pageSize));
+    from: string,
+    to: string,
+    departmentId: number | null = null,
+    status: string = '',
+    pageNumber: number = 1,
+    pageSize: number = 10
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('pageNumber', String(pageNumber))
+      .set('pageSize', String(pageSize));
 
-  if (departmentId !== null && departmentId !== undefined && departmentId > 0) {
-    params = params.set('departmentId', String(departmentId));
+    if (departmentId !== null && departmentId !== undefined && departmentId > 0) {
+      params = params.set('departmentId', String(departmentId));
+    }
+
+    if (status) {
+      params = params.set('status', status);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/date-range`, {
+      headers: this.getHeaders(),
+      params
+    });
   }
 
-  if (status) {
-    params = params.set('status', status);
+  getLateSummary(
+    from: string,
+    to: string,
+    employeeName?: string | null,
+    deptId?: number | null
+  ): Observable<any> {
+    let params = new HttpParams().set('from', from).set('to', to);
+
+    if (employeeName !== null && employeeName !== undefined && employeeName.trim() !== '') {
+      params = params.set('employeeName', employeeName.trim());
+    }
+
+    if (deptId !== null && deptId !== undefined && deptId > 0) {
+      params = params.set('deptId', String(deptId));
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/late-summary`, {
+      headers: this.getHeaders(),
+      params
+    });
   }
 
-  return this.http.get<any>(`${this.apiUrl}/date-range`, {
-    headers: this.getHeaders(),
-    params
-  });
-}
+  updateAttendanceTime(
+    id: number,
+    payload: AttendanceTimePayload
+  ): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}/time`, payload, {
+      headers: this.getHeaders()
+    });
+  }
+
+  updateAttendanceStatus(
+    id: number,
+    payload: AttendanceStatusPayload
+  ): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}/status`, payload, {
+      headers: this.getHeaders()
+    });
+  }
+
+  reviewAttendance(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}/review`, null, {
+      headers: this.getHeaders()
+    });
+  }
 }

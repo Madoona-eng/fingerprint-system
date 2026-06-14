@@ -713,7 +713,39 @@ private analyticsApiDateToDisplay(apiDate: string): string {
 private analyticsPad(value: number): string {
   return value.toString().padStart(2, '0');
 }
+openEmployeeDetailsDatePicker(input: HTMLInputElement): void {
+  if ((input as any).showPicker) {
+    (input as any).showPicker();
+    return;
+  }
 
+  input.click();
+}
+
+onEmployeeDetailsNativeDatePicked(event: Event, field: 'from' | 'to'): void {
+  const input = event.target as HTMLInputElement;
+  const apiDate = input.value; // YYYY-MM-DD
+
+  if (!apiDate) {
+    return;
+  }
+
+  if (field === 'from') {
+    this.employeeDetailsFrom = apiDate;
+    this.employeeDetailsFromDisplay = this.employeeDetailsApiDateToDisplay(apiDate);
+  } else {
+    this.employeeDetailsTo = apiDate;
+    this.employeeDetailsToDisplay = this.employeeDetailsApiDateToDisplay(apiDate);
+  }
+}private employeeDetailsApiDateToDisplay(apiDate: string): string {
+  if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
+    return '';
+  }
+
+  const [year, month, day] = apiDate.split('-');
+
+  return `${day}/${month}/${year}`;
+}
 openEmployeeDetails(employee: Employee): void {
   if (!employee.id) {
     this.errorMessage = 'لا يمكن عرض تفاصيل هذا الموظف لأن رقم ID غير موجود';
@@ -1037,6 +1069,8 @@ openEmployeeDetails(employee: Employee): void {
         ? employee.departmentId
         : this.getDepartmentIdFromMapOnly(employee.departmentName || '');
 
+    this.employeeForm.controls['employeeCode'].enable();
+
     this.employeeForm.patchValue({
       employeeCode: employee.employeeCode,
       name: employee.name,
@@ -1059,6 +1093,7 @@ openEmployeeDetails(employee: Employee): void {
   cancelEdit(): void {
     this.selectedEmployeeId = null;
     this.employeeForm.reset();
+    this.employeeForm.controls['employeeCode'].enable();
     this.errorMessage = '';
     this.successMessage = '';
     this.activeEmployeePage = 'list';

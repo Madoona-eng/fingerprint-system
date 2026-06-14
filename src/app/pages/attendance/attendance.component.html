@@ -128,32 +128,70 @@
         </div>
 
         <div class="attendance-filter-box">
-        <div class="filter-field">
+<div class="filter-field date-field">
   <label>من تاريخ</label>
-  <input
-    class="date-text-input"
-    type="text"
-    inputmode="numeric"
-    maxlength="10"
-    placeholder="10/06/2026"
-    [(ngModel)]="dateRangeFromDisplay"
-    [ngModelOptions]="{ standalone: true }"
-    (input)="formatDateDisplayWhileTyping('from')"
-  />
+
+  <div class="date-input-wrap">
+    <input
+      class="date-text-input"
+      type="text"
+      inputmode="numeric"
+      maxlength="10"
+      placeholder="31/03/2026"
+      [(ngModel)]="dateRangeFromDisplay"
+      [ngModelOptions]="{ standalone: true }"
+      (input)="formatDateDisplayWhileTyping('from')"
+    />
+
+    <button
+      type="button"
+      class="calendar-btn"
+      (click)="openNativeDatePicker(fromDatePicker)"
+    >
+      📅
+    </button>
+
+    <input
+      #fromDatePicker
+      class="native-date-picker"
+      type="date"
+      [value]="dateRangeFrom"
+      (change)="onNativeDatePicked($event, 'from')"
+    />
+  </div>
 </div>
 
-        <div class="filter-field">
+<div class="filter-field date-field">
   <label>إلى تاريخ</label>
-  <input
-    class="date-text-input"
-    type="text"
-    inputmode="numeric"
-    maxlength="10"
-    placeholder="10/06/2026"
-    [(ngModel)]="dateRangeToDisplay"
-    [ngModelOptions]="{ standalone: true }"
-    (input)="formatDateDisplayWhileTyping('to')"
-  />
+
+  <div class="date-input-wrap">
+    <input
+      class="date-text-input"
+      type="text"
+      inputmode="numeric"
+      maxlength="10"
+      placeholder="31/03/2026"
+      [(ngModel)]="dateRangeToDisplay"
+      [ngModelOptions]="{ standalone: true }"
+      (input)="formatDateDisplayWhileTyping('to')"
+    />
+
+    <button
+      type="button"
+      class="calendar-btn"
+      (click)="openNativeDatePicker(toDatePicker)"
+    >
+      📅
+    </button>
+
+    <input
+      #toDatePicker
+      class="native-date-picker"
+      type="date"
+      [value]="dateRangeTo"
+      (change)="onNativeDatePicked($event, 'to')"
+    />
+  </div>
 </div>
           <div class="date-shortcuts">
   <button type="button" (click)="setTodayDateRange()">اليوم</button>
@@ -365,32 +403,70 @@
         </div>
 
         <div class="attendance-filter-box late-summary-filter">
-         <div class="filter-field">
+ <div class="filter-field date-field">
   <label>من تاريخ</label>
-  <input
-    class="date-text-input"
-    type="text"
-    inputmode="numeric"
-    maxlength="10"
-    placeholder="10/06/2026"
-    [(ngModel)]="lateSummaryFromDisplay"
-    [ngModelOptions]="{ standalone: true }"
-    (input)="formatLateDateDisplayWhileTyping('from')"
-  />
+
+  <div class="date-input-wrap">
+    <input
+      class="date-text-input"
+      type="text"
+      inputmode="numeric"
+      maxlength="10"
+      placeholder="31/03/2026"
+      [(ngModel)]="lateSummaryFromDisplay"
+      [ngModelOptions]="{ standalone: true }"
+      (input)="formatLateDateDisplayWhileTyping('from')"
+    />
+
+    <button
+      type="button"
+      class="calendar-btn"
+      (click)="openNativeDatePicker(lateFromDatePicker)"
+    >
+      📅
+    </button>
+
+    <input
+      #lateFromDatePicker
+      class="native-date-picker"
+      type="date"
+      [value]="lateSummaryFrom"
+      (change)="onLateSummaryNativeDatePicked($event, 'from')"
+    />
+  </div>
 </div>
 
-          <div class="filter-field">
+ <div class="filter-field date-field">
   <label>إلى تاريخ</label>
-  <input
-    class="date-text-input"
-    type="text"
-    inputmode="numeric"
-    maxlength="10"
-    placeholder="10/06/2026"
-    [(ngModel)]="lateSummaryToDisplay"
-    [ngModelOptions]="{ standalone: true }"
-    (input)="formatLateDateDisplayWhileTyping('to')"
-  />
+
+  <div class="date-input-wrap">
+    <input
+      class="date-text-input"
+      type="text"
+      inputmode="numeric"
+      maxlength="10"
+      placeholder="31/03/2026"
+      [(ngModel)]="lateSummaryToDisplay"
+      [ngModelOptions]="{ standalone: true }"
+      (input)="formatLateDateDisplayWhileTyping('to')"
+    />
+
+    <button
+      type="button"
+      class="calendar-btn"
+      (click)="openNativeDatePicker(lateToDatePicker)"
+    >
+      📅
+    </button>
+
+    <input
+      #lateToDatePicker
+      class="native-date-picker"
+      type="date"
+      [value]="lateSummaryTo"
+      (change)="onLateSummaryNativeDatePicked($event, 'to')"
+    />
+  </div>
 </div>
 
 <div class="date-shortcuts">
@@ -400,13 +476,32 @@
 </div>
 
           <div class="filter-field">
-            <label>رقم الموظف ID</label>
-            <input
-              type="number"
-              placeholder="مثال: 565"
-              [(ngModel)]="lateSummaryEmployeeId"
+  <label>اسم الموظف</label>
+  <input
+    type="text"
+    placeholder="مثال: أحمد"
+    [(ngModel)]="lateSummaryEmployeeSearch"
+    [ngModelOptions]="{ standalone: true }"
+    (input)="onLateSummarySearchInput()"
+  />
+</div>
+          
+
+          <div class="filter-field">
+            <label>القسم</label>
+            <select
+              [(ngModel)]="lateSummaryDepartmentId"
               [ngModelOptions]="{ standalone: true }"
-            />
+              (change)="onLateSummarySearchInput()"
+            >
+              <option [ngValue]="null">كل الأقسام</option>
+              <option
+                *ngFor="let dep of departmentOptions"
+                [ngValue]="dep.id"
+              >
+                {{ dep.name }}
+              </option>
+            </select>
           </div>
 
           <button
