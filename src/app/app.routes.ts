@@ -1,11 +1,43 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './auth/Components/login/login.component';
-import { DashboardComponent } from './dashboard/dashboard.component'; // <-- السطر ده هيتضاف تلقائي أو ضيفيه
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { EmployeesComponent } from './pages/employees/employees.component';
+import { AttendanceComponent } from './pages/attendance/attendance.component';
+import { LoginComponent } from '../app/auth/Components/login/login.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
-  
-  // ربط مسار الـ dashboard بالكامبوننت الجديد
-  { path: 'dashboard', component: DashboardComponent } 
+  {
+    path: 'login',
+    component: LoginComponent
+  },
+
+  {
+    path: 'dashboard',
+    component: DashboardComponent,
+    children: [
+      {
+        path: 'employees',
+        component: EmployeesComponent
+      },
+      {
+        path: 'attendance',
+        component: AttendanceComponent
+      },
+      {
+        path: '',
+        redirectTo: 'employees',
+        pathMatch: 'full'
+      }
+    ]
+  },
+
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  },
+
+  {
+    path: '**',
+    redirectTo: 'login'
+  }
 ];

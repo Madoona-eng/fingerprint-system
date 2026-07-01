@@ -1,0 +1,368 @@
+<div class="attendance-page" dir="rtl">
+  <section class="attendance-card">
+    <div class="upload-info">
+      <span class="small-title">Attendance Management</span>
+      <h1>الحضور والانصراف</h1>
+      <p>
+        استيراد شيت الحضور، عرض سجلات الحضور والانصراف، ومراجعة ملخص التأخير.
+      </p>
+    </div>
+  </section>
+
+  <section class="attendance-page-tabs">
+    <button
+      type="button"
+      [class.active]="activeAttendancePage === 'import'"
+      (click)="openAttendancePage('import')"
+    >
+      📁 رفع Excel
+    </button>
+
+    <button
+      type="button"
+      [class.active]="activeAttendancePage === 'report'"
+      (click)="openAttendancePage('report')"
+    >
+      📊 عرض السجلات
+    </button>
+
+    <button
+      type="button"
+      [class.active]="activeAttendancePage === 'lateSummary'"
+      (click)="openAttendancePage('lateSummary')"
+    >
+      ⏱️ ملخص التأخير
+    </button>
+  </section>
+
+  <ng-container [ngSwitch]="activeAttendancePage">
+    <!-- صفحة رفع شيت الحضور -->
+    <section *ngSwitchCase="'import'" class="attendance-sub-page">
+      <section class="attendance-card">
+        <div class="upload-info">
+          <span class="small-title">Attendance Import</span>
+          <h1>استيراد الحضور والانصراف</h1>
+          <p>
+            ارفعي شيت الحضور، وسيتم استخراج كود الموظف، التاريخ، وقت الحضور، ووقت الانصراف ثم حفظهم في السيستم.
+          </p>
+        </div>
+
+        <label
+          class="upload-box"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onFileDrop($event)"
+        >
+          <input
+            type="file"
+            accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+            (change)="onAttendanceSheetSelected($event)"
+          />
+
+          <span>📁 اختاري ملف Excel أو اسحبيه هنا</span>
+        </label>
+
+        <div *ngIf="excelFileName" class="file-name">
+          الملف المختار: {{ excelFileName }}
+        </div>
+
+        <div *ngIf="successMessage" class="success-message">
+          {{ successMessage }}
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <ul *ngIf="rowErrors.length > 0" class="row-errors">
+          <li *ngFor="let rowError of rowErrors | slice:0:6">
+            {{ rowError }}
+          </li>
+
+          <li *ngIf="rowErrors.length > 6">
+            ويوجد {{ rowErrors.length - 6 }} أخطاء أخرى...
+          </li>
+        </ul>
+
+        <div class="actions" *ngIf="attendanceRows.length > 0">
+          <button
+            type="button"
+            class="import-btn"
+            [disabled]="isImporting || hasImportedCurrentSheet"
+            (click)="importAttendance()"
+          >
+            {{
+              isImporting
+                ? 'جاري الحفظ...'
+                : hasImportedCurrentSheet
+                  ? 'تم الحفظ في السيستم'
+                  : 'استيراد الحضور للسيستم'
+            }}
+          </button>
+
+          <button type="button" class="ghost-btn" (click)="clearData()">
+            مسح بيانات الشيت
+          </button>
+        </div>
+      </section>
+
+      <section *ngIf="attendanceRows.length > 0" class="json-preview-card">
+        <div class="table-header">
+          <h3>JSON المستخرج من شيت الحضور</h3>
+          <span>{{ attendanceRows.length }} سجل</span>
+        </div>
+
+        <pre>{{ attendanceRows | json }}</pre>
+      </section>
+    </section>
+
+    <!-- صفحة عرض سجلات الحضور -->
+    <section *ngSwitchCase="'report'" class="attendance-sub-page">
+      <section class="attendance-card">
+        <div class="upload-info">
+          <span class="small-title">Attendance Report</span>
+          <h1>عرض سجلات الحضور والانصراف</h1>
+          <p>
+            اختاري الفترة والقسم والحالة لعرض سجلات الحضور والانصراف المحفوظة في السيستم.
+          </p>
+        </div>
+
+        <div class="attendance-filter-box">
+          <div class="filter-field">
+            <label>من تاريخ</label>
+            <input
+              type="date"
+              [(ngModel)]="dateRangeFrom"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div class="filter-field">
+            <label>إلى تاريخ</label>
+            <input
+              type="date"
+              [(ngModel)]="dateRangeTo"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div class="filter-field">
+            <label>القسم</label>
+            <select
+              [(ngModel)]="dateRangeDepartmentId"
+              [ngModelOptions]="{ standalone: true }"
+            >
+              <option [ngValue]="null">كل الأقسام</option>
+
+              <option
+                *ngFor="let dep of departmentOptions"
+                [ngValue]="dep.id"
+              >
+                {{ dep.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label>الحالة</label>
+            <select
+              [(ngModel)]="dateRangeStatus"
+              [ngModelOptions]="{ standalone: true }"
+            >
+              <option
+                *ngFor="let status of statusOptions"
+                [ngValue]="status.value"
+              >
+                {{ status.label }}
+              </option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            class="import-btn"
+            [disabled]="isLoadingDateRange"
+            (click)="applyDateRangeFilter()"
+          >
+            {{ isLoadingDateRange ? 'جاري التحميل...' : 'تطبيق الفلتر' }}
+          </button>
+
+          <button
+            type="button"
+            class="ghost-btn"
+            (click)="clearDateRangeFilter()"
+          >
+            مسح الفلتر
+          </button>
+        </div>
+
+        <div *ngIf="dateRangeSuccessMessage" class="success-message">
+          {{ dateRangeSuccessMessage }}
+        </div>
+
+        <div *ngIf="dateRangeErrorMessage" class="error-message">
+          {{ dateRangeErrorMessage }}
+        </div>
+      </section>
+
+      <section *ngIf="dateRangeRows.length > 0" class="json-preview-card">
+        <div class="table-header">
+          <h3>نتائج الحضور والانصراف</h3>
+          <span>{{ dateRangeTotalCount || dateRangeRows.length }} سجل</span>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>الكود</th>
+                <th>الاسم</th>
+                <th>القسم</th>
+                <th>التاريخ</th>
+                <th>الحضور</th>
+                <th>الانصراف</th>
+                <th>الحالة</th>
+                <th>ملاحظات</th>
+                <th>تعديل</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let row of dateRangeRows">
+                <td>{{ row.employeeCode || row.employee?.employeeCode || '-' }}</td>
+                <td>{{ row.employeeName || row.name || row.employee?.name || '-' }}</td>
+                <td>{{ row.departmentName || row.employee?.departmentName || '-' }}</td>
+                <td>{{ row.date || row.attendanceDate || '-' }}</td>
+                <td>{{ row.actualIn || '-' }}</td>
+                <td>{{ row.actualOut || '-' }}</td>
+
+                <td>
+                  <span class="status-badge" [ngClass]="getStatusClass(row.status)">
+                    {{ getStatusLabel(row.status) }}
+                  </span>
+                </td>
+
+                <td>{{ getNotesLabel(row.notes) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination-box" *ngIf="dateRangeTotalPages > 1">
+          <button
+            type="button"
+            (click)="previousDateRangePage()"
+            [disabled]="dateRangePageNumber === 1"
+          >
+            السابق
+          </button>
+
+          <span>
+            صفحة {{ dateRangePageNumber }} من {{ dateRangeTotalPages }}
+          </span>
+
+          <button
+            type="button"
+            (click)="nextDateRangePage()"
+            [disabled]="dateRangePageNumber === dateRangeTotalPages"
+          >
+            التالي
+          </button>
+        </div>
+      </section>
+
+      <div
+        *ngIf="!isLoadingDateRange && dateRangeFrom && dateRangeTo && dateRangeRows.length === 0 && !dateRangeErrorMessage"
+        class="empty-message"
+      >
+        لا توجد سجلات حضور مطابقة للفلتر المحدد.
+      </div>
+    </section>
+
+    <!-- صفحة ملخص التأخير -->
+    <section *ngSwitchCase="'lateSummary'" class="attendance-sub-page">
+      <section class="attendance-card">
+        <div class="upload-info">
+          <span class="small-title">Late Summary</span>
+          <h1>ملخص التأخير</h1>
+          <p>
+            اختاري الفترة ورقم الموظف الداخلي لعرض ملخص التأخير الخاص به.
+          </p>
+        </div>
+
+        <div class="attendance-filter-box late-summary-filter">
+          <div class="filter-field">
+            <label>من تاريخ</label>
+            <input
+              type="date"
+              [(ngModel)]="lateSummaryFrom"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div class="filter-field">
+            <label>إلى تاريخ</label>
+            <input
+              type="date"
+              [(ngModel)]="lateSummaryTo"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div class="filter-field">
+            <label>رقم الموظف ID</label>
+            <input
+              type="number"
+              placeholder="مثال: 565"
+              [(ngModel)]="lateSummaryEmployeeId"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <button
+            type="button"
+            class="import-btn"
+            [disabled]="isLoadingLateSummary"
+            (click)="loadLateSummary()"
+          >
+            {{ isLoadingLateSummary ? 'جاري التحميل...' : 'عرض الملخص' }}
+          </button>
+
+          <button
+            type="button"
+            class="ghost-btn"
+            (click)="clearLateSummary()"
+          >
+            مسح
+          </button>
+        </div>
+
+        <div *ngIf="lateSummarySuccessMessage" class="success-message">
+          {{ lateSummarySuccessMessage }}
+        </div>
+
+        <div *ngIf="lateSummaryErrorMessage" class="error-message">
+          {{ lateSummaryErrorMessage }}
+        </div>
+      </section>
+
+      <section *ngIf="lateSummaryData" class="json-preview-card">
+        <div class="table-header">
+          <h3>نتيجة ملخص التأخير</h3>
+          <span>Employee ID: {{ lateSummaryEmployeeId }}</span>
+        </div>
+
+      <div
+  *ngIf="lateSummaryData && lateSummaryData.length === 0"
+  class="empty-message"
+>
+  لا توجد بيانات تأخير لهذا الموظف في الفترة المحددة
+</div>
+
+<pre *ngIf="lateSummaryData && lateSummaryData.length > 0">
+{{ lateSummaryData | json }}
+</pre>
+      </section>
+    </section>
+  </ng-container>
+</div>
