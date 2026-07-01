@@ -1,0 +1,479 @@
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
+import { AttendanceService } from '../../services/attendance.service';
+import { EmployeesService } from '../../services/employees.service';
+
+interface AnalyticsStats {
+  total: number;
+  present: number;
+  absent: number;
+  late: number;
+  earlyDeparture: number;
+  needsReview: number;
+  reviewed: number;
+}
+
+@Component({
+  selector: 'app-reports',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './reports.component.html',
+  styleUrl: './reports.component.css'
+})
+export class ReportsComponent implements OnInit {
+  analyticsDate = '';
+  analyticsDateDisplay = '';
+
+  isLoading = false;
+  errorMessage = '';
+  successMessage = '';
+
+  rawData: any = null;
+  analyticsRows: any[] = [];
+
+  analyticsStats: AnalyticsStats = {
+    total: 0,
+    present: 0,
+    absent: 0,
+    late: 0,
+    earlyDeparture: 0,
+    needsReview: 0,
+    reviewed: 0
+  };
+
+  departmentRows: any[] = [];
+constructor(
+  private employeesService: EmployeesService,
+  private attendanceService: AttendanceService
+) {}
+
+  ngOnInit(): void {
+    this.setTodayDate();
+    this.loadAnalytics();
+  }
+
+  setTodayDate(): void {
+    const today = new Date();
+
+    this.analyticsDate = this.dateToApi(today);
+    this.analyticsDateDisplay = this.dateToDisplay(today);
+  }
+  
+  private extractAttendanceRows(data: any): any[] {
+  if (Array.isArray(data?.items)) {
+    return data.items;
+  }
+
+  if (Array.isArray(data?.records)) {
+    return data.records;
+  }
+
+  if (Array.isArray(data?.details)) {
+    return data.details;
+  }
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return [];
+}
+
+  setYesterdayDate(): void {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    this.analyticsDate = this.dateToApi(yesterday);
+    this.analyticsDateDisplay = this.dateToDisplay(yesterday);
+  }
+  
+
+  formatAnalyticsDateWhileTyping(): void {
+    let value = String(this.analyticsDateDisplay || '')
+      .replace(/\D/g, '')
+      .slice(0, 8);
+
+    if (value.length > 4) {
+      value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
+    } else if (value.length > 2) {
+      value = `${value.slice(0, 2)}/${value.slice(2)}`;
+    }
+
+    this.analyticsDateDisplay = value;
+  }
+
+ loadAnalytics(): void {
+  const apiDate = this.displayDateToApi(this.analyticsDateDisplay);
+
+  if (!apiDate) {
+    this.errorMessage = 'من فضلك اكتبي التاريخ بطريقة صحيحة مثل: 31/03/2026';
+    return;
+  }
+
+  this.analyticsDate = apiDate;
+  this.analyticsDateDisplay = this.apiDateToDisplay(apiDate);
+
+  this.isLoading = true;
+  this.errorMessage = '';
+  this.successMessage = '';
+
+  forkJoin({
+    summary: this.employeesService.getEmployeesSummary(this.analyticsDate),
+
+    attendance: this.attendanceService.getAttendanceByDateRange(
+      this.analyticsDate,
+      this.analyticsDate,
+      null,
+      '',
+      1,
+      10000
+    )
+  }).subscribe({
+    next: (result: any) => {
+      console.log('Employees Summary Response:', result.summary);
+      console.log('Attendance Date Range Response:', result.attendance);
+
+      const summaryData = result.summary?.data || result.summary;
+      const attendanceData = result.attendance?.data || result.attendance;
+
+      const attendanceRows = this.extractAttendanceRows(attendanceData);
+
+      this.rawData = summaryData;
+      this.analyticsRows = attendanceRows.length
+        ? attendanceRows
+        : this.extractRows(summaryData);
+
+      this.analyticsStats = this.buildStats(summaryData, this.analyticsRows);
+      this.departmentRows = this.buildDepartmentRows(this.analyticsRows);
+
+      this.successMessage = 'تم تحميل تحليل البيانات بنجاح';
+      this.isLoading = false;
+    },
+    error: (err) => {
+      console.log('Reports analytics error:', err);
+
+      this.rawData = null;
+      this.analyticsRows = [];
+      this.departmentRows = [];
+      this.resetStats();
+
+      this.errorMessage =
+        err?.error?.message ||
+        err?.message ||
+        'حدث خطأ أثناء تحميل تحليل البيانات';
+
+      this.isLoading = false;
+    }
+  });
+}
+
+  clearAnalytics(): void {
+    this.analyticsDate = '';
+    this.analyticsDateDisplay = '';
+    this.rawData = null;
+    this.analyticsRows = [];
+    this.departmentRows = [];
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.resetStats();
+  }
+
+  get regularPresentCount(): number {
+  const total = Number(this.analyticsStats.total || 0);
+  const absent = Number(this.analyticsStats.absent || 0);
+  const late = Number(this.analyticsStats.late || 0);
+  const earlyDeparture = Number(this.analyticsStats.earlyDeparture || 0);
+
+  return Math.max(total - absent - late - earlyDeparture, 0);
+}
+
+get attendedCount(): number {
+  const total = Number(this.analyticsStats.total || 0);
+  const absent = Number(this.analyticsStats.absent || 0);
+
+  return Math.max(total - absent, 0);
+}
+
+get attendancePercent(): number {
+  if (!this.analyticsStats.total) {
+    return 0;
+  }
+
+  return Math.round((this.attendedCount / this.analyticsStats.total) * 100);
+}
+
+get latePercent(): number {
+  if (!this.analyticsStats.total) {
+    return 0;
+  }
+
+  return Math.round((this.analyticsStats.late / this.analyticsStats.total) * 100);
+}
+
+get absencePercent(): number {
+  if (!this.analyticsStats.total) {
+    return 0;
+  }
+
+  return Math.round((this.analyticsStats.absent / this.analyticsStats.total) * 100);
+}
+
+  private extractRows(data: any): any[] {
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.employees)) return data.employees;
+    if (Array.isArray(data?.details)) return data.details;
+    if (Array.isArray(data?.rows)) return data.rows;
+    if (Array.isArray(data)) return data;
+
+    return [];
+  }
+
+private buildStats(data: any, rows: any[]): AnalyticsStats {
+  const calculatedStats: AnalyticsStats = {
+    total: rows.length,
+    present: 0,
+    absent: 0,
+    late: 0,
+    earlyDeparture: 0,
+    needsReview: 0,
+    reviewed: 0
+  };
+
+  rows.forEach((row: any) => {
+    const status = String(
+      row.status ||
+      row.attendanceStatus ||
+      row.todayStatus ||
+      ''
+    ).trim();
+
+    const notes = String(row.notes || '').toLowerCase();
+
+    if (status === 'Present') {
+      calculatedStats.present++;
+    } else if (status === 'Absent') {
+      calculatedStats.absent++;
+    } else if (status === 'Late') {
+      calculatedStats.late++;
+    } else if (status === 'EarlyDeparture') {
+      calculatedStats.earlyDeparture++;
+    }
+
+    const reviewed =
+      row.isReviewed === true ||
+      row.reviewed === true ||
+      notes.includes('reviewed') ||
+      notes.includes('تمت المراجعة') ||
+      notes.includes('تمت مراجعه');
+
+    const needsReview =
+      !reviewed &&
+      (
+        row.needsReview === true ||
+        row.needReview === true ||
+        row.requiresReview === true ||
+        notes.includes('needs review') ||
+        notes.includes('يحتاج مراجعة') ||
+        notes.includes('يحتاج مراجعه') ||
+        notes.includes('حضور بدون انصراف') ||
+        notes.includes('انصراف بدون حضور') ||
+        notes.includes('checkin without checkout') ||
+        notes.includes('checkout without checkin') ||
+        status === 'Incomplete' ||
+        status === 'MissingIn' ||
+        status === 'MissingOut'
+      );
+
+    if (needsReview) {
+      calculatedStats.needsReview++;
+    }
+
+    if (reviewed) {
+      calculatedStats.reviewed++;
+    }
+  });
+
+  return {
+    total:
+      this.pickNumber(data, ['total', 'totalEmployees', 'employeeCount', 'count']) ||
+      calculatedStats.total,
+
+    present:
+      this.pickNumber(data, ['present', 'presentCount', 'totalPresent']) ||
+      calculatedStats.present,
+
+    absent:
+      this.pickNumber(data, ['absent', 'absentCount', 'totalAbsent']) ||
+      calculatedStats.absent,
+
+    late:
+      this.pickNumber(data, ['late', 'lateCount', 'totalLate']) ||
+      calculatedStats.late,
+
+    earlyDeparture:
+      this.pickNumber(data, [
+        'earlyDeparture',
+        'earlyDepartureCount',
+        'totalEarlyDeparture'
+      ]) || calculatedStats.earlyDeparture,
+
+    needsReview:
+      this.pickNumber(data, [
+        'needsReview',
+        'needReview',
+        'needsReviewCount',
+        'needReviewCount',
+        'pendingReview',
+        'pendingReviewCount',
+        'reviewRequired',
+        'reviewRequiredCount'
+      ]) || calculatedStats.needsReview,
+
+    reviewed:
+      this.pickNumber(data, [
+        'reviewed',
+        'reviewedCount',
+        'totalReviewed'
+      ]) || calculatedStats.reviewed
+  };
+}
+  private buildDepartmentRows(rows: any[]): any[] {
+    const map = new Map<string, any>();
+
+    rows.forEach((row: any) => {
+      const departmentName =
+        row.departmentName ||
+        row.employee?.departmentName ||
+        row.department?.name ||
+        'غير محدد';
+
+      const status = String(
+        row.status || row.attendanceStatus || row.todayStatus || ''
+      ).trim();
+
+      if (!map.has(departmentName)) {
+        map.set(departmentName, {
+          departmentName,
+          total: 0,
+          present: 0,
+          absent: 0,
+          late: 0,
+          earlyDeparture: 0
+        });
+      }
+
+      const item = map.get(departmentName);
+
+      item.total++;
+
+      if (status === 'Present') {
+        item.present++;
+      } else if (status === 'Absent') {
+        item.absent++;
+      } else if (status === 'Late') {
+        item.late++;
+      } else if (status === 'EarlyDeparture') {
+        item.earlyDeparture++;
+      }
+    });
+
+    return Array.from(map.values());
+  }
+
+  private pickNumber(data: any, keys: string[]): number {
+    for (const key of keys) {
+      const value = Number(data?.[key]);
+
+      if (Number.isFinite(value)) {
+        return value;
+      }
+    }
+
+    return 0;
+  }
+
+  private resetStats(): void {
+    this.analyticsStats = {
+      total: 0,
+      present: 0,
+      absent: 0,
+      late: 0,
+      earlyDeparture: 0,
+      needsReview: 0,
+      reviewed: 0
+    };
+  }
+
+  private dateToApi(date: Date): string {
+    const year = date.getFullYear();
+    const month = this.pad(date.getMonth() + 1);
+    const day = this.pad(date.getDate());
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private dateToDisplay(date: Date): string {
+    const day = this.pad(date.getDate());
+    const month = this.pad(date.getMonth() + 1);
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  }
+
+  private displayDateToApi(displayDate: string): string {
+    const text = String(displayDate || '').trim();
+
+    if (!text) return '';
+
+    const normalizedText = text.replace(/[.\-]/g, '/');
+
+    let day = 0;
+    let month = 0;
+    let year = 0;
+
+    const slashMatch = normalizedText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+    if (slashMatch) {
+      day = Number(slashMatch[1]);
+      month = Number(slashMatch[2]);
+      year = Number(slashMatch[3]);
+    } else {
+      const digits = normalizedText.replace(/\D/g, '');
+
+      if (!/^\d{8}$/.test(digits)) {
+        return '';
+      }
+
+      day = Number(digits.slice(0, 2));
+      month = Number(digits.slice(2, 4));
+      year = Number(digits.slice(4, 8));
+    }
+
+    const date = new Date(year, month - 1, day);
+
+    const isValidDate =
+      date.getFullYear() === year &&
+      date.getMonth() === month - 1 &&
+      date.getDate() === day;
+
+    if (!isValidDate) return '';
+
+    return `${year}-${this.pad(month)}-${this.pad(day)}`;
+  }
+
+  private apiDateToDisplay(apiDate: string): string {
+    if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
+      return '';
+    }
+
+    const [year, month, day] = apiDate.split('-');
+
+    return `${day}/${month}/${year}`;
+  }
+
+  private pad(value: number): string {
+    return value.toString().padStart(2, '0');
+  }
+}
