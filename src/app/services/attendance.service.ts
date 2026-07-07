@@ -72,7 +72,8 @@ export class AttendanceService {
     departmentId: number | null = null,
     status: string = '',
     pageNumber: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
+    employeeName: string | null = null
   ): Observable<any> {
     let params = new HttpParams()
       .set('from', from)
@@ -86,6 +87,10 @@ export class AttendanceService {
 
     if (status) {
       params = params.set('status', status);
+    }
+
+    if (employeeName !== null && employeeName !== undefined && String(employeeName).trim() !== '') {
+      params = params.set('employeeName', String(employeeName).trim());
     }
 
     return this.http.get<any>(`${this.apiUrl}/date-range`, {

@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { read, utils, WorkBook, WorkSheet } from 'xlsx';
 import { OnInit } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import {
   AttendancePayload,
   AttendanceService
@@ -151,15 +152,70 @@ private getApiErrorMessage(err: any): string {
       .map((key) => `${key}: ${errors[key].join(' - ')}`)
       .join(' | ');
 
-    return messages || 'حدث خطأ في التحقق من البيانات';
+    return this.translateApiMessage(messages, 'حدث خطأ في التحقق من البيانات');
   }
 
-  return (
+  return this.translateApiMessage(
     err?.error?.message ||
     err?.error?.title ||
     err?.message ||
+    'حدث خطأ أثناء الحفظ',
     'حدث خطأ أثناء الحفظ'
   );
+}
+
+private translateApiMessage(message: string | null | undefined, fallback: string = ''): string {
+  const raw = String(message || '').trim();
+
+  if (!raw) {
+    return fallback;
+  }
+
+  const replacements: Array<[string, string]> = [
+    [
+      'checkout completed from next day import - please verify',
+      'تم إكمال الخروج من استيراد اليوم التالي - يرجى التحقق'
+    ],
+    [
+      'checkout completed from next day import',
+      'تم إكمال الخروج من استيراد اليوم التالي'
+    ],
+    ['please verify', 'يرجى التحقق'],
+    ['verify', 'تحقق'],
+    ['completed', 'اكتمل'],
+    ['import', 'استيراد'],
+    ['next day', 'اليوم التالي'],
+    ['checkout', 'الخروج'],
+    ['check out', 'الخروج'],
+    ['checkin', 'الدخول'],
+    ['check in', 'الدخول'],
+    ['missing', 'مفقود'],
+    ['review', 'مراجعة'],
+    ['reviewed', 'تمت المراجعة'],
+    ['success', 'نجاح'],
+    ['failed', 'فشل'],
+    ['error', 'خطأ'],
+    ['warning', 'تحذير'],
+    ['not found', 'غير موجود'],
+    ['invalid', 'غير صالح'],
+    ['required', 'مطلوب'],
+    ['already', 'موجود بالفعل'],
+    ['unable to', 'غير قادر على'],
+    ['cannot', 'لا يمكن'],
+    ['needs review', 'يحتاج مراجعة'],
+    ['needs revision', 'يحتاج مراجعة'],
+    ['without', 'بدون'],
+    ['check in without check out', 'دخول بدون خروج'],
+    ['check out without check in', 'خروج بدون دخول']
+  ];
+
+  let translated = raw;
+
+  replacements.forEach(([source, target]) => {
+    translated = translated.replace(new RegExp(source, 'gi'), target);
+  });
+
+  return translated;
 }
 
 onDateRangeInputChange(value: string, field: 'from' | 'to'): void {
@@ -617,8 +673,10 @@ markAttendanceReviewed(row: any): void {
       console.log('Mark Attendance Reviewed Response:', response);
 
       if (response?.isSuccess === false) {
-        this.dateRangeErrorMessage =
-          response?.message || 'فشل اعتماد مراجعة سجل الحضور';
+        this.dateRangeErrorMessage = this.translateApiMessage(
+          response?.message,
+          'فشل اعتماد مراجعة سجل الحضور'
+        );
         this.reviewingAttendanceId = null;
         return;
       }
@@ -632,10 +690,10 @@ markAttendanceReviewed(row: any): void {
     error: (err) => {
       console.log('Mark attendance reviewed error:', err);
 
-      this.dateRangeErrorMessage =
-        err?.error?.message ||
-        err?.message ||
-        'حدث خطأ أثناء اعتماد مراجعة سجل الحضور';
+this.dateRangeErrorMessage = this.translateApiMessage(
+          err?.error?.message || err?.message || 'حدث خطأ أثناء اعتماد مراجعة سجل الحضور',
+          'حدث خطأ أثناء اعتماد مراجعة سجل الحضور'
+        );
 
       this.reviewingAttendanceId = null;
     }
@@ -1103,10 +1161,10 @@ markAttendanceReviewed(row: any): void {
         console.log('Bulk attendance error:', err);
 
         this.isImporting = false;
-        this.errorMessage =
-          err?.error?.message ||
-          err?.message ||
-          'حدث خطأ أثناء حفظ بيانات الحضور في السيستم';
+        this.errorMessage = this.translateApiMessage(
+          err?.error?.message || err?.message || 'حدث خطأ أثناء حفظ بيانات الحضور في السيستم',
+          'حدث خطأ أثناء حفظ بيانات الحضور في السيستم'
+        );
       }
     });
   }
@@ -1128,7 +1186,8 @@ markAttendanceReviewed(row: any): void {
         this.dateRangeDepartmentId,
         this.dateRangeStatus,
         this.dateRangePageNumber,
-        this.dateRangePageSize
+        this.dateRangePageSize,
+        this.employeeSearchTerm || null
       )
       .subscribe({
         next: (response: any) => {
@@ -1163,11 +1222,13 @@ markAttendanceReviewed(row: any): void {
           console.log('Attendance date range error:', err);
 
           this.dateRangeRows = [];
-          this.dateRangeErrorMessage =
+          this.dateRangeErrorMessage = this.translateApiMessage(
             err?.error?.message ||
             err?.error?.title ||
             err?.message ||
-            'حدث خطأ أثناء تحميل سجلات الحضور';
+            'حدث خطأ أثناء تحميل سجلات الحضور',
+            'حدث خطأ أثناء تحميل سجلات الحضور'
+          );
 
           this.isLoadingDateRange = false;
         }
@@ -1191,8 +1252,114 @@ markAttendanceReviewed(row: any): void {
   this.dateRangeToDisplay = this.apiDateToDisplay(toApiDate);
 
   this.dateRangePageNumber = 1;
-  this.loadAttendanceByDateRange();
+  if (this.employeeSearchTerm && String(this.employeeSearchTerm).trim() !== '') {
+    this.searchEmployee();
+  } else {
+    this.loadAttendanceByDateRange();
+  }
 }
+
+  async searchEmployee(): Promise<void> {
+    if (!this.dateRangeFrom || !this.dateRangeTo) {
+      this.dateRangeErrorMessage = 'من فضلك اختاري تاريخ البداية والنهاية';
+      return;
+    }
+
+    this.isLoadingDateRange = true;
+    this.dateRangeErrorMessage = '';
+    this.dateRangeSuccessMessage = '';
+
+    const searchNorm = this.normalizeArabicText(this.employeeSearchTerm || '');
+    if (!searchNorm) {
+      this.isLoadingDateRange = false;
+      this.loadAttendanceByDateRange();
+      return;
+    }
+
+    const perPage = 1000; // fetch up to 1000 rows per request to reduce paging
+    let page = 1;
+    let totalPages = 1;
+
+    try {
+      const allMatches: any[] = [];
+
+      while (page <= totalPages) {
+        const resp: any = await firstValueFrom(
+          this.attendanceService.getAttendanceByDateRange(
+            this.dateRangeFrom,
+            this.dateRangeTo,
+            this.dateRangeDepartmentId,
+            this.dateRangeStatus,
+            page,
+            perPage,
+            this.employeeSearchTerm || null
+          )
+        );
+
+        const data = resp?.data || resp;
+        let items: any[] = [];
+
+        if (Array.isArray(data?.items)) {
+          items = data.items;
+          totalPages = data.totalPages || 1;
+          this.dateRangeTotalCount = data.totalCount || this.dateRangeTotalCount;
+        } else if (Array.isArray(data)) {
+          items = data;
+          totalPages = 1;
+          this.dateRangeTotalCount = items.length;
+        } else {
+          items = [];
+          totalPages = 0;
+        }
+
+        const prepared = this.prepareDateRangeRows(items);
+
+        const matches = prepared.filter((row: any) => {
+          const employeeName = this.normalizeArabicText(
+            row.employeeName || row.name || row.employee?.name || ''
+          );
+
+          const employeeCode = this.normalizeArabicText(
+            row.employeeCode || row.employee?.employeeCode || ''
+          );
+
+          return (
+            employeeName.includes(searchNorm) || employeeCode.includes(searchNorm)
+          );
+        });
+
+        if (matches.length > 0) {
+          allMatches.push(...matches);
+        }
+
+        if (page >= totalPages) {
+          break;
+        }
+
+        page++;
+      }
+
+      if (allMatches.length > 0) {
+        this.dateRangeRows = allMatches;
+        this.dateRangePageNumber = 1;
+        this.dateRangePageSize = perPage;
+        this.dateRangeTotalPages = 1;
+        this.dateRangeTotalCount = allMatches.length;
+        this.dateRangeSuccessMessage = `تم العثور على ${allMatches.length} نتيجة`;
+      } else {
+        this.dateRangeRows = [];
+        this.dateRangeTotalCount = 0;
+        this.dateRangeTotalPages = 0;
+        this.dateRangeErrorMessage = 'لم يتم العثور على الموظف ضمن النطاق المحدد';
+      }
+    } catch (err: any) {
+      console.log('Search employee error:', err);
+      this.dateRangeErrorMessage =
+        err?.error?.message || err?.message || 'حدث خطأ أثناء البحث عن الموظف';
+    } finally {
+      this.isLoadingDateRange = false;
+    }
+  }
 
   clearDateRangeFilter(): void {
     this.dateRangeFrom = '';
@@ -1474,10 +1641,10 @@ loadLateSummary(): void {
       error: (err: any) => {
         this.isLoadingLateSummary = false;
 
-        this.lateSummaryErrorMessage =
-          err?.error?.message ||
-          err?.message ||
-          'حدث خطأ أثناء جلب ملخص التأخير';
+        this.lateSummaryErrorMessage = this.translateApiMessage(
+          err?.error?.message || err?.message || 'حدث خطأ أثناء جلب ملخص التأخير',
+          'حدث خطأ أثناء جلب ملخص التأخير'
+        );
 
         this.lateSummaryData = null;
         this.lateSummaryRows = [];
@@ -1854,16 +2021,20 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
       return '-';
     }
 
-    const lowerValue = value.toLowerCase();
-    if (
-  lowerValue.includes('تمت المراجعة') ||
-  lowerValue.includes('تمت مراجعه') ||
-  lowerValue.includes('reviewed')
-) {
-  return 'تمت المراجعة';
-}
+    const translated = this.translateApiMessage(value, value);
+    const lowerValue = translated.toLowerCase();
 
     if (
+      lowerValue.includes('تمت المراجعة') ||
+      lowerValue.includes('تمت مراجعه') ||
+      lowerValue.includes('reviewed')
+    ) {
+      return 'تمت المراجعة';
+    }
+
+    if (
+      lowerValue.includes('دخول بدون خروج') ||
+      lowerValue.includes('حضور بدون انصراف') ||
       lowerValue.includes('checkin without checkout') ||
       lowerValue.includes('check-in without check-out') ||
       lowerValue.includes('check in without check out')
@@ -1872,6 +2043,8 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
     }
 
     if (
+      lowerValue.includes('خروج بدون دخول') ||
+      lowerValue.includes('انصراف بدون حضور') ||
       lowerValue.includes('checkout without checkin') ||
       lowerValue.includes('check-out without check-in') ||
       lowerValue.includes('check out without check in')
@@ -1879,7 +2052,7 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
       return 'انصراف بدون حضور - يحتاج مراجعة';
     }
 
-    if (lowerValue.includes('needs review')) {
+    if (lowerValue.includes('يحتاج مراجعة')) {
       return 'يحتاج مراجعة';
     }
 
@@ -1894,7 +2067,7 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
       'Approved manually': 'تم الاعتماد يدويًا'
     };
 
-    return notesMap[value] || value;
+    return translated || notesMap[value] || value;
   }
 
 }
