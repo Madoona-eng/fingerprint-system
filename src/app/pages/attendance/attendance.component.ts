@@ -1969,6 +1969,32 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
     return value.toString().padStart(2, '0');
   }
 
+  formatMinutesToHoursLabel(value: number | string | null | undefined): string {
+    if (value === null || value === undefined || value === '') {
+      return '-';
+    }
+
+    const minutes = Number(value);
+
+    if (Number.isNaN(minutes)) {
+      return '-';
+    }
+
+    const hours = minutes / 60;
+
+    if (!Number.isFinite(hours)) {
+      return '-';
+    }
+
+    const normalized = Number(hours.toFixed(2));
+
+    if (normalized % 1 === 0) {
+      return `${normalized} ساعة`;
+    }
+
+    return `${normalized} ساعة`;
+  }
+
   getStatusLabel(status: string | null | undefined): string {
     const value = String(status || '').trim();
 

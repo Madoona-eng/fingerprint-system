@@ -286,11 +286,8 @@
         <th>الحالة</th>
         <th>التأخير (د)</th>
         <th>الإضافي (د)</th>
-        <th>العمل (د)</th>
-        <th>تعديل يدوي</th>
+        <th>العمل (س)</th>
         <th>ملاحظات</th>
-        <th>أنشئ بواسطة</th>
-        <th>آخر تعديل بواسطة</th>
         <th>المراجعة</th>
         <th>تعديل</th>
       </tr>
@@ -337,23 +334,11 @@
         </td>
 
         <td>
-          {{ row.workedMinutes ?? '-' }}
-        </td>
-
-        <td>
-          {{ row.isManualOverride === true ? 'نعم' : row.isManualOverride === false ? 'لا' : '-' }}
+          {{ formatMinutesToHoursLabel(row.workedMinutes) }}
         </td>
 
         <td>
           {{ getNotesLabel(row.notes) }}
-        </td>
-
-        <td>
-          {{ row.createdByUserName || row.createdBy || row.createdByUser?.name || '-' }}
-        </td>
-
-        <td>
-          {{ row.lastModifiedByUserName || row.lastModifiedBy || row.lastModifiedByUser?.name || '-' }}
         </td>
 
         <td>
