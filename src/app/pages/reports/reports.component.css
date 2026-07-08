@@ -83,11 +83,40 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
+.date-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
 .date-text-input {
   direction: ltr;
   text-align: center;
   letter-spacing: 0.5px;
   font-weight: 900;
+  flex: 1;
+}
+
+.calendar-btn {
+  height: 52px;
+  width: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.native-date-picker {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* Buttons */

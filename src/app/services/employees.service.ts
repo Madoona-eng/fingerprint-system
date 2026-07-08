@@ -29,6 +29,11 @@ export interface Employee {
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
+  createdBy?: string;
+  createdByUserName?: string;
+  lastModifiedBy?: string;
+  lastModifiedByUserName?: string;
+  lastModifiedAt?: string;
 }
 
 export interface ApiResponse<T> {

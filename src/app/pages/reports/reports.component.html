@@ -9,16 +9,34 @@
     <div class="reports-filter-box">
       <div class="filter-field">
         <label>التاريخ</label>
-        <input
-          type="text"
-          class="date-text-input"
-          inputmode="numeric"
-          maxlength="10"
-          placeholder="31/03/2026"
-          [(ngModel)]="analyticsDateDisplay"
-          [ngModelOptions]="{ standalone: true }"
-          (input)="formatAnalyticsDateWhileTyping()"
-        />
+        <div class="date-input-wrap">
+          <input
+            type="text"
+            class="date-text-input"
+            inputmode="numeric"
+            maxlength="10"
+            placeholder="31/03/2026"
+            [(ngModel)]="analyticsDateDisplay"
+            [ngModelOptions]="{ standalone: true }"
+            (input)="formatAnalyticsDateWhileTyping()"
+          />
+
+          <button
+            type="button"
+            class="calendar-btn"
+            (click)="openAnalyticsDatePicker(analyticsDatePicker)"
+          >
+            📅
+          </button>
+
+          <input
+            #analyticsDatePicker
+            class="native-date-picker"
+            type="date"
+            [value]="analyticsDate"
+            (change)="onAnalyticsNativeDatePicked($event)"
+          />
+        </div>
       </div>
 
       <button type="button" class="ghost-btn" (click)="setTodayDate()">

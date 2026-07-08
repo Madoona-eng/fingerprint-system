@@ -130,11 +130,14 @@ lateSummarySelectedEmployee: any = null;
   ];
 
 statusOptions: { value: string; label: string }[] = [
-  { value: '', label: 'كل الحالات' },
+  
   { value: 'Present', label: 'حاضر' },
-  { value: 'Absent', label: 'غائب' },
   { value: 'Late', label: 'متأخر' },
-  { value: 'EarlyDeparture', label: 'ترك عمل' }
+  { value: 'Absent', label: 'غائب' },
+  { value: 'EarlyDeparture', label: 'انصراف مبكر' },
+  { value: 'PersonalLeave', label: 'إذن شخصي' },
+  { value: 'WorkLeave', label: 'إذن عمل' },
+  { value: 'Mission', label: 'مأمورية' }
 ];
 
 private setDateRangeFromDates(from: Date, to: Date): void {
@@ -1980,19 +1983,28 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
       return '-';
     }
 
-    const hours = minutes / 60;
+    const totalHours = minutes / 60;
 
-    if (!Number.isFinite(hours)) {
+    if (!Number.isFinite(totalHours)) {
       return '-';
     }
 
-    const normalized = Number(hours.toFixed(2));
+    const wholeHours = Math.floor(totalHours);
+    const remainingMinutes = Math.round((totalHours - wholeHours) * 60);
 
-    if (normalized % 1 === 0) {
-      return `${normalized} ساعة`;
+    if (remainingMinutes === 60) {
+      return `${wholeHours + 1} ساعة`;
     }
 
-    return `${normalized} ساعة`;
+    if (wholeHours === 0 && remainingMinutes > 0) {
+      return `${remainingMinutes} دقيقة`;
+    }
+
+    if (remainingMinutes === 0) {
+      return `${wholeHours} ساعة`;
+    }
+
+    return `${wholeHours}.${remainingMinutes} ساعة`;
   }
 
   getStatusLabel(status: string | null | undefined): string {
@@ -2002,7 +2014,9 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
       Present: 'حاضر',
       Absent: 'غائب',
       Late: 'متأخر',
-      EarlyDeparture: 'ترك عمل',
+      EarlyDeparture: 'انصراف مبكر',
+      PersonalLeave: 'إذن شخصي',
+      WorkLeave: 'إذن عمل',
       Permission: 'إذن',
       Vacation: 'إجازة',
       Mission: 'مأمورية',
@@ -2085,12 +2099,17 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
     const notesMap: Record<string, string> = {
       'Checkin without checkout - needs review': 'حضور بدون انصراف - يحتاج مراجعة',
       'Checkout without checkin - needs review': 'انصراف بدون حضور - يحتاج مراجعة',
+      'checkin without checkout - needs review': 'حضور بدون انصراف - يحتاج مراجعة',
+      'checkout without checkin - needs review': 'انصراف بدون حضور - يحتاج مراجعة',
       'Missing checkin': 'حضور ناقص',
       'Missing checkout': 'انصراف ناقص',
       'No checkin': 'لا يوجد حضور',
       'No checkout': 'لا يوجد انصراف',
       'Manual update': 'تعديل يدوي',
-      'Approved manually': 'تم الاعتماد يدويًا'
+      'Approved manually': 'تم الاعتماد يدويًا',
+      'needs review': 'يحتاج مراجعة',
+      'needs revision': 'يحتاج مراجعة',
+      'reviewed': 'تمت المراجعة'
     };
 
     return translated || notesMap[value] || value;

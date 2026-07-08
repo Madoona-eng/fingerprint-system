@@ -393,20 +393,11 @@
     </div>
 
     <div class="employee-info-grid">
-      <div class="info-box">
-        <span>ID</span>
-        <strong>{{ selectedEmployeeForDetails?.id || '-' }}</strong>
-      </div>
+      
 
-      <div class="info-box">
-        <span>الكود</span>
-        <strong>{{ selectedEmployeeForDetails?.employeeCode || '-' }}</strong>
-      </div>
+     
 
-      <div class="info-box large-info">
-        <span>الاسم</span>
-        <strong>{{ selectedEmployeeForDetails?.name || '-' }}</strong>
-      </div>
+     
 
       <div class="info-box">
         <span>القسم</span>
@@ -415,20 +406,15 @@
         </strong>
       </div>
 
-      <div class="info-box">
-        <span>موعد الحضور</span>
-        <strong>{{ selectedEmployeeForDetails?.scheduleIn || '-' }}</strong>
-      </div>
+      
 
-      <div class="info-box">
-        <span>موعد الانصراف</span>
-        <strong>{{ selectedEmployeeForDetails?.scheduleOut || '-' }}</strong>
-      </div>
+     
 
-      <div class="info-box">
-        <span>وقت السماح</span>
-        <strong>{{ selectedEmployeeForDetails?.graceTime || '-' }}</strong>
-      </div>
+     
+
+      
+
+     
     </div>
   </div>
 
@@ -444,12 +430,18 @@
         <thead>
           <tr>
             <th>التاريخ</th>
-            <th>الحضور الفعلي</th>
-            <th>الانصراف الفعلي</th>
+            <th>وقت الحضور </th>
+            <th>وقت الانصراف</th>
+            <th>معاد الحضور</th>
+            <th>معاد الانصراف</th>
+            <th>وقت السماح</th>
+            <th>ساعات العمل</th>
+            <th>دقائق التأخير</th>
+            <th>دقائق الإضافي</th>
             <th>الحالة</th>
+           
             <th>ملاحظات</th>
           </tr>
-        </thead>
 
         <tbody>
           <tr *ngFor="let row of employeeDetailsRows">
@@ -459,11 +451,25 @@
 
             <td>{{ row.actualOut || row.checkOut || row.out || '-' }}</td>
 
+            <td>{{ row.scheduleIn || row.attendanceScheduleIn || '-' }}</td>
+
+            <td>{{ row.scheduleOut || row.attendanceScheduleOut || '-' }}</td>
+
+            <td>{{ row.graceTime || row.attendanceGraceTime || '-' }}</td>
+
+            <td>{{ row.workedMinutes != null ? row.workedMinutes : '-' }}</td>
+
+            <td>{{ row.lateMinutes != null ? row.lateMinutes : '-' }}</td>
+
+            <td>{{ row.overtimeMinutes != null ? row.overtimeMinutes : '-' }}</td>
+
             <td>
               <span class="details-status-badge">
-                {{ row.status || '-' }}
+                {{ getStatusLabel(row.status) }}
               </span>
             </td>
+
+           
 
             <td>{{ row.notes || '-' }}</td>
           </tr>
@@ -552,26 +558,7 @@
   </small>
 </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>موعد الحضور</label>
-     <input
-  type="text"
-  formControlName="scheduleIn"
-  placeholder="مثال: 09:00"
-/>
-            </div>
-
-            <div class="form-group">
-              <label>موعد الانصراف</label>
-       
-<input
-  type="text"
-  formControlName="scheduleOut"
-  placeholder="مثال: 16:30"
-/>
-            </div>
-          </div>
+          
 
           <div class="form-group">
             <label>وقت السماح</label>

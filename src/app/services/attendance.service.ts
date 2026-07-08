@@ -40,7 +40,8 @@ export class AttendanceService {
     const token =
       localStorage.getItem('token') ||
       localStorage.getItem('accessToken') ||
-      localStorage.getItem('jwt');
+      localStorage.getItem('jwt') ||
+      localStorage.getItem('authToken');
 
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',

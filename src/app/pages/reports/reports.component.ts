@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AttendanceService } from '../../services/attendance.service';
 import { EmployeesService } from '../../services/employees.service';
+import { AuthService } from '../../auth/Services/auth.service';
 
 interface AnalyticsStats {
   total: number;
@@ -46,7 +47,8 @@ export class ReportsComponent implements OnInit {
   departmentRows: any[] = [];
 constructor(
   private employeesService: EmployeesService,
-  private attendanceService: AttendanceService
+  private attendanceService: AttendanceService,
+  private authService: AuthService
 ) {}
 
   ngOnInit(): void {
@@ -104,7 +106,37 @@ constructor(
     this.analyticsDateDisplay = value;
   }
 
+  openAnalyticsDatePicker(input: HTMLInputElement): void {
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+      return;
+    }
+
+    input.click();
+  }
+
+  onAnalyticsNativeDatePicked(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    const pickedValue = target?.value;
+
+    if (!pickedValue) {
+      return;
+    }
+
+    this.analyticsDate = pickedValue;
+    this.analyticsDateDisplay = this.apiDateToDisplay(pickedValue);
+  }
+
  loadAnalytics(): void {
+  if (!this.authService.isLoggedIn()) {
+    this.errorMessage = 'لم يتم تسجيل الدخول بعد. يرجى تسجيل الدخول مرة أخرى ثم أعد المحاولة.';
+    this.rawData = null;
+    this.analyticsRows = [];
+    this.departmentRows = [];
+    this.resetStats();
+    return;
+  }
+
   const apiDate = this.displayDateToApi(this.analyticsDateDisplay);
 
   if (!apiDate) {
@@ -159,10 +191,16 @@ constructor(
       this.departmentRows = [];
       this.resetStats();
 
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || localStorage.getItem('jwt');
+
       this.errorMessage =
-        err?.error?.message ||
-        err?.message ||
-        'حدث خطأ أثناء تحميل تحليل البيانات';
+        (err?.status === 401 || err?.status === 403)
+          ? token
+            ? 'فشل التحقق من الصلاحية. يرجى تسجيل الدخول مرة أخرى.'
+            : 'لم يتم تسجيل الدخول بعد. يرجى تسجيل الدخول مرة أخرى ثم أعد المحاولة.'
+          : err?.error?.message ||
+            err?.message ||
+            'حدث خطأ أثناء تحميل تحليل البيانات';
 
       this.isLoading = false;
     }

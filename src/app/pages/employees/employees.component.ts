@@ -160,6 +160,33 @@ getDepartmentNameById(id: number | null | undefined): string {
   return this.departmentOptions.find((dep) => dep.id === Number(id))?.name || '';
 }
 
+  getStatusLabel(status: unknown): string {
+    const value = String(status ?? '').trim();
+
+    if (!value) {
+      return '-';
+    }
+
+    const normalized = value.toLowerCase();
+
+    const translations: Record<string, string> = {
+      present: 'حاضر',
+      absent: 'غائب',
+      late: 'متأخر',
+      earlydeparture: 'انصراف مبكر',
+      early_departure: 'انصراف مبكر',
+      overtime: 'إضافي',
+      ontime: 'في الميعاد',
+      'في الميعاد': 'في الميعاد',
+      حاضر: 'حاضر',
+      غائب: 'غائب',
+      متأخر: 'متأخر',
+      'انصراف مبكر': 'انصراف مبكر'
+    };
+
+    return translations[normalized] || value;
+  }
+
   databaseDepartmentNames: string[] = [
     'إدارة الأزمات',
     'الاتصال السياسي',
