@@ -1,7 +1,6 @@
 <div class="attendance-page" dir="rtl">
   <section class="attendance-card">
     <div class="upload-info">
-      <span class="small-title">Attendance Management</span>
       <h1>الحضور والانصراف</h1>
       <p>
         استيراد شيت الحضور، عرض سجلات الحضور والانصراف، ومراجعة ملخص التأخير.
@@ -40,10 +39,9 @@
     <section *ngSwitchCase="'import'" class="attendance-sub-page">
       <section class="attendance-card">
         <div class="upload-info">
-          <span class="small-title">Attendance Import</span>
           <h1>استيراد الحضور والانصراف</h1>
           <p>
-            ارفعي شيت الحضور، وسيتم استخراج كود الموظف، التاريخ، وقت الحضور، ووقت الانصراف ثم حفظهم في السيستم.
+            قم برفع شيت الحضور، وسيتم استخراج كود الموظف، التاريخ، وقت الحضور، ووقت الانصراف ثم حفظهم في السيستم.
           </p>
         </div>
 
@@ -59,7 +57,7 @@
             (change)="onAttendanceSheetSelected($event)"
           />
 
-          <span>📁 اختاري ملف Excel أو اسحبيه هنا</span>
+          <span>📁 قم بإختيار ملف Excel أو اسحبيه هنا</span>
         </label>
 
         <div *ngIf="excelFileName" class="file-name">
@@ -120,10 +118,9 @@
     <section *ngSwitchCase="'report'" class="attendance-sub-page">
       <section class="attendance-card">
         <div class="upload-info">
-          <span class="small-title">Attendance Report</span>
           <h1>عرض سجلات الحضور والانصراف</h1>
           <p>
-            اختاري الفترة والقسم والحالة لعرض سجلات الحضور والانصراف المحفوظة في السيستم.
+            قم بإختيار الفترة والقسم والحالة لعرض سجلات الحضور والانصراف المحفوظة في السيستم.
           </p>
         </div>
 
@@ -202,7 +199,7 @@
   <label>بحث عن موظف</label>
   <input
     type="text"
-    placeholder="اكتبي اسم الموظف أو الكود"
+    placeholder="اكتب اسم الموظف أو الكود"
     [(ngModel)]="employeeSearchTerm"
     [ngModelOptions]="{ standalone: true }"
   />
@@ -410,10 +407,9 @@
     <section *ngSwitchCase="'lateSummary'" class="attendance-sub-page">
       <section class="attendance-card">
         <div class="upload-info">
-          <span class="small-title">Late Summary</span>
           <h1>ملخص التأخير</h1>
           <p>
-            اختاري الفترة ورقم الموظف الداخلي لعرض ملخص التأخير الخاص به.
+            قم بإختيار الفترة ورقم الموظف الداخلي لعرض ملخص التأخير الخاص به.
           </p>
         </div>
 
@@ -549,7 +545,6 @@
       <section *ngIf="lateSummaryData" class="json-preview-card">
         <div class="table-header">
           <h3>نتيجة ملخص التأخير</h3>
-          <span>Employee ID: {{ lateSummaryEmployeeId }}</span>
         </div>
 
       <div
@@ -565,7 +560,6 @@
 >
   <div class="table-header">
     <h3>نتيجة ملخص التأخير</h3>
-    <span>Employee ID: {{ lateSummaryEmployeeId }}</span>
   </div>
 
   <div class="table-wrapper">
@@ -684,7 +678,7 @@
         <label>ملاحظات</label>
         <input
           type="text"
-          placeholder="اكتبي ملاحظة"
+          placeholder="اكتب ملاحظة"
           [(ngModel)]="attendanceEditNotes"
           [ngModelOptions]="{ standalone: true }"
         />

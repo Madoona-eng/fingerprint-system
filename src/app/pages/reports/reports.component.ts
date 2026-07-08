@@ -140,7 +140,7 @@ constructor(
   const apiDate = this.displayDateToApi(this.analyticsDateDisplay);
 
   if (!apiDate) {
-    this.errorMessage = 'من فضلك اكتبي التاريخ بطريقة صحيحة مثل: 31/03/2026';
+    this.errorMessage = 'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
     return;
   }
 

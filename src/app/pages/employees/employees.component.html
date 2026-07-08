@@ -1,7 +1,6 @@
 <div class="employees-page" dir="rtl">
   <section class="employees-title">
     <div>
-      <span class="small-title">Employees Management</span>
       <h1>إدارة الموظفين</h1>
       <p>
         رفع شيت الحضور، استخراج الموظفين بدون تكرار، أو إضافة وتعديل بيانات الموظفين يدويًا.
@@ -49,7 +48,7 @@
           <span class="small-title">SheetJS Import</span>
           <h3>رفع شيت الموظفين</h3>
           <p>
-            ارفعي ملف Excel مثل DailyAttendance، وسيتم استخراج كود الموظف، الاسم، الإدارة،
+            قم برفع الملف وسيتم استخراج كود الموظف، الاسم، الإدارة،
             مواعيد الحضور والانصراف، ووقت السماح.
           </p>
         </div>
@@ -66,7 +65,7 @@
             (change)="onEmployeeSheetSelected($event)"
           />
 
-          <span>📁 اختاري ملف Excel أو اسحبيه هنا</span>
+          <span>📁 قم بإختيار ملف Excel أو اسحبيه هنا</span>
         </label>
 
         <div *ngIf="excelFileName" class="file-name">
@@ -99,7 +98,7 @@
           <h4>إدارات غير مربوطة برقم قسم</h4>
 
           <p>
-            اكتبي رقم القسم الصحيح لكل إدارة، وبعدها اضغطي تطبيق أرقام الأقسام.
+            اكتب رقم القسم الصحيح لكل إدارة، وبعدها اضغطي تطبيق أرقام الأقسام.
           </p>
 
           <div class="department-map-list">
@@ -409,12 +408,6 @@
       
 
      
-
-     
-
-      
-
-     
     </div>
   </div>
 
@@ -510,9 +503,6 @@
 
 
 
-
-
-
     <!-- صفحة إضافة / تعديل موظف -->
     <section *ngSwitchCase="'form'" class="employee-sub-page">
       <div class="employee-form-card form-page-card">
@@ -543,7 +533,7 @@
   <label>القسم</label>
 
   <select formControlName="departmentId" class="department-select">
-    <option [ngValue]="null">اختاري القسم</option>
+    <option [ngValue]="null">قم بإختيار القسم</option>
 
     <option
       *ngFor="let dep of departmentOptions"
@@ -553,13 +543,9 @@
     </option>
   </select>
 
-  <small *ngIf="employeeForm.value.departmentId">
-    رقم القسم: {{ employeeForm.value.departmentId }}
-  </small>
 </div>
 
           
-
           <div class="form-group">
             <label>وقت السماح</label>
 <input

@@ -446,7 +446,7 @@ loadEmployeesAnalytics(): void {
 
   if (!apiDate) {
     this.employeesAnalyticsErrorMessage =
-      'من فضلك اكتبي التاريخ بطريقة صحيحة مثل: 31/03/2026';
+      'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
     return;
   }
 
@@ -797,7 +797,7 @@ openEmployeeDetails(employee: Employee): void {
   const employeeId = this.selectedEmployeeForDetails?.id;
 
   if (!employeeId) {
-    this.errorMessage = 'اختاري موظف أولًا لعرض التفاصيل';
+    this.errorMessage = 'قم بإختيار موظف أولًا لعرض التفاصيل';
     return;
   }
 
@@ -1189,7 +1189,7 @@ openEmployeeDetails(employee: Employee): void {
     const extension = file.name.split('.').pop()?.toLowerCase();
 
     if (extension !== 'xlsx' && extension !== 'xls') {
-      this.excelErrorMessage = 'من فضلك ارفعي ملف Excel بصيغة xlsx أو xls فقط';
+      this.excelErrorMessage = 'من فضلك قم برفع ملف Excel بصيغة xlsx أو xls فقط';
       return;
     }
 

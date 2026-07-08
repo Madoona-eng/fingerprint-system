@@ -734,7 +734,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
 
     if (extension !== 'xlsx' && extension !== 'xls' && extension !== 'csv') {
       this.errorMessage =
-        'من فضلك ارفعي ملف Excel أو CSV بصيغة xlsx أو xls أو csv فقط';
+        'من فضلك قم برفع ملف Excel أو CSV بصيغة xlsx أو xls أو csv فقط';
       return;
     }
 
@@ -1174,7 +1174,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
 
   loadAttendanceByDateRange(): void {
     if (!this.dateRangeFrom || !this.dateRangeTo) {
-      this.dateRangeErrorMessage = 'من فضلك اختاري تاريخ البداية والنهاية';
+      this.dateRangeErrorMessage = 'من فضلك قم بإختيار تاريخ البداية والنهاية';
       return;
     }
 
@@ -1244,7 +1244,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
 
   if (!fromApiDate || !toApiDate) {
     this.dateRangeErrorMessage =
-      'من فضلك اكتبي التاريخ بطريقة صحيحة مثل: 31/03/2026';
+      'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
     return;
   }
 
@@ -1264,7 +1264,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
 
   async searchEmployee(): Promise<void> {
     if (!this.dateRangeFrom || !this.dateRangeTo) {
-      this.dateRangeErrorMessage = 'من فضلك اختاري تاريخ البداية والنهاية';
+      this.dateRangeErrorMessage = 'من فضلك قم بإختيار تاريخ البداية والنهاية';
       return;
     }
 
@@ -1484,7 +1484,7 @@ saveAttendanceEdit(): void {
 
   if (!finalStatus) {
     this.attendanceEditErrorMessage =
-      'من فضلك اختاري الحالة أو أدخلي وقت الحضور والانصراف';
+      'من فضلك قم بإختيار الحالة أو أدخلي وقت الحضور والانصراف';
     return;
   }
 
@@ -1608,7 +1608,7 @@ loadLateSummary(): void {
 
   if (!fromApiDate || !toApiDate) {
     this.lateSummaryErrorMessage =
-      'من فضلك اكتبي التاريخ بطريقة صحيحة مثل: 31/03/2026';
+      'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
     return;
   }
 
@@ -1972,7 +1972,7 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
     return value.toString().padStart(2, '0');
   }
 
-  formatMinutesToHoursLabel(value: number | string | null | undefined): string {
+formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     if (value === null || value === undefined || value === '') {
       return '-';
     }
@@ -1993,18 +1993,10 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
     const remainingMinutes = Math.round((totalHours - wholeHours) * 60);
 
     if (remainingMinutes === 60) {
-      return `${wholeHours + 1} ساعة`;
+      return `${wholeHours + 1}:00`;
     }
 
-    if (wholeHours === 0 && remainingMinutes > 0) {
-      return `${remainingMinutes} دقيقة`;
-    }
-
-    if (remainingMinutes === 0) {
-      return `${wholeHours} ساعة`;
-    }
-
-    return `${wholeHours}.${remainingMinutes} ساعة`;
+    return `${wholeHours}:${remainingMinutes.toString().padStart(2, '0')}`;
   }
 
   getStatusLabel(status: string | null | undefined): string {
