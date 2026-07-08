@@ -3,7 +3,15 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface EmployeePayload {
-  employeeCode: string;
+  employeeCode?: string;
+  name: string;
+  departmentId: number;
+  scheduleIn: string;
+  scheduleOut: string;
+  graceTime: string;
+}
+
+export interface UpdateEmployeePayload {
   name: string;
   departmentId: number;
   scheduleIn: string;
@@ -104,7 +112,7 @@ export class EmployeesService {
 
   updateEmployee(
     id: number,
-    employee: EmployeePayload
+    employee: UpdateEmployeePayload
   ): Observable<ApiResponse<Employee | boolean>> {
     return this.http.put<ApiResponse<Employee | boolean>>(
       `${this.apiUrl}/${id}`,

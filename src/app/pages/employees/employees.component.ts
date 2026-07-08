@@ -12,6 +12,7 @@ import { read, utils, WorkBook, WorkSheet } from 'xlsx';
 import {
   Employee,
   EmployeePayload,
+  UpdateEmployeePayload,
   BulkImportEmployeePayload,
   EmployeesService
 } from '../../services/employees.service';
@@ -22,7 +23,7 @@ interface UnknownDepartment {
   id: number | null;
   
 }
-type EmployeePage = 'upload' | 'list' | 'form' | 'details' | 'analytics';
+type EmployeePage = 'upload' | 'list' | 'form' | 'edit' | 'details' | 'analytics';
 
 @Component({
   selector: 'app-employees',
@@ -67,6 +68,16 @@ employeeDetailsInfo: any = null;
   employeeDetailsPageSize = 10;
   employeeDetailsTotalCount = 0;
   employeeDetailsTotalPages = 0;
+  employeeDetailsStatusFilter = '';
+  employeeDetailsStatusOptions = [
+    { value: '', label: 'كل الحالات' },
+    { value: 'present', label: 'حاضر' },
+    { value: 'absent', label: 'غائب' },
+    { value: 'late', label: 'متأخر' },
+    { value: 'earlydeparture', label: 'انصراف مبكر' },
+    { value: 'ontime', label: 'في الميعاد' }
+  ];
+  private employeeDetailsAllRows: any[] = [];
 
   activeEmployeePage: EmployeePage = 'upload';
 
@@ -159,6 +170,31 @@ getDepartmentNameById(id: number | null | undefined): string {
 
   return this.departmentOptions.find((dep) => dep.id === Number(id))?.name || '';
 }
+
+  formatWorkedHours(value: unknown): string {
+    if (value === null || value === undefined || value === '') {
+      return '-';
+    }
+
+    const totalMinutes = Number(value);
+
+    if (!Number.isFinite(totalMinutes) || totalMinutes < 0) {
+      return '-';
+    }
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours === 0) {
+      return `${minutes} دقيقة`;
+    }
+
+    if (minutes === 0) {
+      return `${hours} ساعة`;
+    }
+
+    return `${hours} ساعة و ${minutes} دقيقة`;
+  }
 
   getStatusLabel(status: unknown): string {
     const value = String(status ?? '').trim();
@@ -358,6 +394,14 @@ getDepartmentNameById(id: number | null | undefined): string {
   }
 
 openEmployeePage(page: EmployeePage): void {
+  if (page === 'form') {
+    this.selectedEmployeeId = null;
+    this.employeeForm.reset();
+    this.employeeForm.controls['employeeCode'].enable();
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
   this.activeEmployeePage = page;
 
   if (page === 'analytics' && !this.analyticsDateDisplay) {
@@ -783,6 +827,7 @@ openEmployeeDetails(employee: Employee): void {
   this.selectedEmployeeForDetails = employee;
   this.employeeDetailsPageNumber = 1;
   this.employeeDetailsRows = [];
+  this.employeeDetailsAllRows = [];
   this.employeeDetailsRaw = null;
   this.employeeDetailsInfo = null;
   this.errorMessage = '';
@@ -827,23 +872,27 @@ openEmployeeDetails(employee: Employee): void {
           data?.attendanceData ||
           null;
 
+        let rows: any[] = [];
+
         if (attendanceData?.items && Array.isArray(attendanceData.items)) {
-          this.employeeDetailsRows = attendanceData.items;
+          rows = attendanceData.items;
           this.employeeDetailsPageNumber = attendanceData.pageNumber || 1;
           this.employeeDetailsPageSize =
             attendanceData.pageSize || this.employeeDetailsPageSize;
           this.employeeDetailsTotalCount = attendanceData.totalCount || 0;
           this.employeeDetailsTotalPages = attendanceData.totalPages || 0;
         } else if (Array.isArray(attendanceData)) {
-          this.employeeDetailsRows = attendanceData;
+          rows = attendanceData;
           this.employeeDetailsTotalCount = attendanceData.length;
           this.employeeDetailsTotalPages = 1;
         } else {
-          this.employeeDetailsRows = [];
+          rows = [];
           this.employeeDetailsTotalCount = 0;
           this.employeeDetailsTotalPages = 0;
         }
 
+        this.employeeDetailsAllRows = rows;
+        this.applyEmployeeDetailsStatusFilter();
         this.isLoadingEmployeeDetails = false;
       },
       error: (err) => {
@@ -874,6 +923,10 @@ openEmployeeDetails(employee: Employee): void {
     this.loadEmployeeDetails();
   }
 
+  onEmployeeDetailsStatusChange(): void {
+    this.applyEmployeeDetailsStatusFilter();
+  }
+
   clearEmployeeDetailsDateFilter(): void {
     this.employeeDetailsFrom = '';
     this.employeeDetailsTo = '';
@@ -881,6 +934,29 @@ openEmployeeDetails(employee: Employee): void {
     this.employeeDetailsToDisplay = '';
     this.employeeDetailsPageNumber = 1;
     this.loadEmployeeDetails();
+  }
+
+  private applyEmployeeDetailsStatusFilter(): void {
+    if (!this.employeeDetailsStatusFilter) {
+      this.employeeDetailsRows = [...this.employeeDetailsAllRows];
+      return;
+    }
+
+    const selectedStatus = this.normalizeEmployeeDetailsStatus(
+      this.employeeDetailsStatusFilter
+    );
+
+    this.employeeDetailsRows = this.employeeDetailsAllRows.filter((row) => {
+      const rowStatus = this.normalizeEmployeeDetailsStatus(row?.status);
+      return rowStatus === selectedStatus;
+    });
+  }
+
+  private normalizeEmployeeDetailsStatus(value: unknown): string {
+    return String(value ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/[_\s-]+/g, '');
   }
 
   formatEmployeeDetailsDateWhileTyping(field: 'from' | 'to'): void {
@@ -980,11 +1056,14 @@ openEmployeeDetails(employee: Employee): void {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const employee = this.getEmployeePayloadFromForm();
+    const isUpdate = this.selectedEmployeeId !== null;
+    const employee: EmployeePayload | UpdateEmployeePayload = isUpdate
+      ? this.getUpdateEmployeePayloadFromForm()
+      : this.getEmployeePayloadFromForm();
 
     console.log('Employee Payload Sent:', employee);
 
-    if (!employee.employeeCode) {
+    if (!isUpdate && 'employeeCode' in employee && !employee.employeeCode) {
       this.errorMessage = 'كود الموظف مطلوب';
       this.isSaving = false;
       return;
@@ -1020,8 +1099,8 @@ openEmployeeDetails(employee: Employee): void {
       return;
     }
 
-    if (this.selectedEmployeeId !== null) {
-      this.employeesService.updateEmployee(this.selectedEmployeeId, employee).subscribe({
+    if (isUpdate) {
+      this.employeesService.updateEmployee(this.selectedEmployeeId!, employee as UpdateEmployeePayload).subscribe({
         next: (response: any) => {
           console.log('Update Employee Response:', response);
 
@@ -1084,6 +1163,16 @@ openEmployeeDetails(employee: Employee): void {
     };
   }
 
+  private getUpdateEmployeePayloadFromForm(): UpdateEmployeePayload {
+    return {
+      name: String(this.employeeForm.value.name || '').trim(),
+      departmentId: Number(this.employeeForm.value.departmentId),
+      scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
+      scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
+      graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime)
+    };
+  }
+
   editEmployee(employee: Employee): void {
     if (!employee.id) {
       this.errorMessage = 'لا يمكن تعديل هذا الموظف لأن رقم ID غير موجود';
@@ -1115,7 +1204,8 @@ openEmployeeDetails(employee: Employee): void {
     console.log('Selected Employee ID:', this.selectedEmployeeId);
     console.log('Resolved Department ID:', departmentId);
 
-    this.activeEmployeePage = 'form';
+    this.activeEmployeePage = 'edit';
+    this.employeeForm.controls['employeeCode'].disable();
   }
 
   cancelEdit(): void {

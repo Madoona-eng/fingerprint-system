@@ -366,6 +366,8 @@
   </div>
 </div>
 
+      
+
       <button
         type="button"
         class="details-main-btn"
@@ -450,7 +452,7 @@
 
             <td>{{ row.graceTime || row.attendanceGraceTime || '-' }}</td>
 
-            <td>{{ row.workedMinutes != null ? row.workedMinutes : '-' }}</td>
+            <td>{{ formatWorkedHours(row.workedMinutes) }}</td>
 
             <td>{{ row.lateMinutes != null ? row.lateMinutes : '-' }}</td>
 
@@ -504,7 +506,7 @@
 
 
     <!-- صفحة إضافة / تعديل موظف -->
-    <section *ngSwitchCase="'form'" class="employee-sub-page">
+    <section *ngIf="activeEmployeePage === 'form' || activeEmployeePage === 'edit'" class="employee-sub-page">
       <div class="employee-form-card form-page-card">
      <h3>{{ selectedEmployeeId ? 'تعديل موظف' : 'إضافة موظف يدوي' }}</h3>
 
@@ -545,14 +547,28 @@
 
 </div>
 
-          
+          <div class="form-group">
+            <label>وقت الحضور</label>
+            <input
+              type="time"
+              formControlName="scheduleIn"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>وقت الانصراف</label>
+            <input
+              type="time"
+              formControlName="scheduleOut"
+            />
+          </div>
+
           <div class="form-group">
             <label>وقت السماح</label>
-<input
-  type="text"
-  formControlName="graceTime"
-  placeholder="مثال: 00:30"
-/>
+            <input
+              type="time"
+              formControlName="graceTime"
+            />
           </div>
 
           <div *ngIf="successMessage" class="success-message">
