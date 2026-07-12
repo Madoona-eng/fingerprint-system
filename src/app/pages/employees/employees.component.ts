@@ -7,7 +7,7 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { read, utils, WorkBook, WorkSheet } from 'xlsx';
+import { read, utils, writeFile, WorkBook, WorkSheet } from 'xlsx';
 
 import {
   Employee,
@@ -221,6 +221,28 @@ getDepartmentNameById(id: number | null | undefined): string {
     };
 
     return translations[normalized] || value;
+  }
+
+  getNoteLabel(notes: string | null | undefined): string {
+    const value = String(notes || '').trim();
+    if (!value) {
+      return '-';
+    }
+
+    const lowerValue = value.toLowerCase();
+
+    if (
+      lowerValue.includes('checkin without checkout') ||
+      lowerValue.includes('checkout without checkin')
+    ) {
+      return 'دخول بدون خروج - يحتاج مراجعة';
+    }
+
+    if (lowerValue.includes('needs review')) {
+      return 'يحتاج مراجعة';
+    }
+
+    return value;
   }
 
   databaseDepartmentNames: string[] = [
@@ -1043,6 +1065,53 @@ openEmployeeDetails(employee: Employee): void {
       this.pageNumber--;
       this.loadEmployees();
     }
+  }
+
+  exportEmployeesListToExcel(): void {
+    if (!this.employees || this.employees.length === 0) {
+      this.errorMessage = 'لا توجد بيانات موظفين للتصدير';
+      return;
+    }
+
+    const exportData = this.employees.map((emp) => ({
+      الكود: emp.employeeCode || '-',
+      الاسم: emp.name || '-',
+      القسم: emp.departmentName || emp.departmentId || '-',
+      'وقت الحضور': this.timeForInput(emp.scheduleIn),
+      'وقت الانصراف': this.timeForInput(emp.scheduleOut),
+      'وقت السماح': this.timeForInput(emp.graceTime)
+    }));
+
+    const worksheet = utils.json_to_sheet(exportData);
+    const workbook: WorkBook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'موظفين');
+    writeFile(workbook, `employees-${this.analyticsDateDisplay || 'list'}.xlsx`);
+  }
+
+  exportEmployeeDetailsToExcel(): void {
+    if (!this.employeeDetailsRows || this.employeeDetailsRows.length === 0) {
+      this.errorMessage = 'لا توجد بيانات تفاصيل للتصدير';
+      return;
+    }
+
+    const exportData = this.employeeDetailsRows.map((row) => ({
+      التاريخ: row.date || row.attendanceDate || row.from || '-',
+      'وقت الحضور': row.actualIn || row.checkIn || row.in || '-',
+      'وقت الانصراف': row.actualOut || row.checkOut || row.out || '-',
+      'معاد الحضور': row.scheduleIn || row.attendanceScheduleIn || '-',
+      'معاد الانصراف': row.scheduleOut || row.attendanceScheduleOut || '-',
+      'وقت السماح': row.graceTime || row.attendanceGraceTime || '-',
+      'ساعات العمل': this.formatWorkedHours(row.workedMinutes),
+      'دقائق التأخير': row.lateMinutes != null ? row.lateMinutes : '-',
+      'دقائق الإضافي': row.overtimeMinutes != null ? row.overtimeMinutes : '-',
+      الحالة: this.getStatusLabel(row.status),
+      الملاحظات: this.getNoteLabel(row.notes)
+    }));
+
+    const worksheet = utils.json_to_sheet(exportData);
+    const workbook: WorkBook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'تفاصيل الموظف');
+    writeFile(workbook, `employee-details-${this.selectedEmployeeForDetails?.employeeCode || 'details'}.xlsx`);
   }
 
   saveEmployee(): void {

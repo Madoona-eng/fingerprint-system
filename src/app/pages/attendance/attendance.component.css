@@ -9,9 +9,9 @@
 .json-preview-card {
   padding: 24px;
   border-radius: 28px;
-  background: rgba(42, 54, 75, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.22);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(16px);
 }
 
@@ -21,8 +21,8 @@
   padding: 8px 14px;
   margin-bottom: 12px;
   border-radius: 999px;
-  background: rgba(82, 228, 232, 0.14);
-  color: #7df9ff;
+  background: rgba(56, 189, 248, 0.14);
+  color: #0369a1;
   font-size: 13px;
   font-weight: 900;
 }
@@ -31,12 +31,12 @@
   margin: 0;
   font-size: 32px;
   font-weight: 900;
-  color: #fff;
+  color: #0f172a;
 }
 
 .upload-info p {
   margin: 10px 0 0;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(71, 85, 105, 0.82);
   font-size: 14px;
   line-height: 1.8;
 }
@@ -49,8 +49,8 @@
   padding: 14px;
   margin: 24px 0;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.075);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .attendance-page-tabs button {
@@ -58,22 +58,22 @@
   border: none;
   border-radius: 18px;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(15, 23, 42, 0.75);
   font-weight: 900;
   font-size: 15px;
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(248, 250, 252, 0.95);
   transition: 0.25s ease;
 }
 
 .attendance-page-tabs button:hover {
   transform: translateY(-2px);
-  background: rgba(101, 228, 233, 0.16);
+  background: rgba(56, 189, 248, 0.16);
 }
 
 .attendance-page-tabs button.active {
-  color: #07111f;
-  background: linear-gradient(135deg, #65e4e9, #2dd4bf);
-  box-shadow: 0 18px 35px rgba(45, 212, 191, 0.24);
+  color: #0f172a;
+  background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+  box-shadow: 0 18px 35px rgba(56, 189, 248, 0.18);
 }
 
 .attendance-sub-page {
@@ -100,7 +100,7 @@
 }
 
 .upload-box span {
-  color: #7df9ff;
+  color: #0f172a;
   font-weight: 900;
 }
 
@@ -114,8 +114,8 @@
 }
 
 .file-name {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.08);
+  color: rgba(15, 23, 42, 0.78);
+  background: rgba(248, 250, 252, 0.95);
 }
 
 .success-message {
@@ -171,9 +171,9 @@
 }
 
 .ghost-btn {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #0f172a;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 /* Filters */
@@ -186,8 +186,8 @@
   margin-top: 24px;
   padding: 26px;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .filter-field {
@@ -200,7 +200,7 @@
 .filter-field label {
   margin-bottom: 4px;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.85);
+  color: #0f172a;
   font-size: 14px;
 }
 
@@ -210,9 +210,9 @@
   box-sizing: border-box;
   height: 52px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.09);
-  color: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: #ffffff;
+  color: #0f172a;
   padding: 0 16px;
   outline: none;
   font-weight: 700;
@@ -220,11 +220,11 @@
 }
 
 .filter-field input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(15, 23, 42, 0.45);
 }
 
 .filter-field select option {
-  color: #111827;
+  color: #0f172a;
   background: #ffffff;
 }
 
@@ -243,22 +243,23 @@
 
 .table-wrapper {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: visible;
   border-radius: 18px;
-  padding-bottom: 12px;
+  padding-bottom: 8px;
 }
 
 .table-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .table-header h3 {
   margin: 0;
-  color: #fff;
+  color: #0f172a;
   font-size: 24px;
   font-weight: 900;
 }
@@ -280,9 +281,9 @@
   border-radius: 18px;
   direction: ltr;
   text-align: left;
-  color: #d8faff;
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #0f172a;
+  background: rgba(241, 245, 249, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
   font-size: 13px;
   line-height: 1.8;
 }
@@ -290,24 +291,25 @@
 /* Table */
 .table-wrapper table {
   width: 100%;
-  min-width: 1000px;
+  min-width: 0;
   border-collapse: separate;
   border-spacing: 0;
   direction: rtl;
-  color: #ffffff;
-  table-layout: auto;
+  color: #0f172a;
+  table-layout: fixed;
+  font-size: 12px;
 }
 
 .table-wrapper thead th {
-  padding: 14px 10px;
+  padding: 10px 8px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-  white-space: nowrap;
-  word-break: keep-all;
+  color: rgba(15, 23, 42, 0.9);
+  background: rgba(248, 250, 252, 0.95);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  white-space: normal;
+  word-break: break-word;
 }
 
 .table-wrapper thead th:first-child {
@@ -319,16 +321,16 @@
 }
 
 .table-wrapper tbody td {
-  padding: 12px 10px;
+  padding: 10px 8px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.92);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  white-space: nowrap;
-  word-break: keep-all;
+  color: rgba(15, 23, 42, 0.92);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  white-space: normal;
+  word-break: break-word;
   vertical-align: middle;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .table-wrapper tbody tr {
@@ -387,9 +389,9 @@
 }
 
 .status-default {
-  color: rgba(255, 255, 255, 0.78);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #475569;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 /* Edit button */
@@ -455,7 +457,7 @@
 }
 
 .no-review-needed {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(15, 23, 42, 0.78);
   font-weight: 800;
 }
 
@@ -475,19 +477,20 @@
 .edit-attendance-summary div {
   padding: 14px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .edit-attendance-summary span {
   display: block;
   margin-bottom: 8px;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(71, 85, 105, 0.9);
   font-weight: 800;
   font-size: 13px;
 }
 
 .edit-attendance-summary strong {
-  color: #fff;
+  color: #0f172a;
   font-weight: 900;
 }
 
@@ -507,9 +510,9 @@
   width: 100%;
   height: 52px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.09);
-  color: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: #ffffff;
+  color: #0f172a;
   padding: 0 14px;
   outline: none;
   font-weight: 800;
@@ -517,7 +520,7 @@
 }
 
 .attendance-edit-form input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(15, 23, 42, 0.45);
 }
 
 .attendance-edit-form select option {
@@ -532,7 +535,7 @@
   align-items: center;
   gap: 14px;
   margin-top: 20px;
-  color: #fff;
+  color: rgba(15, 23, 42, 0.85);
   font-weight: 800;
 }
 
@@ -551,11 +554,11 @@
   opacity: 0.4;
   cursor: not-allowed;
   background: rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(15, 23, 42, 0.45);
 }
 
 .pagination-box span {
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(248, 250, 252, 0.95);
   padding: 9px 16px;
   border-radius: 12px;
 }
@@ -566,8 +569,8 @@
   padding: 18px;
   border-radius: 16px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.07);
+  color: rgba(15, 23, 42, 0.78);
+  background: rgba(248, 250, 252, 0.95);
   font-weight: 800;
 }
 
@@ -609,15 +612,6 @@
     font-size: 25px;
   }
 }
-.table-wrapper table {
-  width: 100%;
-  min-width: 1450px;
-  border-collapse: separate;
-  border-spacing: 0;
-  direction: rtl;
-  color: #ffffff;
-  table-layout: auto;
-}
 .search-field {
   grid-column: span 2;
 }
@@ -631,6 +625,7 @@
 }
 
 .date-shortcuts button {
+  min-width: 120px;
   height: 42px;
   padding: 0 18px;
   border: none;
@@ -670,7 +665,7 @@
   padding: 0 14px;
   border-radius: 999px;
   font-weight: 900;
-  color: #ffd37a;
+  color: #c27900;
   background: rgba(245, 158, 11, 0.15);
   border: 1px solid rgba(245, 158, 11, 0.3);
 }

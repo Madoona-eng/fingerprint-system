@@ -193,6 +193,14 @@
           <button type="button" class="clear-search-btn" (click)="clearSearch()">
             مسح
           </button>
+
+          <button
+            type="button"
+            class="ghost-btn"
+            (click)="exportEmployeesListToExcel()"
+          >
+            تصدير Excel
+          </button>
         </div>
 
         <div *ngIf="isLoading" class="loading-box">
@@ -416,8 +424,17 @@
   <div class="employee-details-table-card">
     <div class="section-title-row">
       <h2>سجلات الحضور والانصراف</h2>
-      <span *ngIf="isLoadingEmployeeDetails">جاري التحميل...</span>
-      <span *ngIf="!isLoadingEmployeeDetails">{{ employeeDetailsRows.length }} نتيجة</span>
+      <div class="section-actions">
+        <span *ngIf="isLoadingEmployeeDetails">جاري التحميل...</span>
+        <span *ngIf="!isLoadingEmployeeDetails">{{ employeeDetailsRows.length }} نتيجة</span>
+        <button
+          type="button"
+          class="ghost-btn"
+          (click)="exportEmployeeDetailsToExcel()"
+        >
+          تصدير Excel
+        </button>
+      </div>
     </div>
 
     <div *ngIf="!isLoadingEmployeeDetails && employeeDetailsRows.length > 0" class="details-table-wrapper">
@@ -434,10 +451,9 @@
             <th>دقائق التأخير</th>
             <th>دقائق الإضافي</th>
             <th>الحالة</th>
-           
             <th>ملاحظات</th>
           </tr>
-
+        </thead>
         <tbody>
           <tr *ngFor="let row of employeeDetailsRows">
             <td>{{ row.date || row.attendanceDate || row.from || '-' }}</td>
@@ -463,10 +479,7 @@
                 {{ getStatusLabel(row.status) }}
               </span>
             </td>
-
-           
-
-            <td>{{ row.notes || '-' }}</td>
+            <td>{{ getNoteLabel(row.notes) }}</td>
           </tr>
         </tbody>
       </table>

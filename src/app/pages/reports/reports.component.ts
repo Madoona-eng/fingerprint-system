@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import { utils, writeFile, WorkBook } from 'xlsx';
 import { AttendanceService } from '../../services/attendance.service';
 import { EmployeesService } from '../../services/employees.service';
 import { AuthService } from '../../auth/Services/auth.service';
@@ -12,6 +13,10 @@ interface AnalyticsStats {
   absent: number;
   late: number;
   earlyDeparture: number;
+  personalLeave: number;
+  workLeave: number;
+  mission: number;
+  drivingRoute: number;
   needsReview: number;
   reviewed: number;
 }
@@ -40,6 +45,10 @@ export class ReportsComponent implements OnInit {
     absent: 0,
     late: 0,
     earlyDeparture: 0,
+    personalLeave: 0,
+    workLeave: 0,
+    mission: 0,
+    drivingRoute: 0,
     needsReview: 0,
     reviewed: 0
   };
@@ -152,7 +161,7 @@ constructor(
   this.successMessage = '';
 
   forkJoin({
-    summary: this.employeesService.getEmployeesSummary(this.analyticsDate),
+    summary: this.employeesService.getEmployeesSummary(this.analyticsDateDisplay),
 
     attendance: this.attendanceService.getAttendanceByDateRange(
       this.analyticsDate,
@@ -275,6 +284,10 @@ private buildStats(data: any, rows: any[]): AnalyticsStats {
     absent: 0,
     late: 0,
     earlyDeparture: 0,
+    personalLeave: 0,
+    workLeave: 0,
+    mission: 0,
+    drivingRoute: 0,
     needsReview: 0,
     reviewed: 0
   };
@@ -357,6 +370,34 @@ private buildStats(data: any, rows: any[]): AnalyticsStats {
         'totalEarlyDeparture'
       ]) || calculatedStats.earlyDeparture,
 
+    personalLeave:
+      this.pickNumber(data, [
+        'personalLeave',
+        'personalLeaveCount',
+        'totalPersonalLeave'
+      ]) || 0,
+
+    workLeave:
+      this.pickNumber(data, [
+        'workLeave',
+        'workLeaveCount',
+        'totalWorkLeave'
+      ]) || 0,
+
+    mission:
+      this.pickNumber(data, [
+        'mission',
+        'missionCount',
+        'totalMission'
+      ]) || 0,
+
+    drivingRoute:
+      this.pickNumber(data, [
+        'drivingRoute',
+        'drivingRouteCount',
+        'totalDrivingRoute'
+      ]) || 0,
+
     needsReview:
       this.pickNumber(data, [
         'needsReview',
@@ -432,6 +473,54 @@ private buildStats(data: any, rows: any[]): AnalyticsStats {
     return 0;
   }
 
+  exportSummaryToExcel(): void {
+    if (!this.rawData) {
+      this.errorMessage = 'لا توجد بيانات للتصدير';
+      return;
+    }
+
+    const exportData = [
+      {
+        التاريخ: this.rawData?.date || this.analyticsDateDisplay || '',
+        'إجمالي الموظفين': this.pickNumber(this.rawData, ['total', 'totalEmployees', 'employeeCount', 'count']),
+        حاضر: this.pickNumber(this.rawData, ['present', 'presentCount', 'totalPresent']),
+        متأخر: this.pickNumber(this.rawData, ['late', 'lateCount', 'totalLate']),
+        غائب: this.pickNumber(this.rawData, ['absent', 'absentCount', 'totalAbsent']),
+        'ترك عمل': this.pickNumber(this.rawData, ['earlyDeparture', 'earlyDepartureCount', 'totalEarlyDeparture']),
+        'إجازة شخصية': this.pickNumber(this.rawData, ['personalLeave', 'personalLeaveCount', 'totalPersonalLeave']),
+        'إجازة عمل': this.pickNumber(this.rawData, ['workLeave', 'workLeaveCount', 'totalWorkLeave']),
+        مأمورية: this.pickNumber(this.rawData, ['mission', 'missionCount', 'totalMission']),
+        'رحلة قيادة': this.pickNumber(this.rawData, ['drivingRoute', 'drivingRouteCount', 'totalDrivingRoute'])
+      }
+    ];
+
+    const worksheet = utils.json_to_sheet(exportData);
+    const workbook: WorkBook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'ملخص اليوم');
+    writeFile(workbook, `summary-${this.analyticsDateDisplay || 'report'}.xlsx`);
+  }
+
+  exportDepartmentToExcel(): void {
+    if (!this.departmentRows || this.departmentRows.length === 0) {
+      this.errorMessage = 'لا توجد بيانات أقسام للتصدير';
+      return;
+    }
+
+    const exportData = this.departmentRows.map((row: any) => ({
+      القسم: row.departmentName,
+      الإجمالي: row.total,
+      حاضر: row.present,
+      غائب: row.absent,
+      متأخر: row.late,
+      'ترك عمل': row.earlyDeparture
+    }));
+
+    const worksheet = utils.json_to_sheet(exportData);
+    const workbook: WorkBook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'تحليل الأقسام');
+    writeFile(workbook, `departments-${this.analyticsDateDisplay || 'report'}.xlsx`);
+  }
+
   private resetStats(): void {
     this.analyticsStats = {
       total: 0,
@@ -439,6 +528,10 @@ private buildStats(data: any, rows: any[]): AnalyticsStats {
       absent: 0,
       late: 0,
       earlyDeparture: 0,
+      personalLeave: 0,
+      workLeave: 0,
+      mission: 0,
+      drivingRoute: 0,
       needsReview: 0,
       reviewed: 0
     };

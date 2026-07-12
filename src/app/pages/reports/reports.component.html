@@ -58,6 +58,15 @@
       <button type="button" class="ghost-btn" (click)="clearAnalytics()">
         مسح
       </button>
+
+      <button
+        type="button"
+        class="ghost-btn"
+        [disabled]="isLoading"
+        (click)="exportSummaryToExcel()"
+      >
+        تصدير ملخص اليوم
+      </button>
     </div>
   </section>
 
@@ -74,10 +83,9 @@
       <span>إجمالي الموظفين</span>
       <strong>{{ analyticsStats.total }}</strong>
     </div>
-
 <div class="analytics-card present-card">
   <span>حاضر منتظم</span>
-  <strong>{{ regularPresentCount }}</strong>
+  <strong>{{ analyticsStats.present }}</strong>
 </div>
     <div class="analytics-card absent-card">
       <span>غائب</span>
@@ -92,6 +100,26 @@
     <div class="analytics-card early-card">
       <span>ترك عمل</span>
       <strong>{{ analyticsStats.earlyDeparture }}</strong>
+    </div>
+
+    <div class="analytics-card">
+      <span>إجازة شخصية</span>
+      <strong>{{ analyticsStats.personalLeave }}</strong>
+    </div>
+
+    <div class="analytics-card">
+      <span>إجازة عمل</span>
+      <strong>{{ analyticsStats.workLeave }}</strong>
+    </div>
+
+    <div class="analytics-card">
+      <span>مأمورية</span>
+      <strong>{{ analyticsStats.mission }}</strong>
+    </div>
+
+    <div class="analytics-card">
+      <span>رحلة قيادة</span>
+      <strong>{{ analyticsStats.drivingRoute }}</strong>
     </div>
 
    <div class="analytics-card review-card">
@@ -137,7 +165,16 @@
   <section class="analytics-table-card" *ngIf="departmentRows.length > 0">
     <div class="section-title-row">
       <h2>تحليل الأقسام</h2>
-      <span>{{ departmentRows.length }} قسم</span>
+      <div class="section-actions">
+        <span>{{ departmentRows.length }} قسم</span>
+        <button
+          type="button"
+          class="ghost-btn"
+          (click)="exportDepartmentToExcel()"
+        >
+          تصدير الأقسام
+        </button>
+      </div>
     </div>
 
     <div class="table-wrapper">

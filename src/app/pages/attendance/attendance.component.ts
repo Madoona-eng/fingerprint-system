@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { read, utils, WorkBook, WorkSheet } from 'xlsx';
-import { OnInit } from '@angular/core';
+import { read, utils, writeFile, WorkBook, WorkSheet } from 'xlsx';
 import { firstValueFrom } from 'rxjs';
 import {
   AttendancePayload,
@@ -22,7 +21,7 @@ interface FingerprintPunch {
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css'
 })
-export class AttendanceComponent {
+export class AttendanceComponent implements OnInit {
   attendanceRows: AttendancePayload[] = [];
 
   excelFileName = '';
@@ -42,6 +41,8 @@ export class AttendanceComponent {
   dateRangeTo = '';
   dateRangeDepartmentId: number | null = null;
   dateRangeStatus = '';
+  dateRangeRoute = '';
+  routeOptions: string[] = [];
   reviewingAttendanceId: number | null = null;
 employeeSearchTerm = '';
   dateRangePageNumber = 1;
@@ -74,17 +75,53 @@ dateRangeToDisplay = '';
   lateSummaryTo = '';
   lateSummaryEmployeeId: number | null = null;
   lateSummaryDepartmentId: number | null = null;
-lateSummaryFromDisplay = '';
-lateSummaryToDisplay = '';
+  lateSummaryFromDisplay = '';
+  lateSummaryToDisplay = '';
   lateSummaryData: any = null;
   lateSummaryRows: any[] = [];
-lateSummaryEmployeeSearch = '';
-lateSummarySelectedEmployee: any = null;
+  lateSummaryEmployeeSearch = '';
+  lateSummarySelectedEmployee: any = null;
+  lateSummaryPageNumber = 1;
+  lateSummaryPageSize = 10;
+  lateSummaryTotalCount = 0;
+  lateSummaryTotalPages = 0;
   isLoadingLateSummary = false;
   lateSummaryErrorMessage = '';
   lateSummarySuccessMessage = '';
 
   private lateSummarySearchTimer: any = null;
+
+  constructor(private attendanceService: AttendanceService) {}
+
+  ngOnInit(): void {
+    this.loadRouteOptions();
+  }
+
+  loadRouteOptions(): void {
+    this.attendanceService.getAttendanceRoutes().subscribe({
+      next: (response: any) => {
+        const data = response?.data || response;
+
+        if (Array.isArray(data)) {
+          this.routeOptions = data.map((item: any) => {
+            if (typeof item === 'string') {
+              return item;
+            }
+
+            return (
+              item?.name || item?.route || item?.value || String(item)
+            );
+          });
+        } else {
+          this.routeOptions = [];
+        }
+      },
+      error: (err) => {
+        console.log('Failed to load route options:', err);
+        this.routeOptions = [];
+      }
+    });
+  }
 
   departmentOptions: { id: number; name: string }[] = [
     { id: 1, name: 'إدارة الأزمات' },
@@ -134,7 +171,7 @@ statusOptions: { value: string; label: string }[] = [
   { value: 'Present', label: 'حاضر' },
   { value: 'Late', label: 'متأخر' },
   { value: 'Absent', label: 'غائب' },
-  { value: 'EarlyDeparture', label: 'انصراف مبكر' },
+  { value: 'EarlyDeparture', label: 'ترك عمل' },
   { value: 'PersonalLeave', label: 'إذن شخصي' },
   { value: 'WorkLeave', label: 'إذن عمل' },
   { value: 'Mission', label: 'مأمورية' }
@@ -207,9 +244,12 @@ private translateApiMessage(message: string | null | undefined, fallback: string
     ['cannot', 'لا يمكن'],
     ['needs review', 'يحتاج مراجعة'],
     ['needs revision', 'يحتاج مراجعة'],
+    ['needs', 'يحتاج'],
     ['without', 'بدون'],
     ['check in without check out', 'دخول بدون خروج'],
-    ['check out without check in', 'خروج بدون دخول']
+    ['check out without check in', 'خروج بدون دخول'],
+    ['checkout without checkin', 'خروج بدون دخول'],
+    ['checkin without checkout', 'دخول بدون خروج']
   ];
 
   let translated = raw;
@@ -382,7 +422,6 @@ private displayDateToApi(displayDate: string): string {
 
   return `${year}-${this.pad(month)}-${this.pad(day)}`;
 }
- constructor(private attendanceService: AttendanceService) {}
 
  openAttendancePage(page: 'import' | 'report' | 'lateSummary' | 'edit'): void {
   this.activeAttendancePage = page;
@@ -531,9 +570,6 @@ private lateApiDateToDisplay(apiDate: string): string {
     event.preventDefault();
     event.stopPropagation();
   }
-  ngOnInit(): void {
-  this.setTodayDateRange();
-}
 
 setTodayDateRange(): void {
   const today = new Date();
@@ -607,6 +643,53 @@ get filteredDateRangeRows(): any[] {
     );
   });
 }
+
+  exportAttendanceReportToExcel(): void {
+    if (!this.filteredDateRangeRows || this.filteredDateRangeRows.length === 0) {
+      this.dateRangeErrorMessage = 'لا توجد بيانات للحضور للتصدير';
+      return;
+    }
+
+    const exportData = this.filteredDateRangeRows.map((row: any) => ({
+      الكود: row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-',
+      اسم_الموظف: row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
+      القسم: row.departmentName || row.employee?.departmentName || row.department?.name || '-',
+      التاريخ: row.date || row.attendanceDate || '-',
+      الحضور: row.actualIn || '-',
+      الانصراف: row.actualOut || '-',
+      الحالة: row.status || '-',
+      'التأخير (د)': row.lateMinutes ?? '-',
+      'العمل (س)': row.workedMinutes ?? '-',
+      الملاحظات: row.notes || '-'
+    }));
+
+    const worksheet = utils.json_to_sheet(exportData);
+    const workbook: WorkBook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'تقرير الحضور');
+    writeFile(workbook, `attendance-report-${this.dateRangeFrom || 'report'}.xlsx`);
+  }
+
+  exportLateSummaryToExcel(): void {
+    if (!this.lateSummaryRows || this.lateSummaryRows.length === 0) {
+      this.lateSummaryErrorMessage = 'لا توجد بيانات لملخص التأخير للتصدير';
+      return;
+    }
+
+    const exportData = this.lateSummaryRows.map((row: any) => ({
+      كود_الموظف: row.employeeCode || '-',
+      اسم_الموظف: row.employeeName || '-',
+      'من تاريخ': row.from || '-',
+      'إلى تاريخ': row.to || '-',
+      'إجمالي دقائق التأخير': row.totalLateMinutes || 0,
+      الحالة: row.totalLateMinutes > 0 ? 'يوجد تأخير' : 'لا يوجد تأخير'
+    }));
+
+    const worksheet = utils.json_to_sheet(exportData);
+    const workbook: WorkBook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'ملخص التأخير');
+    writeFile(workbook, `late-summary-${this.lateSummaryFrom || 'summary'}.xlsx`);
+  }
+
   getAttendanceId(row: any): number | null {
   const id = row?.id || row?.attendanceId || row?.attendanceRecordId;
 
@@ -1190,6 +1273,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
         this.dateRangeStatus,
         this.dateRangePageNumber,
         this.dateRangePageSize,
+        this.dateRangeRoute,
         this.employeeSearchTerm || null
       )
       .subscribe({
@@ -1295,6 +1379,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
             this.dateRangeStatus,
             page,
             perPage,
+            this.dateRangeRoute,
             this.employeeSearchTerm || null
           )
         );
@@ -1369,6 +1454,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
     this.dateRangeTo = '';
     this.dateRangeDepartmentId = null;
     this.dateRangeStatus = '';
+    this.dateRangeRoute = '';
     this.dateRangePageNumber = 1;
     this.dateRangeRows = [];
     this.dateRangeTotalCount = 0;
@@ -1597,9 +1683,24 @@ onLateSummarySearchInput(): void {
     clearTimeout(this.lateSummarySearchTimer);
   }
 
+  this.lateSummaryPageNumber = 1;
   this.lateSummarySearchTimer = setTimeout(() => {
     this.loadLateSummary();
   }, 300);
+}
+
+previousLateSummaryPage(): void {
+  if (this.lateSummaryPageNumber > 1) {
+    this.lateSummaryPageNumber--;
+    this.loadLateSummary();
+  }
+}
+
+nextLateSummaryPage(): void {
+  if (this.lateSummaryPageNumber < this.lateSummaryTotalPages) {
+    this.lateSummaryPageNumber++;
+    this.loadLateSummary();
+  }
 }
 
 loadLateSummary(): void {
@@ -1626,18 +1727,33 @@ loadLateSummary(): void {
       this.lateSummaryFrom,
       this.lateSummaryTo,
       this.lateSummaryEmployeeSearch || null,
-      this.lateSummaryDepartmentId
+      this.lateSummaryDepartmentId,
+      this.lateSummaryPageNumber,
+      this.lateSummaryPageSize
     )
     .subscribe({
       next: (response: any) => {
         this.isLoadingLateSummary = false;
 
         const data = response?.data ?? response;
-        this.lateSummaryData = Array.isArray(data) ? data : data ? [data] : [];
-        this.lateSummaryRows = Array.isArray(this.lateSummaryData)
-          ? this.lateSummaryData
-          : [];
 
+        if (Array.isArray(data?.items)) {
+          this.lateSummaryRows = data.items;
+          this.lateSummaryPageNumber = data.pageNumber || 1;
+          this.lateSummaryPageSize = data.pageSize || this.lateSummaryPageSize;
+          this.lateSummaryTotalCount = data.totalCount || 0;
+          this.lateSummaryTotalPages = data.totalPages || 0;
+        } else if (Array.isArray(data)) {
+          this.lateSummaryRows = data;
+          this.lateSummaryTotalCount = data.length;
+          this.lateSummaryTotalPages = 1;
+        } else {
+          this.lateSummaryRows = [];
+          this.lateSummaryTotalCount = 0;
+          this.lateSummaryTotalPages = 0;
+        }
+
+        this.lateSummaryData = this.lateSummaryRows;
         this.lateSummarySuccessMessage =
           response?.message || 'تم عرض ملخص التأخير بنجاح';
       },
@@ -1665,6 +1781,10 @@ loadLateSummary(): void {
   this.lateSummaryEmployeeSearch = '';
   this.lateSummarySelectedEmployee = null;
   this.lateSummaryDepartmentId = null;
+  this.lateSummaryPageNumber = 1;
+  this.lateSummaryPageSize = 10;
+  this.lateSummaryTotalCount = 0;
+  this.lateSummaryTotalPages = 0;
 
   this.lateSummaryData = null;
   this.lateSummaryRows = [];
@@ -2006,7 +2126,7 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
       Present: 'حاضر',
       Absent: 'غائب',
       Late: 'متأخر',
-      EarlyDeparture: 'انصراف مبكر',
+      EarlyDeparture: 'ترك عمل',
       PersonalLeave: 'إذن شخصي',
       WorkLeave: 'إذن عمل',
       Permission: 'إذن',

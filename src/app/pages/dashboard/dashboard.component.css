@@ -8,17 +8,17 @@
   min-height: 100vh;
   display: flex;
   background:
-    radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 35%),
-    linear-gradient(135deg, #07111f, #0b1f38 50%, #06101d);
-  color: #fff;
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 35%),
+    linear-gradient(135deg, #f8fafc, #e2e8f0 50%, #f1f5f9);
+  color: #0f172a;
 }
 
 .sidebar {
   width: 290px;
   min-height: 100vh;
   padding: 24px 18px;
-  background: rgba(255, 255, 255, 0.11);
-  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.92);
+  border-left: 1px solid rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   display: flex;
@@ -34,7 +34,7 @@
   padding: 14px;
   margin-bottom: 28px;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(56, 189, 248, 0.12);
 }
 
 .logo-icon {
@@ -45,8 +45,8 @@
   align-items: center;
   justify-content: center;
   font-size: 28px;
-  background: linear-gradient(135deg, #6ee7ff, #2dd4bf);
-  color: #06101d;
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+  color: #0f172a;
 }
 
 .sidebar-logo h2 {
@@ -58,7 +58,7 @@
 .sidebar-logo p {
   margin: 5px 0 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(15, 23, 42, 0.65);
 }
 
 .sidebar-menu {
@@ -73,7 +73,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: rgba(255, 255, 255, 0.74);
+  color: rgba(15, 23, 42, 0.75);
   text-decoration: none;
   cursor: pointer;
   transition: 0.25s ease;
@@ -89,9 +89,9 @@
 
 .sidebar-menu a:hover,
 .sidebar-menu a.active {
-  color: #06101d;
-  background: linear-gradient(135deg, #6ee7ff, #2dd4bf);
-  box-shadow: 0 16px 32px rgba(45, 212, 191, 0.22);
+  color: #0f172a;
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+  box-shadow: 0 16px 32px rgba(56, 189, 248, 0.18);
   transform: translateX(-4px);
 }
 
@@ -101,15 +101,15 @@
   border: none;
   border-radius: 16px;
   cursor: pointer;
-  color: #fff;
+  color: #7f1d1d;
   font-weight: 800;
-  background: rgba(255, 75, 75, 0.18);
-  border: 1px solid rgba(255, 120, 120, 0.35);
+  background: rgba(254, 202, 202, 0.35);
+  border: 1px solid rgba(248, 113, 113, 0.35);
   transition: 0.25s ease;
 }
 
 .logout-btn:hover {
-  background: rgba(255, 75, 75, 0.32);
+  background: rgba(254, 202, 202, 0.55);
 }
 
 .main-area {
@@ -122,8 +122,8 @@
   padding: 18px 24px;
   margin-bottom: 22px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.11);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(16px);
   display: flex;
   align-items: center;
@@ -134,18 +134,19 @@
   margin: 0;
   font-size: 24px;
   font-weight: 900;
+  color: #0f172a;
 }
 
 .topbar p {
   margin: 7px 0 0;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(15, 23, 42, 0.65);
 }
 
 .role-badge {
   padding: 10px 18px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #6ee7ff, #2dd4bf);
-  color: #06101d;
+  background: rgba(191, 219, 254, 0.7);
+  color: #1e3a8a;
   font-size: 13px;
   font-weight: 900;
 }

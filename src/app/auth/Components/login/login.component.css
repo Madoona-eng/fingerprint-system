@@ -13,9 +13,9 @@
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(circle at top right, rgba(0, 174, 255, 0.22), transparent 35%),
-    radial-gradient(circle at bottom left, rgba(35, 64, 255, 0.22), transparent 35%),
-    linear-gradient(135deg, #07111f, #0b1f38 45%, #06101d);
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 35%),
+    radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.14), transparent 35%),
+    linear-gradient(135deg, #f8fafc, #e2e8f0 45%, #f1f5f9);
 }
 
 .login-page::before {
@@ -23,10 +23,10 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
   background-size: 45px 45px;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), transparent);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.12), transparent);
 }
 
 .background-shape {
@@ -42,7 +42,7 @@
   height: 240px;
   top: 8%;
   right: 12%;
-  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  background: linear-gradient(135deg, #93c5fd, #60a5fa);
 }
 
 .shape-two {
@@ -50,7 +50,7 @@
   height: 180px;
   bottom: 12%;
   left: 15%;
-  background: linear-gradient(135deg, #7f5cff, #00d4ff);
+  background: linear-gradient(135deg, #bfdbfe, #7dd3fc);
   animation-delay: 1.5s;
 }
 
@@ -59,7 +59,7 @@
   height: 100px;
   top: 65%;
   right: 20%;
-  background: linear-gradient(135deg, #00ffcc, #0072ff);
+  background: linear-gradient(135deg, #c7d2fe, #93c5fd);
   animation-delay: 3s;
 }
 
@@ -70,14 +70,14 @@
   max-width: 430px;
   padding: 36px 34px;
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   box-shadow:
-    0 28px 70px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    0 28px 70px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
-  color: #fff;
+  color: #0f172a;
   animation: cardEntrance 0.8s ease forwards;
 }
 
@@ -109,11 +109,12 @@
   font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.5px;
+  color: #0f172a;
 }
 
 .login-header p {
   margin: 10px 0 0;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(15, 23, 42, 0.72);
   font-size: 14px;
   line-height: 1.8;
 }
@@ -127,7 +128,7 @@
   margin-bottom: 9px;
   font-size: 14px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.86);
+  color: rgba(15, 23, 42, 0.85);
 }
 
 .input-box {
@@ -148,35 +149,35 @@
   width: 100%;
   height: 54px;
   padding: 0 48px 0 18px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   outline: none;
   border-radius: 16px;
-  color: #fff;
+  color: #0f172a;
   font-size: 15px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #ffffff;
   transition: 0.3s ease;
   box-sizing: border-box;
 }
 
 .input-box input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(15, 23, 42, 0.45);
 }
 
 .input-box input:focus {
-  border-color: #43d7ff;
-  background: rgba(255, 255, 255, 0.16);
+  border-color: #38bdf8;
+  background: #ffffff;
   box-shadow:
-    0 0 0 4px rgba(67, 215, 255, 0.12),
-    0 12px 28px rgba(0, 183, 255, 0.12);
+    0 0 0 4px rgba(56, 189, 248, 0.16),
+    0 12px 28px rgba(15, 23, 42, 0.06);
 }
 
 .error-message {
   margin: 4px 0 18px;
   padding: 13px 15px;
   border-radius: 14px;
-  color: #ffd6d6;
-  background: rgba(255, 64, 64, 0.14);
-  border: 1px solid rgba(255, 90, 90, 0.32);
+  color: #7f1d1d;
+  background: rgba(254, 215, 215, 0.65);
+  border: 1px solid rgba(248, 113, 113, 0.35);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -187,11 +188,11 @@ button {
   border: none;
   border-radius: 18px;
   cursor: pointer;
-  color: #06101d;
+  color: #ffffff;
   font-size: 16px;
   font-weight: 800;
-  background: linear-gradient(135deg, #6ee7ff, #38bdf8 45%, #2dd4bf);
-  box-shadow: 0 18px 35px rgba(45, 212, 191, 0.28);
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9 45%, #2563eb);
+  box-shadow: 0 18px 35px rgba(56, 189, 248, 0.22);
   transition: 0.3s ease;
   display: flex;
   align-items: center;

@@ -74,6 +74,7 @@ export class AttendanceService {
     status: string = '',
     pageNumber: number = 1,
     pageSize: number = 10,
+    route: string = '',
     employeeName: string | null = null
   ): Observable<any> {
     let params = new HttpParams()
@@ -90,6 +91,10 @@ export class AttendanceService {
       params = params.set('status', status);
     }
 
+    if (route && route.trim() !== '') {
+      params = params.set('route', route.trim());
+    }
+
     if (employeeName !== null && employeeName !== undefined && String(employeeName).trim() !== '') {
       params = params.set('employeeName', String(employeeName).trim());
     }
@@ -100,13 +105,25 @@ export class AttendanceService {
     });
   }
 
+  getAttendanceRoutes(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/routes`, {
+      headers: this.getHeaders()
+    });
+  }
+
   getLateSummary(
     from: string,
     to: string,
     employeeName?: string | null,
-    deptId?: number | null
+    deptId?: number | null,
+    pageNumber: number = 1,
+    pageSize: number = 10
   ): Observable<any> {
-    let params = new HttpParams().set('from', from).set('to', to);
+    let params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('pageNumber', String(pageNumber))
+      .set('pageSize', String(pageSize));
 
     if (employeeName !== null && employeeName !== undefined && employeeName.trim() !== '') {
       params = params.set('employeeName', employeeName.trim());
