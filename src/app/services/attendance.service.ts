@@ -4,9 +4,13 @@ import { Observable } from 'rxjs';
 
 export interface AttendancePayload {
   employeeCode: string;
+  employeeName?: string;
+  departmentRaw?: string;
   date: string;
   actualIn: string | null;
   actualOut: string | null;
+  actualInRaw?: string | null;
+  actualOutRaw?: string | null;
 }
 
 export interface ApiResponse<T> {

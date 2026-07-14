@@ -927,6 +927,21 @@ this.dateRangeErrorMessage = this.translateApiMessage(
     }
   }
 
+
+  private formatRawTimeValue(value: any): string | null {
+  if (value === null || value === undefined || String(value).trim() === '') {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    // Date object جاية من تحويل تلقائي للمكتبة - رجّعها بصيغة وقت نضيفة
+    // مطابقة تمامًا للأصل في الشيت (اتأكدنا إن getHours/getMinutes/getSeconds صح)
+    return `${this.pad(value.getHours())}:${this.pad(value.getMinutes())}:${this.pad(value.getSeconds())}`;
+  }
+  // string خام أصلاً (زي "00:01:53 (+1)" أو "-") - رجّعه زي ما هو بالظبط
+  return String(value).trim();
+}
+
   private mapAttendanceRow(row: any, sheetName: string): AttendancePayload | null {
     const employeeCode = String(
       this.getCellValue(row, [
@@ -943,6 +958,28 @@ this.dateRangeErrorMessage = this.translateApiMessage(
         'No.'
       ])
     ).trim();
+    
+   const employeeName = String(
+    this.getCellValue(row, [
+      'اسم الموظف',
+      'Name',
+      'name',
+      'Employee Name',
+      'EmployeeName'
+    ])
+  ).trim();
+
+
+   const departmentRaw = String(
+    this.getCellValue(row, [
+      'القسم',
+      'Department',
+      'department',
+      'Dept',
+      'DepartmentName'
+    ])
+  ).trim();
+
 
     const dateRaw =
       this.getCellValue(row, [
@@ -979,11 +1016,19 @@ this.dateRangeErrorMessage = this.translateApiMessage(
       return null;
     }
 
+
+    const actualInRawStr = this.formatRawTimeValue(actualInRaw);
+    const actualOutRawStr = this.formatRawTimeValue(actualOutRaw);
+
     return {
       employeeCode,
+      employeeName: employeeName || undefined,
+      departmentRaw: departmentRaw || undefined,
       date: this.normalizeExcelDate(dateRaw),
       actualIn: this.normalizeExcelTime(actualInRaw),
-      actualOut: this.normalizeExcelTime(actualOutRaw)
+      actualOut: this.normalizeExcelTime(actualOutRaw),
+      actualInRaw: actualInRawStr,
+      actualOutRaw: actualOutRawStr
     };
   }
 
