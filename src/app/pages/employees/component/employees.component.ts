@@ -10,13 +10,13 @@ import {
 import { read, utils, writeFile, WorkBook, WorkSheet } from 'xlsx';
 import { firstValueFrom } from 'rxjs';
 
-import { EmployeesService } from './service/employees.service';
+import { EmployeesService } from '../service/employees.service';
 import {
   Employee,
   EmployeePayload,
   UpdateEmployeePayload,
   BulkImportEmployeePayload
-} from './model/models';
+} from '../model/models';
 
 interface UnknownDepartment {
   key: string;

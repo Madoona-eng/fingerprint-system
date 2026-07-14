@@ -3,10 +3,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { utils, writeFile, WorkBook } from 'xlsx';
-import { ReportsService } from './service/reports.service';
-import { AuthService } from '../../auth/Services/auth.service';
+import { ReportsService } from '../service/reports.service';
+import { AuthService } from '../../../auth/Services/auth.service';
 
-import { AnalyticsStats } from './model/models';
+import { AnalyticsStats } from '../model/models';
 
 @Component({
   selector: 'app-reports',

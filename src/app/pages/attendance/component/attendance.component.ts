@@ -3,8 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { read, utils, writeFile, WorkBook, WorkSheet } from 'xlsx';
 import { firstValueFrom } from 'rxjs';
-import { AttendanceService } from './service/attendance.service';
-import { AttendancePayload, FingerprintPunch } from './model/models';
+import { AttendanceService } from '../service/attendance.service';
+import { AttendancePayload, FingerprintPunch } from '../model/models';
 
 @Component({
   selector: 'app-attendance',

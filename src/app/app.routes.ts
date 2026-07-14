@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
 
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { EmployeesComponent } from './pages/employees/employees.component';
-import { AttendanceComponent } from './pages/attendance/attendance.component';
+import { EmployeesComponent } from './pages/employees/component/employees.component';
+import { AttendanceComponent } from './pages/attendance/component/attendance.component';
 import { LoginComponent } from '../app/auth/Components/login/login.component';
-import { FingerprintSheetComponent } from './pages/fingerprint-sheet/fingerprint-sheet.component';
+import { FingerprintSheetComponent } from './pages/fingerprint-sheet/component/fingerprint-sheet.component';
 
 export const routes: Routes = [
   {
@@ -27,7 +27,7 @@ export const routes: Routes = [
       {
         path: 'reports',
         loadComponent: () =>
-          import('./pages/reports/reports.component').then(
+          import('./pages/reports/component/reports.component').then(
             (m) => m.ReportsComponent
           )
       },

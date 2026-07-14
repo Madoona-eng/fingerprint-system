@@ -3,16 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { utils, writeFile } from 'xlsx';
-import { AttendanceService } from '../../services/attendance.service';
-
-interface RawPunchRecord {
-  employeeCode?: string;
-  employeeName?: string;
-  date?: string;
-  time?: string;
-  punchTime?: string;
-  [key: string]: any;
-}
+import { FingerprintSheetService } from '../service/fingerprint-sheet.service';
+import { RawPunchRecord } from '../model/models';
 
 @Component({
   selector: 'app-fingerprint-sheet',
@@ -39,7 +31,7 @@ export class FingerprintSheetComponent implements OnInit {
   totalCount = 0;
   totalPages = 0;
 
-  constructor(private attendanceService: AttendanceService) {}
+  constructor(private fingerprintSheetService: FingerprintSheetService) {}
 
   ngOnInit(): void {
     this.setTodayDateRange();
@@ -240,7 +232,7 @@ export class FingerprintSheetComponent implements OnInit {
     const from = this.fromDate;
     const to = this.toDate;
 
-    this.attendanceService.getRawPunches(
+    this.fingerprintSheetService.getRawPunches(
       from,
       to,
       this.employeeCode.trim(),
@@ -263,7 +255,7 @@ export class FingerprintSheetComponent implements OnInit {
     });
   }
 
-  exportToExcel(): void {
+  async exportToExcel(): Promise<void> {
     if (!this.fromDate || !this.toDate) {
       this.errorMessage = 'يرجى اختيار نطاق التاريخ أولاً';
       return;
@@ -272,40 +264,26 @@ export class FingerprintSheetComponent implements OnInit {
     this.isExporting = true;
     this.errorMessage = '';
 
-    const exportPageSize = 1000;
-    const allRecords: RawPunchRecord[] = [];
-
-    const fetchPage = (page: number): void => {
-      this.attendanceService.getRawPunches(
+    try {
+      const allRecords = await this.fingerprintSheetService.fetchAllRawPunches(
         this.fromDate,
         this.toDate,
         this.employeeCode.trim(),
-        page,
-        exportPageSize
-      ).subscribe({
-        next: (response: any) => {
-          const data = response?.data ?? response;
-          const items = Array.isArray(data) ? data : data?.items ?? [];
-          const totalCount = Number(data?.totalCount ?? data?.total ?? items.length ?? 0);
-          allRecords.push(...items);
+        1000
+      );
 
-          const totalPages = Math.max(1, Math.ceil(totalCount / exportPageSize));
+      if (!allRecords || allRecords.length === 0) {
+        this.errorMessage = 'لا توجد بيانات للتصدير';
+        this.isExporting = false;
+        return;
+      }
 
-          if (page < totalPages) {
-            fetchPage(page + 1);
-            return;
-          }
-
-          this.downloadExcel(allRecords);
-        },
-        error: () => {
-          this.errorMessage = 'فشل تصدير ملف Excel';
-          this.isExporting = false;
-        }
-      });
-    };
-
-    fetchPage(1);
+      this.downloadExcel(allRecords);
+    } catch (err) {
+      console.error('Failed to export fingerprint sheet', err);
+      this.errorMessage = 'فشل تصدير ملف Excel';
+      this.isExporting = false;
+    }
   }
 
   private downloadExcel(records: RawPunchRecord[]): void {
