@@ -104,13 +104,30 @@
         </div>
       </section>
 
-      <section *ngIf="attendanceRows.length > 0" class="json-preview-card">
+      <section *ngIf="sheetPreviewRows.length > 0" class="json-preview-card">
         <div class="table-header">
-          <h3>JSON المستخرج من شيت الحضور</h3>
-       <span>{{ filteredDateRangeRows.length }} سجل</span>
+          <h3>عرض الملف المرفوع</h3>
+          <span>{{ sheetPreviewRows.length }} صف</span>
         </div>
 
-        <pre>{{ attendanceRows | json }}</pre>
+        <div class="table-wrapper">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>الورقة</th>
+                <th *ngFor="let header of sheetPreviewHeaders">{{ header }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of sheetPreviewRows; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ row['__sheetName'] }}</td>
+                <td *ngFor="let header of sheetPreviewHeaders">{{ row[header] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
     </section>
 

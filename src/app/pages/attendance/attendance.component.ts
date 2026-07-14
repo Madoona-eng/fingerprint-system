@@ -23,6 +23,8 @@ interface FingerprintPunch {
 })
 export class AttendanceComponent implements OnInit {
   attendanceRows: AttendancePayload[] = [];
+  sheetPreviewRows: Array<{ [key: string]: any }> = [];
+  sheetPreviewHeaders: string[] = [];
 
   excelFileName = '';
   successMessage = '';
@@ -173,7 +175,7 @@ statusOptions: { value: string; label: string }[] = [
   { value: 'Absent', label: 'غائب' },
   { value: 'EarlyDeparture', label: 'ترك عمل' },
   { value: 'PersonalLeave', label: 'إذن شخصي' },
-  { value: 'WorkLeave', label: 'إذن عمل' },
+  { value: 'WorkLeave', label: 'خط سير' },
   { value: 'Mission', label: 'مأمورية' }
 ];
 
@@ -645,49 +647,157 @@ get filteredDateRangeRows(): any[] {
 }
 
   exportAttendanceReportToExcel(): void {
-    if (!this.filteredDateRangeRows || this.filteredDateRangeRows.length === 0) {
-      this.dateRangeErrorMessage = 'لا توجد بيانات للحضور للتصدير';
-      return;
-    }
+    (async () => {
+      if (!this.dateRangeFrom || !this.dateRangeTo) {
+        this.dateRangeErrorMessage = 'من فضلك قم بإختيار تاريخ البداية والنهاية';
+        return;
+      }
 
-    const exportData = this.filteredDateRangeRows.map((row: any) => ({
-      الكود: row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-',
-      اسم_الموظف: row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
-      القسم: row.departmentName || row.employee?.departmentName || row.department?.name || '-',
-      التاريخ: row.date || row.attendanceDate || '-',
-      الحضور: row.actualIn || '-',
-      الانصراف: row.actualOut || '-',
-      الحالة: row.status || '-',
-      'التأخير (د)': row.lateMinutes ?? '-',
-      'العمل (س)': row.workedMinutes ?? '-',
-      الملاحظات: row.notes || '-'
-    }));
+      this.dateRangeErrorMessage = '';
+      this.isLoadingDateRange = true;
 
-    const worksheet = utils.json_to_sheet(exportData);
-    const workbook: WorkBook = utils.book_new();
-    utils.book_append_sheet(workbook, worksheet, 'تقرير الحضور');
-    writeFile(workbook, `attendance-report-${this.dateRangeFrom || 'report'}.xlsx`);
+      const perPage = 1000;
+      let page = 1;
+      let totalPages = 1;
+      const allRows: any[] = [];
+
+      try {
+        while (page <= totalPages) {
+          const resp: any = await firstValueFrom(
+            this.attendanceService.getAttendanceByDateRange(
+              this.dateRangeFrom,
+              this.dateRangeTo,
+              this.dateRangeDepartmentId,
+              this.dateRangeStatus,
+              page,
+              perPage,
+              this.dateRangeRoute,
+              this.employeeSearchTerm || null
+            )
+          );
+
+          const data = resp?.data || resp;
+          let items: any[] = [];
+
+          if (Array.isArray(data?.items)) {
+            items = data.items;
+            totalPages = data.totalPages || 1;
+          } else if (Array.isArray(data)) {
+            items = data;
+            totalPages = 1;
+          } else {
+            items = [];
+            totalPages = 0;
+          }
+
+          allRows.push(...this.prepareDateRangeRows(items));
+          page++;
+        }
+
+        if (allRows.length === 0) {
+          this.dateRangeErrorMessage = 'لا توجد بيانات للحضور للتصدير';
+          this.isLoadingDateRange = false;
+          return;
+        }
+
+        const exportData = allRows.map((row: any) => ({
+          الكود: row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-',
+          اسم_الموظف: row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
+          القسم: row.departmentName || row.employee?.departmentName || row.department?.name || '-',
+          التاريخ: row.date || row.attendanceDate || '-',
+          الحضور: row.actualIn || '-',
+          الانصراف: row.actualOut || '-',
+          الحالة: row.status || '-',
+          'التأخير (د)': row.lateMinutes ?? '-',
+          'العمل (س)': row.workedMinutes ?? '-',
+          الملاحظات: row.notes || '-'
+        }));
+
+        const worksheet = utils.json_to_sheet(exportData);
+        const workbook: WorkBook = utils.book_new();
+        utils.book_append_sheet(workbook, worksheet, 'تقرير الحضور');
+        writeFile(workbook, `attendance-report-${this.dateRangeFrom || 'report'}.xlsx`);
+      } catch (err) {
+        console.error('Failed exporting attendance report', err);
+        this.dateRangeErrorMessage = 'فشل تصدير ملف Excel';
+      } finally {
+        this.isLoadingDateRange = false;
+      }
+    })();
   }
 
   exportLateSummaryToExcel(): void {
-    if (!this.lateSummaryRows || this.lateSummaryRows.length === 0) {
-      this.lateSummaryErrorMessage = 'لا توجد بيانات لملخص التأخير للتصدير';
-      return;
-    }
+    (async () => {
+      if (!this.lateSummaryFrom || !this.lateSummaryTo) {
+        this.lateSummaryErrorMessage = 'من فضلك حدد نطاق تاريخ لملخص التأخير';
+        return;
+      }
 
-    const exportData = this.lateSummaryRows.map((row: any) => ({
-      كود_الموظف: row.employeeCode || '-',
-      اسم_الموظف: row.employeeName || '-',
-      'من تاريخ': row.from || '-',
-      'إلى تاريخ': row.to || '-',
-      'إجمالي دقائق التأخير': row.totalLateMinutes || 0,
-      الحالة: row.totalLateMinutes > 0 ? 'يوجد تأخير' : 'لا يوجد تأخير'
-    }));
+      this.lateSummaryErrorMessage = '';
+      this.isLoadingLateSummary = true;
 
-    const worksheet = utils.json_to_sheet(exportData);
-    const workbook: WorkBook = utils.book_new();
-    utils.book_append_sheet(workbook, worksheet, 'ملخص التأخير');
-    writeFile(workbook, `late-summary-${this.lateSummaryFrom || 'summary'}.xlsx`);
+      const perPage = 1000;
+      let page = 1;
+      let totalPages = 1;
+      const allRows: any[] = [];
+
+      try {
+        while (page <= totalPages) {
+          const resp: any = await firstValueFrom(
+            this.attendanceService.getLateSummary(
+              this.lateSummaryFrom,
+              this.lateSummaryTo,
+              this.lateSummaryEmployeeSearch || null,
+              this.lateSummaryDepartmentId || null,
+              page,
+              perPage
+            )
+          );
+
+          const data = resp?.data || resp;
+          let items: any[] = [];
+
+          if (Array.isArray(data?.items)) {
+            items = data.items;
+            totalPages = data.totalPages || 1;
+          } else if (Array.isArray(data)) {
+            items = data;
+            totalPages = 1;
+          } else {
+            items = [];
+            totalPages = 0;
+          }
+
+          allRows.push(...items);
+          page++;
+        }
+
+        if (allRows.length === 0) {
+          this.lateSummaryErrorMessage = 'لا توجد بيانات لملخص التأخير للتصدير';
+          this.isLoadingLateSummary = false;
+          return;
+        }
+
+        const exportData = allRows.map((row: any) => ({
+          كود_الموظف: row.employeeCode || '-',
+          اسم_الموظف: row.employeeName || '-',
+          'من تاريخ': row.from || '-',
+          'إلى تاريخ': row.to || '-',
+          'إجمالي دقائق التأخير': row.totalLateMinutes || 0,
+          الحالة: row.totalLateMinutes > 0 ? 'يوجد تأخير' : 'لا يوجد تأخير'
+        }));
+
+        const worksheet = utils.json_to_sheet(exportData);
+        const workbook: WorkBook = utils.book_new();
+        utils.book_append_sheet(workbook, worksheet, 'ملخص التأخير');
+        writeFile(workbook, `late-summary-${this.lateSummaryFrom || 'summary'}.xlsx`);
+      } catch (err) {
+        console.error('Failed exporting late summary', err);
+        this.lateSummaryErrorMessage = 'فشل تصدير ملف Excel';
+      } finally {
+        this.isLoadingLateSummary = false;
+      }
+    })();
   }
 
   getAttendanceId(row: any): number | null {
@@ -807,6 +917,8 @@ this.dateRangeErrorMessage = this.translateApiMessage(
   private async readAttendanceFile(file: File): Promise<void> {
     this.excelFileName = file.name;
     this.attendanceRows = [];
+    this.sheetPreviewRows = [];
+    this.sheetPreviewHeaders = [];
     this.successMessage = '';
     this.errorMessage = '';
     this.rowErrors = [];
@@ -857,6 +969,16 @@ this.dateRangeErrorMessage = this.translateApiMessage(
         }) as any[];
 
         rows.forEach((row, index) => {
+          if (!this.isEmptyRow(row)) {
+            const previewRow: { [key: string]: any } = {
+              ...row,
+              __sheetName: sheetName,
+              __rowNumber: index + 2
+            };
+
+            this.sheetPreviewRows.push(previewRow);
+          }
+
           if (this.isEmptyRow(row)) {
             return;
           }
@@ -896,9 +1018,14 @@ this.dateRangeErrorMessage = this.translateApiMessage(
         });
       });
 
-      const groupedPunches = this.convertPunchesToAttendance(fingerprintPunches);
+      fingerprintPunches.forEach((punch) => {
+        const attendance = {
+          employeeCode: punch.employeeCode,
+          date: punch.date,
+          actualIn: punch.time,
+          actualOut: null
+        } as AttendancePayload;
 
-      groupedPunches.forEach((attendance) => {
         const key = `${attendance.employeeCode}_${attendance.date}`;
 
         if (!attendanceMap.has(key)) {
@@ -912,6 +1039,8 @@ this.dateRangeErrorMessage = this.translateApiMessage(
         this.errorMessage = 'لم يتم استخراج بيانات حضور صحيحة من الملف';
         return;
       }
+
+      this.sheetPreviewHeaders = this.getSheetPreviewHeaders(this.sheetPreviewRows);
 
       this.successMessage =
         `تم استخراج ${this.attendanceRows.length} سجل حضور من الملف`;
@@ -927,6 +1056,20 @@ this.dateRangeErrorMessage = this.translateApiMessage(
     }
   }
 
+
+  private getSheetPreviewHeaders(rows: Array<{ [key: string]: any }>): string[] {
+    const headers = new Set<string>();
+
+    rows.forEach((row) => {
+      Object.keys(row).forEach((key) => {
+        if (key !== '__sheetName' && key !== '__rowNumber') {
+          headers.add(key);
+        }
+      });
+    });
+
+    return Array.from(headers);
+  }
 
   private formatRawTimeValue(value: any): string | null {
   if (value === null || value === undefined || String(value).trim() === '') {
@@ -1113,40 +1256,6 @@ this.dateRangeErrorMessage = this.translateApiMessage(
       date,
       time
     };
-  }
-
-  private convertPunchesToAttendance(punches: FingerprintPunch[]): AttendancePayload[] {
-    const grouped = new Map<string, FingerprintPunch[]>();
-
-    punches.forEach((punch) => {
-      const key = `${punch.employeeCode}_${punch.date}`;
-
-      if (!grouped.has(key)) {
-        grouped.set(key, []);
-      }
-
-      grouped.get(key)?.push(punch);
-    });
-
-    const attendanceRows: AttendancePayload[] = [];
-
-    grouped.forEach((items) => {
-      const sorted = [...items].sort(
-        (a, b) => this.timeToSeconds(a.time) - this.timeToSeconds(b.time)
-      );
-
-      const first = sorted[0];
-      const last = sorted[sorted.length - 1];
-
-      attendanceRows.push({
-        employeeCode: first.employeeCode,
-        date: first.date,
-        actualIn: first.time,
-        actualOut: last.time
-      });
-    });
-
-    return attendanceRows;
   }
 
   private splitDateTime(value: any): { date: string; time: string } {

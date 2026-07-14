@@ -160,6 +160,12 @@ export class EmployeesService {
     });
   }
 
+  deleteEmployee(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders()
+    });
+  }
+
   getEmployeesSummary(date: string): Observable<any> {
     const params = new HttpParams().set('date', date);
 

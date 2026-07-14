@@ -161,7 +161,8 @@ constructor(
   this.successMessage = '';
 
   forkJoin({
-    summary: this.employeesService.getEmployeesSummary(this.analyticsDateDisplay),
+    // send API date (YYYY-MM-DD) not the displayed DD/MM/YYYY string
+    summary: this.employeesService.getEmployeesSummary(this.analyticsDate),
 
     attendance: this.attendanceService.getAttendanceByDateRange(
       this.analyticsDate,

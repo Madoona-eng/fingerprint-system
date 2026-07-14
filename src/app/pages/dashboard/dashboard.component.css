@@ -155,6 +155,66 @@
   min-height: calc(100vh - 135px);
 }
 
+.dashboard-overview {
+  margin-bottom: 22px;
+}
+
+.overview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.18), rgba(34, 211, 238, 0.12));
+  border: 1px solid rgba(14, 116, 144, 0.16);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
+}
+
+.overview-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.overview-content {
+  flex: 1;
+}
+
+.overview-content h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.overview-content p {
+  margin: 0;
+  color: rgba(15, 23, 42, 0.7);
+  line-height: 1.7;
+}
+
+.overview-btn {
+  padding: 10px 16px;
+  border-radius: 999px;
+  text-decoration: none;
+  background: #0f172a;
+  color: #ffffff;
+  font-weight: 800;
+  transition: 0.25s ease;
+  white-space: nowrap;
+}
+
+.overview-btn:hover {
+  transform: translateY(-2px);
+  background: #1e293b;
+}
+
 @media (max-width: 900px) {
   .dashboard-layout {
     flex-direction: column;
@@ -178,6 +238,11 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+
+  .overview-card {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

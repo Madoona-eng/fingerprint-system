@@ -8,6 +8,7 @@ import {
   Validators
 } from '@angular/forms';
 import { read, utils, writeFile, WorkBook, WorkSheet } from 'xlsx';
+import { firstValueFrom } from 'rxjs';
 
 import {
   Employee,
@@ -49,6 +50,10 @@ export class EmployeesComponent implements OnInit {
 
   errorMessage = '';
   successMessage = '';
+  pendingDeleteId: number | null = null;
+  showDeleteModal = false;
+  deleteTargetEmployee: Employee | null = null;
+  deleteModalMessage = '';
 
   selectedEmployeeId: number | null = null;
 
@@ -1067,13 +1072,46 @@ openEmployeeDetails(employee: Employee): void {
     }
   }
 
-  exportEmployeesListToExcel(): void {
-    if (!this.employees || this.employees.length === 0) {
+  async exportEmployeesListToExcel(): Promise<void> {
+    const exportPageSize = 1000;
+    const allEmployees: any[] = [];
+
+    let page = 1;
+    let totalPages = 1;
+
+    try {
+      while (page <= totalPages) {
+        const resp: any = await firstValueFrom(
+          this.employeesService.getEmployees(this.searchTerm || '', page, exportPageSize)
+        );
+
+        const data = resp?.data ?? resp;
+
+        let items: any[] = [];
+
+        if (Array.isArray(data?.items)) {
+          items = data.items;
+          totalPages = data.totalPages || 1;
+        } else if (Array.isArray(data)) {
+          items = data;
+          totalPages = 1;
+        }
+
+        allEmployees.push(...items);
+        page++;
+      }
+    } catch (err) {
+      console.error('Failed to fetch all employees for export', err);
+      this.errorMessage = 'فشل تصدير ملف Excel';
+      return;
+    }
+
+    if (allEmployees.length === 0) {
       this.errorMessage = 'لا توجد بيانات موظفين للتصدير';
       return;
     }
 
-    const exportData = this.employees.map((emp) => ({
+    const exportData = allEmployees.map((emp) => ({
       الكود: emp.employeeCode || '-',
       الاسم: emp.name || '-',
       القسم: emp.departmentName || emp.departmentId || '-',
@@ -1113,11 +1151,82 @@ openEmployeeDetails(employee: Employee): void {
     utils.book_append_sheet(workbook, worksheet, 'تفاصيل الموظف');
     writeFile(workbook, `employee-details-${this.selectedEmployeeForDetails?.employeeCode || 'details'}.xlsx`);
   }
+  
+  showDeleteConfirmation(emp: Employee): void {
+    this.openDeleteModal(emp);
+  }
+
+  openDeleteModal(emp: Employee): void {
+    if (!emp || !emp.id) {
+      this.errorMessage = 'لا يمكن حذف هذا الموظف لأن معرفه غير متوفر';
+      return;
+    }
+
+    this.deleteTargetEmployee = emp;
+    this.deleteModalMessage = `هل أنت متأكد أنك تريد حذف الموظف "${emp.name || emp.employeeCode || ''}"؟`;
+    this.showDeleteModal = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  cancelDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.deleteTargetEmployee = null;
+    this.deleteModalMessage = '';
+  }
+
+  confirmDeleteModal(): void {
+    const id = this.deleteTargetEmployee?.id;
+
+    this.showDeleteModal = false;
+    this.deleteTargetEmployee = null;
+    this.deleteModalMessage = '';
+
+    if (!id) {
+      this.errorMessage = 'لم يتم تحديد موظف للحذف';
+      return;
+    }
+
+    this.deleteEmployee(id);
+  }
+
+  cancelPendingDelete(): void {
+    this.pendingDeleteId = null;
+  }
+
+  deleteEmployee(id: number): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.employeesService.deleteEmployee(id).subscribe({
+      next: (resp: any) => {
+        const data = resp?.data ?? resp;
+        const success = data === true || resp?.isSuccess === true || data?.isSuccess === true || data?.data === true;
+
+        if (success) {
+          this.successMessage = 'تم حذف الموظف بنجاح';
+          this.pendingDeleteId = null;
+          this.loadEmployees();
+        } else {
+          this.errorMessage = resp?.message || 'فشل حذف الموظف';
+        }
+
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Delete employee error:', err);
+        this.errorMessage = err?.error?.message || err?.message || 'حدث خطأ أثناء حذف الموظف';
+        this.isLoading = false;
+      }
+    });
+  }
 
   saveEmployee(): void {
     if (this.employeeForm.invalid) {
       this.employeeForm.markAllAsTouched();
-      this.errorMessage = 'من فضلك اكملي كل بيانات الموظف';
+          this.pendingDeleteId = null;
+          this.loadEmployees();
       return;
     }
 

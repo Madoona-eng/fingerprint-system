@@ -4,6 +4,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { EmployeesComponent } from './pages/employees/employees.component';
 import { AttendanceComponent } from './pages/attendance/attendance.component';
 import { LoginComponent } from '../app/auth/Components/login/login.component';
+import { FingerprintSheetComponent } from './pages/fingerprint-sheet/fingerprint-sheet.component';
 
 export const routes: Routes = [
   {
@@ -29,6 +30,10 @@ export const routes: Routes = [
           import('./pages/reports/reports.component').then(
             (m) => m.ReportsComponent
           )
+      },
+      {
+        path: 'fingerprint-sheet',
+        component: FingerprintSheetComponent
       },
       {
         path: '',

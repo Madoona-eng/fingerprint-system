@@ -1,0 +1,128 @@
+<section class="fingerprint-sheet-page" dir="rtl">
+  <div class="page-header">
+    <div>
+      <h2>شيت البصمة</h2>
+      <p>عرض مفصل للحضور والانصراف اليومي من الباك إند</p>
+    </div>
+    <a routerLink="/dashboard" class="back-link">العودة للوحة التحكم</a>
+  </div>
+
+  <div class="sheet-card filter-card">
+    <div class="filter-field date-field">
+      <label>من تاريخ</label>
+
+      <div class="date-input-wrap">
+        <input
+          class="date-text-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="10"
+          placeholder="31/03/2026"
+          [(ngModel)]="fromDateDisplay"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="formatDateDisplayWhileTyping('from')"
+        />
+
+        <button type="button" class="calendar-btn" (click)="openNativeDatePicker(fromDatePicker)">📅</button>
+
+        <input
+          #fromDatePicker
+          class="native-date-picker"
+          type="date"
+          [value]="fromDate"
+          (change)="onNativeDatePicked($event, 'from')"
+        />
+      </div>
+    </div>
+
+    <div class="filter-field date-field">
+      <label>إلى تاريخ</label>
+
+      <div class="date-input-wrap">
+        <input
+          class="date-text-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="10"
+          placeholder="31/03/2026"
+          [(ngModel)]="toDateDisplay"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="formatDateDisplayWhileTyping('to')"
+        />
+
+        <button type="button" class="calendar-btn" (click)="openNativeDatePicker(toDatePicker)">📅</button>
+
+        <input
+          #toDatePicker
+          class="native-date-picker"
+          type="date"
+          [value]="toDate"
+          (change)="onNativeDatePicked($event, 'to')"
+        />
+      </div>
+    </div>
+
+    <div class="filter-field search-field">
+      <label>كود الموظف</label>
+      <input
+        type="text"
+        [(ngModel)]="employeeCode"
+        placeholder="أدخل الكود"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </div>
+
+    <div class="filter-field action-field">
+      <label class="sr-only">إجراءات</label>
+      <button type="button" class="load-btn" (click)="loadData()">تحميل البيانات</button>
+      <button type="button" class="export-btn" (click)="exportToExcel()" [disabled]="isExporting">
+        {{ isExporting ? 'جاري التصدير...' : 'تصدير Excel' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="date-shortcuts">
+    <button type="button" (click)="setTodayDateRange()">اليوم</button>
+    <button type="button" (click)="setYesterdayDateRange()">أمس</button>
+    <button type="button" (click)="setCurrentMonthDateRange()">من أول الشهر</button>
+  </div>
+
+  <div *ngIf="isLoading" class="status-box">جاري تحميل شيت البصمة...</div>
+  <div *ngIf="errorMessage" class="status-box error">{{ errorMessage }}</div>
+
+  <div *ngIf="!isLoading && !errorMessage" class="sheet-card">
+    <div *ngIf="records.length === 0" class="empty-state">لا توجد بيانات لعرضها</div>
+
+    <div *ngIf="records.length > 0" class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>الموظف</th>
+            <th>الكود</th>
+            <th>القسم</th>
+            <th>التاريخ</th>
+            <th>الدخول</th>
+            <th>الخروج</th>
+            <th>وقت الاستيراد</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of records">
+            <td>{{ formatDisplayValue(item.employeeName || 'غير محدد') }}</td>
+            <td>{{ formatDisplayValue(item.employeeCode || '-') }}</td>
+            <td>{{ formatDisplayValue(item['departmentRaw'] || '-') }}</td>
+            <td>{{ formatDisplayValue(item['punchDate'] || '-') }}</td>
+            <td>{{ formatDisplayValue(item['inRaw'] || '-') }}</td>
+            <td>{{ formatDisplayValue(item['outRaw'] || '-') }}</td>
+            <td>{{ formatDisplayValue(item['importedAt'] || '-') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <button type="button" class="page-btn" (click)="previousPage()" [disabled]="pageNumber === 1">السابق</button>
+      <button type="button" class="page-btn" (click)="nextPage()" [disabled]="pageNumber === totalPages">التالي</button>
+    </div>
+  </div>
+</section>

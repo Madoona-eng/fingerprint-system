@@ -115,6 +115,29 @@ export class AttendanceService {
     });
   }
 
+  getRawPunches(
+    fromDate: string,
+    toDate: string,
+    employeeCode: string = '',
+    pageNumber: number = 1,
+    pageSize: number = 10
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('fromDate', fromDate)
+      .set('toDate', toDate)
+      .set('pageNumber', String(pageNumber))
+      .set('pageSize', String(pageSize));
+
+    if (employeeCode && employeeCode.trim() !== '') {
+      params = params.set('employeeCode', employeeCode.trim());
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/raw-punches`, {
+      headers: this.getHeaders(),
+      params
+    });
+  }
+
   getLateSummary(
     from: string,
     to: string,

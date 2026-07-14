@@ -666,6 +666,55 @@ tr:hover td {
   background: linear-gradient(135deg, #7df9ff, #67f7d4);
 }
 
+/* Central modal confirmation styles */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2,6,23,0.45);
+  z-index: 1200;
+}
+
+.modal-card {
+  width: min(560px, 92%);
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 30px 60px rgba(2,6,23,0.4);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  text-align: center;
+}
+
+.modal-text {
+  margin: 6px 0 18px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modal-card .table-action-btn {
+  min-width: 120px;
+  height: 44px;
+}
+
+.modal-card .confirm-action {
+  background: linear-gradient(135deg, #ff7a7a, #ff4d4d);
+  color: #fff;
+}
+
+.modal-card .cancel-action {
+  background: rgba(248,250,252,0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
 /* ==========================================================================
    --- كارت تفاصيل الموظف المحدث (Hero Section & Filter) ---
    ========================================================================== */
@@ -676,7 +725,7 @@ tr:hover td {
   direction: rtl;
 }
 
-..employee-details-hero {
+.employee-details-hero {
   padding: 28px;
   border-radius: 24px;
   background: rgba(248, 250, 252, 0.95);

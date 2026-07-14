@@ -19,9 +19,15 @@
   <b>الحضور والانصراف</b>
 </a>
 
-     <a routerLink="/dashboard/reports" routerLinkActive="active">
-  📊 التقارير
-</a>
+      <a routerLink="/dashboard/fingerprint-sheet" routerLinkActive="active">
+        <span>🖨️</span>
+        <b>شيت البصمة</b>
+      </a>
+
+      <a routerLink="/dashboard/reports" routerLinkActive="active">
+        <span>📊</span>
+        <b>عرض التقرير</b>
+      </a>
 
       <a>
         <span>⚙️</span>
@@ -45,6 +51,10 @@
     </header>
 
     <main class="page-content">
+      <section class="dashboard-overview" aria-label="عرض شيت البصمة">
+       
+      </section>
+
       <router-outlet></router-outlet>
     </main>
   </section>
