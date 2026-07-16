@@ -1,0 +1,66 @@
+<div class="employees-table-card">
+  <div class="table-header">
+    <h3>قائمة الموظفين</h3>
+    <span>{{ totalCount }} موظف</span>
+  </div>
+
+  <div class="employees-search-box">
+    <input
+      type="text"
+      placeholder="ابحثي بالكود أو الاسم"
+      [(ngModel)]="searchTerm"
+      [ngModelOptions]="{ standalone: true }"
+      (input)="searchTermChange.emit(searchTerm)"
+      (keyup.enter)="onSearch()"
+    />
+
+    <button type="button" (click)="onSearch()">بحث</button>
+    <button type="button" class="clear-search-btn" (click)="onClear()">مسح</button>
+    <button type="button" class="ghost-btn" (click)="export.emit()">تصدير Excel</button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-box">جاري تحميل بيانات الموظفين...</div>
+
+  <div *ngIf="!isLoading" class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>الكود</th>
+          <th>الاسم</th>
+          <th>القسم</th>
+          <th>الحضور</th>
+          <th>الانصراف</th>
+          <th>السماح</th>
+          <th class="actions-col">إجراء</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let emp of employees; trackBy: trackByEmployee">
+          <td>{{ emp.employeeCode }}</td>
+          <td>{{ emp.name }}</td>
+          <td>{{ emp.departmentName || emp.departmentId }}</td>
+          <td>{{ emp.scheduleIn }}</td>
+          <td>{{ emp.scheduleOut }}</td>
+          <td>{{ emp.graceTime }}</td>
+          <td>
+            <div class="employee-actions">
+              <button type="button" class="table-action-btn edit-action" (click)="editEmployee.emit(emp)">تعديل</button>
+              <button type="button" class="table-action-btn details-action" (click)="openDetails.emit(emp)">تفاصيل</button>
+              <button type="button" class="table-action-btn delete-action" (click)="deleteEmployee.emit(emp)">حذف</button>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="employees.length === 0">
+          <td colspan="7" class="empty-message">لا توجد بيانات موظفين مطابقة</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination-box" *ngIf="totalPages > 1">
+    <button type="button" (click)="previousPage.emit()" [disabled]="pageNumber === 1">السابق</button>
+    <span>صفحة {{ pageNumber }} من {{ totalPages }}</span>
+    <button type="button" (click)="nextPage.emit()" [disabled]="pageNumber === totalPages">التالي</button>
+  </div>
+</div>

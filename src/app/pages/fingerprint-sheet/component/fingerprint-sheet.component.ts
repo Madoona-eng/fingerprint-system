@@ -11,7 +11,7 @@ import { RawPunchRecord } from '../model/models';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './fingerprint-sheet.component.html',
-  styleUrl: './fingerprint-sheet.component.css'
+  styleUrls: ['./fingerprint-sheet.component.css']
 })
 export class FingerprintSheetComponent implements OnInit {
   fromDate = '';

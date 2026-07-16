@@ -1,0 +1,438 @@
+/* ==========================================
+   تنسيق الصفحة العامة والمستوعب الرئيسي
+   ========================================== */
+.employee-details-page {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2d3748;
+  background-color: #f7fafc;
+  padding: 24px;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ==========================================
+   منطقة الهيرو (العنوان وبطاقة الفلتر)
+   ========================================== */
+.employee-details-hero {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  border-radius: 16px;
+  padding: 32px;
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* زر الرجوع */
+.details-back-btn {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.details-back-btn:hover {
+  background-color: #ffffff;
+  color: #1e3a8a;
+  transform: translateY(-1px);
+}
+
+/* تفاصيل العنوان */
+.hero-title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.hero-badge {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.hero-title h1 {
+  font-size: 2rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.hero-title p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+}
+
+/* ==========================================
+   بطاقة الفلترة (التواريخ والأزرار)
+   ========================================== */
+.details-filter-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+/* حقل إدخال التاريخ */
+.date-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #edf2f7;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.date-input-wrap:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.date-text-input {
+  border: none;
+  background: transparent;
+  padding: 12px;
+  font-size: 0.95rem;
+  color: #2d3748;
+  outline: none;
+  flex: 1;
+  width: 100%;
+}
+
+.calendar-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 12px;
+  font-size: 1.2rem;
+  transition: transform 0.2s;
+}
+
+.calendar-btn:hover {
+  transform: scale(1.1);
+}
+
+.native-date-picker {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  width: 40px;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* أزرار الفلترة */
+.details-main-btn {
+  background-color: #3b82f6;
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  height: 46px;
+}
+
+.details-main-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.details-main-btn:disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.details-secondary-btn {
+  background-color: #edf2f7;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  height: 46px;
+}
+
+.details-secondary-btn:hover {
+  background-color: #e2e8f0;
+  color: #2d3748;
+}
+
+/* ==========================================
+   بطاقة بيانات الموظف (القسم)
+   ========================================== */
+.employee-info-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f0f4f8;
+  padding-bottom: 12px;
+}
+
+.section-title-row h2 {
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin: 0;
+  font-weight: 700;
+}
+
+.section-title-row span {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.employee-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.info-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-box span {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.info-box strong {
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+/* ==========================================
+   بطاقة جدول البيانات الرئيسي (تم التعديل لإلغاء السكرول)
+   ========================================== */
+.employee-details-table-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ghost-btn {
+  background-color: transparent;
+  color: #10b981;
+  border: 1px solid #10b981;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.ghost-btn:hover {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+/* تعديل حاوية الجدول لإخفاء السكرول */
+.details-table-wrapper {
+  overflow-x: hidden; /* إخفاء شريط التمرير تماماً */
+  width: 100%;
+}
+
+/* إجبار الجدول والأعمدة على البقاء داخل الشاشة */
+table {
+  width: 100%;
+  table-layout: fixed; /* لتثبيت نسب الأعمدة بدقة */
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  padding: 10px 4px; /* تقليل المساحات الداخلية */
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 0.8rem; /* تصغير الخط قليلاً ليتسع */
+  white-space: normal; /* السماح بالنزول لسطر جديد عند الضيق */
+  text-align: center;
+  vertical-align: middle;
+}
+
+td {
+  padding: 12px 4px; /* تقليل الـ padding للحفاظ على المساحة */
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  font-size: 0.8rem;
+  white-space: normal; /* السماح للقيم الطويلة بالالتفاف */
+  text-align: center;
+  vertical-align: middle;
+  word-break: keep-all; /* يحافظ على الكلمات دون كسر عشوائي للحروف */
+}
+
+tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* تحديد توزيع عرض الأعمدة الذكي (مجموع النسب = 100%) */
+table th:nth-child(1)  { width: 11%; } /* التاريخ */
+table th:nth-child(2)  { width: 9%; }  /* وقت الحضور */
+table th:nth-child(3)  { width: 9%; }  /* وقت الانصراف */
+table th:nth-child(4)  { width: 9%; }  /* معاد الحضور */
+table th:nth-child(5)  { width: 9%; }  /* معاد الانصراف */
+table th:nth-child(6)  { width: 9%; }  /* وقت السماح */
+table th:nth-child(7)  { width: 9%; }  /* ساعات العمل */
+table th:nth-child(8)  { width: 9%; }  /* دقائق التأخير */
+table th:nth-child(9)  { width: 9%; }  /* دقائق الإضافي */
+table th:nth-child(10) { width: 8%; }  /* الحالة */
+table th:nth-child(11) { width: 11%; } /* ملاحظات */
+
+/* ==========================================
+   التجاوب مع الحالات الخاصة (فارغ / تحميل)
+   ========================================== */
+.details-empty {
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+  font-size: 1.1rem;
+  background-color: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+/* ==========================================
+   أزرار التصفح والترقيم (Pagination)
+   ========================================== */
+.details-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.details-pagination button {
+  background-color: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.details-pagination button:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.details-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.details-pagination span {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* ==========================================
+   استعلامات الشاشات الصغيرة (Media Queries)
+   ========================================== */
+@media (max-width: 992px) {
+  /* في الشاشات اللوحية والموبايل نلغي محاذاة الأعمدة الثابتة لتفادي الضغط الشديد */
+  table {
+    table-layout: auto;
+  }
+  .details-table-wrapper {
+    overflow-x: auto; /* عودة السكرول للأجهزة الصغيرة جداً تجنباً لاختفاء البيانات */
+  }
+}
+
+@media (max-width: 768px) {
+  .employee-details-hero {
+    padding: 20px;
+  }
+  
+  .hero-title h1 {
+    font-size: 1.5rem;
+  }
+  
+  .details-filter-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-field {
+    width: 100%;
+  }
+
+  .details-main-btn, .details-secondary-btn {
+    width: 100%;
+  }
+}

@@ -1,0 +1,178 @@
+.employee-form-card {
+    max-width: 900px;
+    margin: 18px auto 32px;
+    padding: 28px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border-radius: 26px;
+    box-shadow: 0 18px 45px rgba(11, 40, 90, 0.12);
+    border: 1px solid rgba(37, 99, 235, 0.12);
+}
+
+.employee-form-title-row {
+    margin-bottom: 24px;
+}
+
+.employee-form-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.1);
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.employee-form-card h3 {
+    margin: 0;
+    text-align: right;
+    color: #0b2d62;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.employee-form-card form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.full-width-field {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    margin-bottom: 10px;
+    color: #1f2937;
+    font-weight: 800;
+    font-size: 14px;
+}
+
+.required-mark {
+    color: #dc2626;
+}
+
+.form-group input,
+.form-group select {
+    height: 58px;
+    border: 2px solid #e3ebf6;
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 0 16px;
+    font-size: 15px;
+    transition: 0.25s ease;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.form-group input:hover,
+.form-group select:hover {
+    border-color: #93c5fd;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2563eb;
+    background: #ffffff;
+    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.12);
+}
+
+input[readonly] {
+    background: #f2f6fb;
+    color: #6b7280;
+}
+
+.readonly-note {
+    display: block;
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.success-message,
+.error-message {
+    grid-column: 1 / -1;
+    padding: 16px 18px;
+    border-radius: 14px;
+    font-weight: 700;
+}
+
+.success-message {
+    background: #e8fff1;
+    color: #0d8d48;
+}
+
+.error-message {
+    background: #fff1f1;
+    color: #b91c1c;
+}
+
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 10px;
+}
+
+.save-btn {
+    width: 220px;
+    height: 56px;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s ease;
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.28);
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 40px rgba(37, 99, 235, 0.42);
+}
+
+.cancel-btn {
+    width: 220px;
+    height: 56px;
+    border: none;
+    border-radius: 16px;
+    background: #eef4ff;
+    color: #0b2d62;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.cancel-btn:hover {
+    background: #dfeafc;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .employee-form-card {
+        padding: 20px;
+        margin: 12px;
+    }
+
+    .employee-form-card form {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .save-btn,
+    .cancel-btn {
+        width: 100%;
+    }
+}

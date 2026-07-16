@@ -384,37 +384,61 @@ input:focus {
   border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-.table-wrapper, .details-table-wrapper {
-  overflow-x: auto;
+/* ==========================================================================
+   ⚙️ تعديل الحاويات لإلغاء السكرول وضبط ملاءمة الجدول بالكامل للشاشة
+   ========================================================================== */
+.table-wrapper, 
+.details-table-wrapper {
+  overflow-x: hidden; /* تم تعديله من auto لـ hidden لمنع السكرول نهائياً للشاشات الكبيرة */
   width: 100%;
   border-radius: 16px;
   background: rgba(248, 250, 252, 0.95);
   border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
+/* إجبار الجدول على ملء المساحة دون تمدد */
 table {
   width: 100%;
-  min-width: 900px;
-  border-collapse: collapse;
+  min-width: auto; /* تم إزالة الـ min-width: 900px التي كانت تسبب السكرول */
+  table-layout: fixed; /* لتطبيق نسب عرض الأعمدة ديناميكياً بالتساوي */
+  border-collapse: separate;
+  border-spacing: 0;
+  direction: rtl;
 }
 
 th,
 td {
-  padding: 15px 12px;
-  text-align: right;
+  padding: 12px 6px; /* تقليل الـ padding لضمان وسع المساحة */
+  text-align: center; /* توسيط النصوص يعطي شكلاً أرتب في الأماكن الضيقة */
   border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+  white-space: normal; /* السماح للنص بالالتفاف والانقسام على سطرين بدلاً من مط الجدول */
+  word-break: keep-all; /* يحافظ على الكلمات دون تكسير الحروف */
+  font-size: 13px;
+  vertical-align: middle;
 }
 
 th {
   color: rgba(15, 23, 42, 0.75);
-  font-size: 13px;
   font-weight: 1000;
+  background-color: rgba(248, 250, 252, 0.95);
 }
 
 td {
   color: rgba(15, 23, 42, 0.88);
-  font-size: 14px;
 }
+
+/* تحديد توزيع عرض ذكي لأعمدة جدول التفاصيل الـ 11 (المجموع = 100%) */
+.details-table-wrapper table th:nth-child(1)  { width: 11%; } /* التاريخ */
+.details-table-wrapper table th:nth-child(2)  { width: 9%; }  /* وقت الحضور */
+.details-table-wrapper table th:nth-child(3)  { width: 9%; }  /* وقت الانصراف */
+.details-table-wrapper table th:nth-child(4)  { width: 9%; }  /* معاد الحضور */
+.details-table-wrapper table th:nth-child(5)  { width: 9%; }  /* معاد الانصراف */
+.details-table-wrapper table th:nth-child(6)  { width: 9%; }  /* وقت السماح */
+.details-table-wrapper table th:nth-child(7)  { width: 9%; }  /* ساعات العمل */
+.details-table-wrapper table th:nth-child(8)  { width: 9%; }  /* دقائق التأخير */
+.details-table-wrapper table th:nth-child(9)  { width: 9%; }  /* دقائق الإضافي */
+.details-table-wrapper table th:nth-child(10) { width: 8%; }  /* الحالة */
+.details-table-wrapper table th:nth-child(11) { width: 11%; } /* ملاحظات */
 
 tr:hover td {
   background: rgba(248, 250, 252, 0.95);
@@ -843,7 +867,7 @@ tr:hover td {
   border: 1px solid rgba(148, 163, 184, 0.3);
   background: rgba(248, 250, 252, 0.95);
   color: #0f172a;
-  padding: 0 44px 0 16px; /* الحفاظ على مسافة آمنة لعدم تداخل الأرقام مع الأيقونة */
+  padding: 0 44px 0 16px;
   font-size: 14px;
   font-weight: 700;
   outline: none;
@@ -898,7 +922,7 @@ tr:hover td {
   font-size: 14px;
   white-space: nowrap;
   transition: all 0.2s ease;
-  width: auto; /* إلغاء الـ 100% لتستقر الأزرار بالحجم الحقيقي بجانب الحقول */
+  width: auto;
 }
 
 .details-main-btn {
@@ -944,6 +968,17 @@ tr:hover td {
 @media (max-width: 1200px) {
   .employees-content {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  /* في الشاشات اللوحية والموبايل نلغي الـ fixed ونرجع التمرير لعدم حشر البيانات */
+  table {
+    table-layout: auto;
+  }
+  .table-wrapper, 
+  .details-table-wrapper {
+    overflow-x: auto; 
   }
 }
 

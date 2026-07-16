@@ -1,0 +1,22 @@
+<section class="employee-edit-page">
+  <div class="employee-edit-shell">
+    <div class="employee-edit-header">
+      <span class="employee-edit-badge">تعديل موظف</span>
+      <h2>تحديث بيانات الموظف</h2>
+      <p>عدّل الحقول المطلوبة بشكل واضح وسريع، ثم احفظ التغييرات في خطوة واحدة.</p>
+    </div>
+
+    <div class="employee-edit-form-wrap">
+      <app-employee-form
+        [employeeForm]="employeeForm"
+        [selectedEmployeeId]="selectedEmployeeId"
+        [isSaving]="isSaving"
+        [successMessage]="successMessage"
+        [errorMessage]="errorMessage"
+        [departmentOptions]="departmentOptions"
+        (submitForm)="submitForm.emit()"
+        (cancel)="cancel.emit()"
+      ></app-employee-form>
+    </div>
+  </div>
+</section>

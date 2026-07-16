@@ -1,0 +1,68 @@
+<div class="employee-form-card form-page-card" dir="rtl">
+  <div class="employee-form-title-row">
+    <div>
+      <span class="employee-form-tag">{{ selectedEmployeeId ? 'تعديل بيانات' : 'إضافة جديدة' }}</span>
+      <h3>{{ selectedEmployeeId ? 'تعديل موظف' : 'إضافة موظف يدوي' }}</h3>
+    </div>
+  </div>
+
+  <form [formGroup]="employeeForm" (ngSubmit)="employeeForm.valid && submitForm.emit()">
+    <div class="form-group">
+      <label>كود الموظف <span class="required-mark">*</span></label>
+      <input
+        type="text"
+        formControlName="employeeCode"
+        placeholder="مثال: EMP-001"
+        autocomplete="off"
+        [readonly]="selectedEmployeeId !== null"
+      />
+      <small *ngIf="selectedEmployeeId" class="readonly-note">
+        * لا يمكن تعديل كود الموظف بعد إنشائه.
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>وقت السماح</label>
+      <input type="time" formControlName="graceTime" />
+    </div>
+
+    <div class="form-group full-width-field">
+      <label>اسم الموظف <span class="required-mark">*</span></label>
+      <input type="text" formControlName="name" placeholder="أدخل اسم الموظف بالكامل" />
+    </div>
+
+    <div class="form-group full-width-field">
+      <label>القسم / الإدارة <span class="required-mark">*</span></label>
+      <select formControlName="departmentId" class="department-select">
+        <option [ngValue]="null">قم بإختيار القسم</option>
+        <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>وقت الحضور</label>
+      <input type="time" formControlName="scheduleIn" />
+    </div>
+
+    <div class="form-group">
+      <label>وقت الانصراف</label>
+      <input type="time" formControlName="scheduleOut" />
+    </div>
+
+    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="save-btn"
+        [disabled]="isSaving || employeeForm.invalid"
+        [style.opacity]="(isSaving || employeeForm.invalid) ? '0.6' : '1'"
+        [style.cursor]="(isSaving || employeeForm.invalid) ? 'not-allowed' : 'pointer'"
+      >
+        {{ isSaving ? 'جاري الحفظ...' : selectedEmployeeId ? 'حفظ التعديل' : 'حفظ الموظف' }}
+      </button>
+      <button type="button" class="cancel-btn" (click)="cancel.emit()">رجوع للقائمة</button>
+    </div>
+  </form>
+</div>

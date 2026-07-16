@@ -1,0 +1,282 @@
+/*==================================
+    Employees Table Card
+===================================*/
+
+.employees-table-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .06);
+}
+
+/*==================================
+    Header
+===================================*/
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.table-header h3 {
+    margin: 0;
+    color: #002D62;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.table-header span {
+    background: #eef4ff;
+    color: #002D62;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-weight: 600;
+}
+
+/*==================================
+    Search
+===================================*/
+
+.employees-search-box {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.employees-search-box input {
+    flex: 1;
+    min-width: 260px;
+    height: 46px;
+    border: 1px solid #d8dee8;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 15px;
+    outline: none;
+    transition: .25s;
+}
+
+.employees-search-box input:focus {
+    border-color: #65777a;
+    box-shadow: 0 0 0 4px rgba(92, 174, 221, 0.08);
+}
+
+/*==================================
+    Buttons
+===================================*/
+
+.employees-search-box button,
+.pagination-box button,
+.table-action-btn {
+    border: none;
+    cursor: pointer;
+    transition: .25s;
+    font-weight: 600;
+}
+
+.employees-search-box button {
+    height: 46px;
+    padding: 0 22px;
+    border-radius: 10px;
+    background: #17a2ac;
+    color: white;
+}
+
+.employees-search-box button:hover {
+    background: #2faebe;
+}
+
+.clear-search-btn {
+    background: #dc3545 !important;
+}
+
+.clear-search-btn:hover {
+    background: #bb2d3b !important;
+}
+
+.ghost-btn {
+    background: white !important;
+    color: #4596f3 !important;
+    border: 1px solid #d9dfe8 !important;
+}
+
+.ghost-btn:hover {
+    background: #f5f8fc !important;
+}
+
+/*==================================
+    Loading
+===================================*/
+
+.loading-box {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+}
+
+/*==================================
+    Table
+===================================*/
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+}
+
+thead {
+    background: #24a8c9;
+}
+
+thead th {
+    color: white;
+    font-weight: 600;
+    padding: 16px;
+    text-align: center;
+}
+
+tbody td {
+    padding: 16px;
+    text-align: center;
+    border-bottom: 1px solid #edf1f6;
+    color: #444;
+}
+
+tbody tr {
+    transition: .2s;
+}
+
+tbody tr:hover {
+    background: #f8fbff;
+}
+
+.actions-col {
+    width: 240px;
+}
+
+/*==================================
+    Actions
+===================================*/
+
+.employee-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.table-action-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+}
+
+.edit-action {
+    background: #0d6efd;
+}
+
+.edit-action:hover {
+    background: #0b5ed7;
+}
+
+.details-action {
+    background: #198754;
+}
+
+.details-action:hover {
+    background: #157347;
+}
+
+.delete-action {
+    background: #dc3545;
+}
+
+.delete-action:hover {
+    background: #bb2d3b;
+}
+
+/*==================================
+    Empty
+===================================*/
+
+.empty-message {
+    padding: 35px;
+    text-align: center;
+    color: #999;
+    font-size: 16px;
+}
+
+/*==================================
+    Pagination
+===================================*/
+
+.pagination-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    margin-top: 28px;
+}
+
+.pagination-box span {
+    font-weight: 600;
+    color: #555;
+}
+
+.pagination-box button {
+    background: #4594ee;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+}
+
+.pagination-box button:hover:not(:disabled) {
+    background: #01438f;
+}
+
+.pagination-box button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+/*==================================
+    Responsive
+===================================*/
+
+@media (max-width:768px) {
+
+    .table-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .employees-search-box {
+        flex-direction: column;
+    }
+
+    .employees-search-box input,
+    .employees-search-box button {
+        width: 100%;
+    }
+
+    .employee-actions {
+        flex-direction: column;
+    }
+
+    .table-action-btn {
+        width: 100%;
+    }
+
+    .pagination-box {
+        flex-direction: column;
+    }
+}

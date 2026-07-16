@@ -11,7 +11,7 @@ import { AttendancePayload, FingerprintPunch } from './model/models';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './attendance.component.html',
-  styleUrl: './attendance.component.css'
+  styleUrls: ['./attendance.component.css']
 })
 export class AttendanceComponent implements OnInit {
   attendanceRows: AttendancePayload[] = [];

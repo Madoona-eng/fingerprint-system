@@ -6,6 +6,11 @@ import { AttendanceComponent } from './pages/attendance/component/attendance.com
 import { LoginComponent } from '../app/auth/Components/login/login.component';
 import { FingerprintSheetComponent } from './pages/fingerprint-sheet/component/fingerprint-sheet.component';
 
+// ✅ المسارات الصحيحة والدقيقة 100% متوافقة مع مجلدات مشروعك الفعلي:
+import { EmployeeFormComponent } from './pages/employees/component/form/employee-form.component'; 
+import { EmployeeEditComponent } from './pages/employees/component/edit/employee-edit.component';
+import { EmployeeDetailsComponent } from './pages/employees/component/details/employee-details.component';
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -18,7 +23,24 @@ export const routes: Routes = [
     children: [
       {
         path: 'employees',
-        component: EmployeesComponent
+        children: [
+          {
+            path: '', 
+            component: EmployeesComponent
+          },
+          {
+            path: 'add', 
+            component: EmployeeFormComponent // ✅ نستخدم نفس مكون الفورم المشترك للإضافة مباشرة
+          },
+          {
+            path: 'edit/:id', 
+            component: EmployeeEditComponent
+          },
+          {
+            path: 'details/:id', 
+            component: EmployeeDetailsComponent
+          }
+        ]
       },
       {
         path: 'attendance',

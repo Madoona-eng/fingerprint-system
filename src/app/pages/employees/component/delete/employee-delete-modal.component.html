@@ -1,0 +1,9 @@
+<div class="modal-backdrop" *ngIf="show">
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <p class="modal-text">{{ message }}</p>
+    <div class="modal-actions">
+      <button type="button" class="table-action-btn confirm-action" (click)="confirm.emit()">تأكيد</button>
+      <button type="button" class="table-action-btn cancel-action" (click)="cancel.emit()">إلغاء</button>
+    </div>
+  </div>
+</div>

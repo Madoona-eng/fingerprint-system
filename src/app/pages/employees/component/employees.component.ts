@@ -7,6 +7,7 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { read, utils, writeFile, WorkBook, WorkSheet } from 'xlsx';
 import { firstValueFrom } from 'rxjs';
 
@@ -17,6 +18,11 @@ import {
   UpdateEmployeePayload,
   BulkImportEmployeePayload
 } from '../model/models';
+import { EmployeesListComponent } from './list/employees-list.component';
+import { EmployeeFormComponent } from './form/employee-form.component';
+import { EmployeeEditComponent } from './edit/employee-edit.component';
+import { EmployeeDetailsComponent } from './details/employee-details.component';
+import { EmployeeDeleteModalComponent } from './delete/employee-delete-modal.component';
 
 interface UnknownDepartment {
   key: string;
@@ -29,9 +35,18 @@ type EmployeePage = 'upload' | 'list' | 'form' | 'edit' | 'details' | 'analytics
 @Component({
   selector: 'app-employees',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    EmployeesListComponent,
+    EmployeeFormComponent,
+    EmployeeEditComponent,
+    EmployeeDetailsComponent,
+    EmployeeDeleteModalComponent
+  ],
   templateUrl: './employees.component.html',
-  styleUrl: './employees.component.css'
+  styleUrls: ['./employees.component.css']
 })
 export class EmployeesComponent implements OnInit {
   employees: Employee[] = [];
@@ -412,15 +427,28 @@ getDepartmentNameById(id: number | null | undefined): string {
 
   constructor(
     private fb: FormBuilder,
-    private employeesService: EmployeesService
+    private employeesService: EmployeesService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.initForm();
+    this.route.queryParams.subscribe((params) => {
+      const requestedPage = String(params['page'] || 'list') as EmployeePage;
+      const requestedId = Number(params['id'] || 0);
+
+      if (requestedPage === 'form' || requestedPage === 'edit') {
+        this.openEmployeePage(requestedPage, requestedId || null);
+        return;
+      }
+
+      this.openEmployeePage(requestedPage, null);
+    });
     this.loadEmployees();
   }
 
-openEmployeePage(page: EmployeePage): void {
+openEmployeePage(page: EmployeePage, id: number | null = null): void {
   if (page === 'form') {
     this.selectedEmployeeId = null;
     this.employeeForm.reset();
@@ -429,7 +457,21 @@ openEmployeePage(page: EmployeePage): void {
     this.successMessage = '';
   }
 
+  if (page === 'edit' && id) {
+    this.selectedEmployeeId = id;
+  }
+
   this.activeEmployeePage = page;
+
+  this.router.navigate([], {
+    relativeTo: this.route,
+    queryParams: {
+      page,
+      ...(id ? { id } : {})
+    },
+    queryParamsHandling: 'merge',
+    replaceUrl: true
+  });
 
   if (page === 'analytics' && !this.analyticsDateDisplay) {
     this.setTodayAnalyticsDate();
@@ -812,6 +854,7 @@ private analyticsApiDateToDisplay(apiDate: string): string {
 private analyticsPad(value: number): string {
   return value.toString().padStart(2, '0');
 }
+
 openEmployeeDetailsDatePicker(input: HTMLInputElement): void {
   if ((input as any).showPicker) {
     (input as any).showPicker();
@@ -836,7 +879,17 @@ onEmployeeDetailsNativeDatePicked(event: Event, field: 'from' | 'to'): void {
     this.employeeDetailsTo = apiDate;
     this.employeeDetailsToDisplay = this.employeeDetailsApiDateToDisplay(apiDate);
   }
-}private employeeDetailsApiDateToDisplay(apiDate: string): string {
+}
+
+  onEmployeeDetailsDateInputChanged(event: { field: 'from' | 'to'; value: string }): void {
+    if (event.field === 'from') {
+      this.employeeDetailsFromDisplay = event.value;
+    } else {
+      this.employeeDetailsToDisplay = event.value;
+    }
+  }
+
+  private employeeDetailsApiDateToDisplay(apiDate: string): string {
   if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
     return '';
   }
@@ -1384,6 +1437,15 @@ openEmployeeDetails(employee: Employee): void {
 
     this.activeEmployeePage = 'edit';
     this.employeeForm.controls['employeeCode'].disable();
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: 'edit',
+        id: employee.id
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   cancelEdit(): void {
@@ -1393,6 +1455,14 @@ openEmployeeDetails(employee: Employee): void {
     this.errorMessage = '';
     this.successMessage = '';
     this.activeEmployeePage = 'list';
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: 'list'
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   private afterSave(message: string): void {

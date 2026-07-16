@@ -1,16 +1,5 @@
 <div class="employees-page" dir="rtl">
 
-  <!-- Central modal confirmation for delete -->
-  <div class="modal-backdrop" *ngIf="showDeleteModal">
-    <div class="modal-card" role="dialog" aria-modal="true">
-      <p class="modal-text">{{ deleteModalMessage }}</p>
-
-      <div class="modal-actions">
-        <button type="button" class="table-action-btn confirm-action" (click)="confirmDeleteModal()">تأكيد</button>
-        <button type="button" class="table-action-btn cancel-action" (click)="cancelDeleteModal()">إلغاء</button>
-      </div>
-    </div>
-  </div>
   <section class="employees-title">
     <div>
       <h1>إدارة الموظفين</h1>
@@ -35,7 +24,7 @@
 
     <button
       type="button"
-      [class.active]="activeEmployeePage === 'list'"
+      [class.active]="activeEmployeePage === 'list' || activeEmployeePage === 'details' || activeEmployeePage === 'edit'"
       (click)="openEmployeePage('list')"
     >
       👥 قائمة الموظفين
@@ -48,12 +37,23 @@
     >
       ➕ إضافة موظف
     </button>
-    
   </section>
 
   <ng-container [ngSwitch]="activeEmployeePage">
 
-    <!-- صفحة رفع Excel -->
+    <section *ngSwitchCase="'form'" class="employee-sub-page">
+      <app-employee-form
+        [employeeForm]="employeeForm"
+        [selectedEmployeeId]="selectedEmployeeId"
+        [isSaving]="isSaving"
+        [successMessage]="successMessage"
+        [errorMessage]="errorMessage"
+        [departmentOptions]="departmentOptions"
+        (submitForm)="saveEmployee()"
+        (cancel)="openEmployeePage('list')"
+      ></app-employee-form>
+    </section>
+
     <section *ngSwitchCase="'upload'" class="employee-sub-page">
       <section class="excel-upload-card">
         <div class="upload-info">
@@ -75,8 +75,7 @@
             accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             (change)="onEmployeeSheetSelected($event)"
           />
-
-          <span>📁 قم بإختيار ملف Excel أو اسحبيه هنا</span>
+          <span>📁 قم بإختيار ملف Excel أو اسحبه هنا</span>
         </label>
 
         <div *ngIf="excelFileName" class="file-name">
@@ -93,11 +92,9 @@
 
         <div *ngIf="missingDepartmentNames.length > 0" class="unknown-card">
           <h4>إدارات غير موجودة أو غير مطابقة</h4>
-
           <p>
             راجعي الأسماء التالية وأضيفيها في قاعدة البيانات أو في aliases.
           </p>
-
           <ul>
             <li *ngFor="let dep of missingDepartmentNames">
               {{ dep }}
@@ -107,7 +104,6 @@
 
         <div *ngIf="unknownDepartments.length > 0" class="unknown-card">
           <h4>إدارات غير مربوطة برقم قسم</h4>
-
           <p>
             اكتب رقم القسم الصحيح لكل إدارة، وبعدها اضغطي تطبيق أرقام الأقسام.
           </p>
@@ -118,7 +114,6 @@
               *ngFor="let dep of unknownDepartments; trackBy: trackDepartment"
             >
               <label>{{ dep.name }}</label>
-
               <input
                 type="number"
                 min="1"
@@ -142,7 +137,6 @@
           <li *ngFor="let rowError of excelRowErrors | slice:0:6">
             {{ rowError }}
           </li>
-
           <li *ngIf="excelRowErrors.length > 6">
             ويوجد {{ excelRowErrors.length - 6 }} أخطاء أخرى...
           </li>
@@ -169,484 +163,71 @@
           </button>
         </div>
       </section>
-
-      <!-- <section *ngIf="excelEmployees.length > 0" class="json-preview-card">
-        <div class="table-header">
-          <h3>JSON المستخرج من الشيت</h3>
-          <span>{{ excelEmployees.length }} موظف</span>
-        </div>
-
-        <pre>{{ excelEmployees | json }}</pre>
-      </section> -->
     </section>
 
-    <!-- صفحة قائمة الموظفين -->
     <section *ngSwitchCase="'list'" class="employee-sub-page">
-      <div class="employees-table-card">
-        <div class="table-header">
-          <h3>قائمة الموظفين</h3>
-          <span>{{ totalCount }} موظف</span>
-        </div>
-
-        <div class="employees-search-box">
-          <input
-            type="text"
-            placeholder="ابحثي بالكود أو الاسم"
-            [(ngModel)]="searchTerm"
-            [ngModelOptions]="{ standalone: true }"
-            (keyup.enter)="searchEmployees()"
-          />
-
-          <button type="button" (click)="searchEmployees()">
-            بحث
-          </button>
-
-          <button type="button" class="clear-search-btn" (click)="clearSearch()">
-            مسح
-          </button>
-
-          <button
-            type="button"
-            class="ghost-btn"
-            (click)="exportEmployeesListToExcel()"
-          >
-            تصدير Excel
-          </button>
-        </div>
-
-        <div *ngIf="isLoading" class="loading-box">
-          جاري تحميل بيانات الموظفين...
-        </div>
-
-        <div *ngIf="!isLoading" class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>الكود</th>
-                <th>الاسم</th>
-                <th>القسم</th>
-                <th>الحضور</th>
-                <th>الانصراف</th>
-                <th>السماح</th>
-              <th class="actions-col">إجراء</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr *ngFor="let emp of employees">
-                <td>{{ emp.employeeCode }}</td>
-                <td>{{ emp.name }}</td>
-                <td>{{ emp.departmentName || emp.departmentId }}</td>
-                <td>{{ timeForInput(emp.scheduleIn) }}</td>
-                <td>{{ timeForInput(emp.scheduleOut) }}</td>
-                <td>{{ timeForInput(emp.graceTime) }}</td>
-                <td>
-  <div class="employee-actions">
-    <button
-      type="button"
-      class="table-action-btn edit-action"
-      (click)="editEmployee(emp)"
-    >
-      تعديل
-    </button>
-
-    <button
-      type="button"
-      class="table-action-btn details-action"
-      (click)="openEmployeeDetails(emp)"
-    >
-      تفاصيل
-    </button>
-    
-            <button
-              type="button"
-              class="table-action-btn delete-action"
-              (click)="openDeleteModal(emp)"
-            >
-              حذف
-            </button>
-  </div>
-
-                </td>
-              </tr>
-
-              <tr *ngIf="employees.length === 0">
-                <td colspan="7" class="empty-message">
-                  لا توجد بيانات موظفين مطابقة
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="pagination-box" *ngIf="totalPages > 1">
-          <button
-            type="button"
-            (click)="previousPage()"
-            [disabled]="pageNumber === 1"
-          >
-            السابق
-          </button>
-
-          <span>
-            صفحة {{ pageNumber }} من {{ totalPages }}
-          </span>
-
-          <button
-            type="button"
-            (click)="nextPage()"
-            [disabled]="pageNumber === totalPages"
-          >
-            التالي
-          </button>
-        </div>
-      </div>
+      <app-employees-list
+        [employees]="employees"
+        [searchTerm]="searchTerm"
+        [isLoading]="isLoading"
+        [pageNumber]="pageNumber"
+        [totalPages]="totalPages"
+        [totalCount]="totalCount"
+        (searchTermChange)="searchTerm = $event"
+        (search)="searchEmployees()"
+        (clear)="clearSearch()"
+        (export)="exportEmployeesListToExcel()"
+        (editEmployee)="editEmployee($event)"
+        (openDetails)="openEmployeeDetails($event)"
+        (deleteEmployee)="openDeleteModal($event)"
+        (previousPage)="previousPage()"
+        (nextPage)="nextPage()"
+      ></app-employees-list>
     </section>
-    <!-- صفحة تفاصيل الموظف -->
-<!-- صفحة تفاصيل الموظف -->
-<!-- صفحة تفاصيل الموظف -->
-<section *ngSwitchCase="'details'" class="employee-details-page" dir="rtl">
-  <div class="employee-details-hero">
-    <div class="hero-top">
-      <button
-        type="button"
-        class="details-back-btn"
-        (click)="backToEmployeesList()"
-      >
-        رجوع للقائمة
-      </button>
 
-      <div class="hero-title">
-        <span class="hero-badge">تفاصيل الموظف</span>
-        <h1>{{ selectedEmployeeForDetails?.name || '-' }}</h1>
-        <p>
-          كود الموظف:
-          <strong>{{ selectedEmployeeForDetails?.employeeCode || '-' }}</strong>
-        </p>
-      </div>
-    </div>
+    <section *ngSwitchCase="'details'" class="employee-sub-page">
+      <app-employee-details
+        [selectedEmployeeForDetails]="selectedEmployeeForDetails"
+        [employeeDetailsRows]="employeeDetailsRows"
+        [isLoadingEmployeeDetails]="isLoadingEmployeeDetails"
+        [employeeDetailsPageNumber]="employeeDetailsPageNumber"
+        [employeeDetailsTotalPages]="employeeDetailsTotalPages"
+        [employeeDetailsTotalCount]="employeeDetailsTotalCount"
+        [employeeDetailsFromDisplay]="employeeDetailsFromDisplay"
+        [employeeDetailsToDisplay]="employeeDetailsToDisplay"
+        [employeeDetailsFrom]="employeeDetailsFrom"
+        [employeeDetailsTo]="employeeDetailsTo"
+        (back)="backToEmployeesList()"
+        (applyFilter)="applyEmployeeDetailsDateFilter()"
+        (clearFilter)="clearEmployeeDetailsDateFilter()"
+        (exportDetails)="exportEmployeeDetailsToExcel()"
+        (previousPage)="previousEmployeeDetailsPage()"
+        (nextPage)="nextEmployeeDetailsPage()"
+        (openDatePicker)="openEmployeeDetailsDatePicker($event)"
+        (nativeDatePicked)="onEmployeeDetailsNativeDatePicked($event.event, $event.field)"
+        (dateInputChanged)="onEmployeeDetailsDateInputChanged($event)"
+      ></app-employee-details>
+    </section>
 
-    <div class="details-filter-card">
-    <div class="filter-field date-field">
-  <label>من تاريخ</label>
-
-  <div class="date-input-wrap">
-    <input
-      class="date-text-input"
-      type="text"
-      inputmode="numeric"
-      maxlength="10"
-      placeholder="31/03/2026"
-      [(ngModel)]="employeeDetailsFromDisplay"
-      [ngModelOptions]="{ standalone: true }"
-      (input)="formatEmployeeDetailsDateWhileTyping('from')"
-    />
-
-    <button
-      type="button"
-      class="calendar-btn"
-      (click)="openEmployeeDetailsDatePicker(employeeDetailsFromPicker)"
-    >
-      📅
-    </button>
-
-    <input
-      #employeeDetailsFromPicker
-      class="native-date-picker"
-      type="date"
-      [value]="employeeDetailsFrom"
-      (change)="onEmployeeDetailsNativeDatePicked($event, 'from')"
-    />
-  </div>
-</div>
-
- <div class="filter-field date-field">
-  <label>إلى تاريخ</label>
-
-  <div class="date-input-wrap">
-    <input
-      class="date-text-input"
-      type="text"
-      inputmode="numeric"
-      maxlength="10"
-      placeholder="31/03/2026"
-      [(ngModel)]="employeeDetailsToDisplay"
-      [ngModelOptions]="{ standalone: true }"
-      (input)="formatEmployeeDetailsDateWhileTyping('to')"
-    />
-
-    <button
-      type="button"
-      class="calendar-btn"
-      (click)="openEmployeeDetailsDatePicker(employeeDetailsToPicker)"
-    >
-      📅
-    </button>
-
-    <input
-      #employeeDetailsToPicker
-      class="native-date-picker"
-      type="date"
-      [value]="employeeDetailsTo"
-      (change)="onEmployeeDetailsNativeDatePicked($event, 'to')"
-    />
-  </div>
-</div>
-
-      
-
-      <button
-        type="button"
-        class="details-main-btn"
-        [disabled]="isLoadingEmployeeDetails"
-        (click)="applyEmployeeDetailsDateFilter()"
-      >
-        {{ isLoadingEmployeeDetails ? 'جاري التحميل...' : 'تطبيق الفترة' }}
-      </button>
-
-      <button
-        type="button"
-        class="details-secondary-btn"
-        (click)="clearEmployeeDetailsDateFilter()"
-      >
-        مسح الفترة
-      </button>
-    </div>
-  </div>
-
-  <div class="employee-info-card">
-    <div class="section-title-row">
-      <h2>بيانات الموظف</h2>
-      <span>{{ employeeDetailsTotalCount || employeeDetailsRows.length }} سجل</span>
-    </div>
-
-    <div class="employee-info-grid">
-      
-
-     
-
-     
-
-      <div class="info-box">
-        <span>القسم</span>
-        <strong>
-          {{ selectedEmployeeForDetails?.departmentName || selectedEmployeeForDetails?.departmentId || '-' }}
-        </strong>
-      </div>
-
-      
-
-     
-    </div>
-  </div>
-
-  <div class="employee-details-table-card">
-    <div class="section-title-row">
-      <h2>سجلات الحضور والانصراف</h2>
-      <div class="section-actions">
-        <span *ngIf="isLoadingEmployeeDetails">جاري التحميل...</span>
-        <span *ngIf="!isLoadingEmployeeDetails">{{ employeeDetailsRows.length }} نتيجة</span>
-        <button
-          type="button"
-          class="ghost-btn"
-          (click)="exportEmployeeDetailsToExcel()"
-        >
-          تصدير Excel
-        </button>
-      </div>
-    </div>
-
-    <div *ngIf="!isLoadingEmployeeDetails && employeeDetailsRows.length > 0" class="details-table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>التاريخ</th>
-            <th>وقت الحضور </th>
-            <th>وقت الانصراف</th>
-            <th>معاد الحضور</th>
-            <th>معاد الانصراف</th>
-            <th>وقت السماح</th>
-            <th>ساعات العمل</th>
-            <th>دقائق التأخير</th>
-            <th>دقائق الإضافي</th>
-            <th>الحالة</th>
-            <th>ملاحظات</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of employeeDetailsRows">
-            <td>{{ row.date || row.attendanceDate || row.from || '-' }}</td>
-
-            <td>{{ row.actualIn || row.checkIn || row.in || '-' }}</td>
-
-            <td>{{ row.actualOut || row.checkOut || row.out || '-' }}</td>
-
-            <td>{{ row.scheduleIn || row.attendanceScheduleIn || '-' }}</td>
-
-            <td>{{ row.scheduleOut || row.attendanceScheduleOut || '-' }}</td>
-
-            <td>{{ row.graceTime || row.attendanceGraceTime || '-' }}</td>
-
-            <td>{{ formatWorkedHours(row.workedMinutes) }}</td>
-
-            <td>{{ row.lateMinutes != null ? row.lateMinutes : '-' }}</td>
-
-            <td>{{ row.overtimeMinutes != null ? row.overtimeMinutes : '-' }}</td>
-
-            <td>
-              <span class="details-status-badge">
-                {{ getStatusLabel(row.status) }}
-              </span>
-            </td>
-            <td>{{ getNoteLabel(row.notes) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div *ngIf="!isLoadingEmployeeDetails && employeeDetailsRows.length === 0" class="details-empty">
-      لا توجد سجلات حضور لهذا الموظف في الفترة المحددة.
-    </div>
-
-    <div
-      *ngIf="employeeDetailsTotalPages > 1"
-      class="details-pagination"
-    >
-      <button
-        type="button"
-        [disabled]="employeeDetailsPageNumber <= 1"
-        (click)="previousEmployeeDetailsPage()"
-      >
-        السابق
-      </button>
-
-      <span>
-        صفحة {{ employeeDetailsPageNumber }} من {{ employeeDetailsTotalPages }}
-      </span>
-
-      <button
-        type="button"
-        [disabled]="employeeDetailsPageNumber >= employeeDetailsTotalPages"
-        (click)="nextEmployeeDetailsPage()"
-      >
-        التالي
-      </button>
-    </div>
-  </div>
-</section>
-
-
-
-    <!-- صفحة إضافة / تعديل موظف -->
-    <section *ngIf="activeEmployeePage === 'form' || activeEmployeePage === 'edit'" class="employee-sub-page">
-      <div class="employee-form-card form-page-card">
-     <h3>{{ selectedEmployeeId ? 'تعديل موظف' : 'إضافة موظف يدوي' }}</h3>
-
-        <form [formGroup]="employeeForm" (ngSubmit)="saveEmployee()">
-          <div class="form-group">
-            <label>كود الموظف</label>
-            <input
-              type="text"
-              formControlName="employeeCode"
-              placeholder="مثال: EMP-001"
-              autocomplete="off"
-              [readonly]="selectedEmployeeId !== null"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>اسم الموظف</label>
-            <input
-              type="text"
-              formControlName="name"
-              placeholder="أدخل اسم الموظف"
-            />
-          </div>
-
-<div class="form-group">
-  <label>القسم</label>
-
-  <select formControlName="departmentId" class="department-select">
-    <option [ngValue]="null">قم بإختيار القسم</option>
-
-    <option
-      *ngFor="let dep of departmentOptions"
-      [ngValue]="dep.id"
-    >
-      {{ dep.name }}
-    </option>
-  </select>
-
-</div>
-
-          <div class="form-group">
-            <label>وقت الحضور</label>
-            <input
-              type="time"
-              formControlName="scheduleIn"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>وقت الانصراف</label>
-            <input
-              type="time"
-              formControlName="scheduleOut"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>وقت السماح</label>
-            <input
-              type="time"
-              formControlName="graceTime"
-            />
-          </div>
-
-          <div *ngIf="successMessage" class="success-message">
-            {{ successMessage }}
-          </div>
-
-          <div *ngIf="errorMessage" class="error-message">
-            {{ errorMessage }}
-          </div>
-
-          <div class="form-actions">
-   <button
-  type="submit"
-  class="save-btn"
-  [disabled]="isSaving"
->
-  {{
-    isSaving
-      ? 'جاري الحفظ...'
-      : selectedEmployeeId
-        ? 'حفظ التعديل'
-        : 'حفظ الموظف'
-  }}
-</button>
-
-            <button
-              type="button"
-              class="cancel-btn"
-              *ngIf="selectedEmployeeId"
-              (click)="cancelEdit()"
-            >
-              إلغاء
-            </button>
-
-            <button
-              type="button"
-              class="cancel-btn"
-              *ngIf="!selectedEmployeeId"
-              (click)="openEmployeePage('list')"
-            >
-              رجوع للقائمة
-            </button>
-          </div>
-        </form>
-      </div>
+    <section *ngSwitchCase="'edit'" class="employee-sub-page">
+      <app-employee-edit
+        [employeeForm]="employeeForm"
+        [selectedEmployeeId]="selectedEmployeeId"
+        [isSaving]="isSaving"
+        [successMessage]="successMessage"
+        [errorMessage]="errorMessage"
+        [departmentOptions]="departmentOptions"
+        (submitForm)="saveEmployee()"
+        (cancel)="cancelEdit()"
+      ></app-employee-edit>
     </section>
 
   </ng-container>
+
+  <app-employee-delete-modal
+    [show]="showDeleteModal"
+    [message]="deleteModalMessage"
+    (confirm)="confirmDeleteModal()"
+    (cancel)="cancelDeleteModal()"
+  ></app-employee-delete-modal>
 </div>

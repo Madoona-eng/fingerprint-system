@@ -1,0 +1,134 @@
+<section class="employee-details-page" dir="rtl">
+  <div class="employee-details-hero">
+    <div class="hero-top">
+      <button type="button" class="details-back-btn" (click)="back.emit()">رجوع للقائمة</button>
+      <div class="hero-title">
+        <span class="hero-badge">تفاصيل الموظف</span>
+        <h1>{{ selectedEmployeeForDetails?.name || '-' }}</h1>
+        <p>كود الموظف: <strong>{{ selectedEmployeeForDetails?.employeeCode || '-' }}</strong></p>
+      </div>
+    </div>
+
+    <div class="details-filter-card">
+      <div class="filter-field date-field">
+        <label>من تاريخ</label>
+        <div class="date-input-wrap">
+          <input
+            class="date-text-input"
+            type="text"
+            inputmode="numeric"
+            maxlength="10"
+            placeholder="31/03/2026"
+            [(ngModel)]="employeeDetailsFromDisplay"
+            [ngModelOptions]="{ standalone: true }"
+            (input)="dateInputChanged.emit({ field: 'from', value: employeeDetailsFromDisplay })"
+          />
+          <button type="button" class="calendar-btn" (click)="openDatePicker.emit(employeeDetailsFromPicker)">📅</button>
+          <input
+            #employeeDetailsFromPicker
+            class="native-date-picker"
+            type="date"
+            [value]="employeeDetailsFrom"
+            (change)="nativeDatePicked.emit({ event: $event, field: 'from' })"
+          />
+        </div>
+      </div>
+
+      <div class="filter-field date-field">
+        <label>إلى تاريخ</label>
+        <div class="date-input-wrap">
+          <input
+            class="date-text-input"
+            type="text"
+            inputmode="numeric"
+            maxlength="10"
+            placeholder="31/03/2026"
+            [(ngModel)]="employeeDetailsToDisplay"
+            [ngModelOptions]="{ standalone: true }"
+            (input)="dateInputChanged.emit({ field: 'to', value: employeeDetailsToDisplay })"
+          />
+          <button type="button" class="calendar-btn" (click)="openDatePicker.emit(employeeDetailsToPicker)">📅</button>
+          <input
+            #employeeDetailsToPicker
+            class="native-date-picker"
+            type="date"
+            [value]="employeeDetailsTo"
+            (change)="nativeDatePicked.emit({ event: $event, field: 'to' })"
+          />
+        </div>
+      </div>
+
+      <button type="button" class="details-main-btn" [disabled]="isLoadingEmployeeDetails" (click)="applyFilter.emit()">
+        {{ isLoadingEmployeeDetails ? 'جاري التحميل...' : 'تطبيق الفترة' }}
+      </button>
+      <button type="button" class="details-secondary-btn" (click)="clearFilter.emit()">مسح الفترة</button>
+    </div>
+  </div>
+
+  <div class="employee-info-card">
+    <div class="section-title-row">
+      <h2>بيانات الموظف</h2>
+      <span>{{ employeeDetailsTotalCount || employeeDetailsRows.length }} سجل</span>
+    </div>
+    <div class="employee-info-grid">
+      <div class="info-box">
+        <span>القسم</span>
+        <strong>{{ selectedEmployeeForDetails?.departmentName || selectedEmployeeForDetails?.departmentId || '-' }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="employee-details-table-card">
+    <div class="section-title-row">
+      <h2>سجلات الحضور والانصراف</h2>
+      <div class="section-actions">
+        <span *ngIf="isLoadingEmployeeDetails">جاري التحميل...</span>
+        <span *ngIf="!isLoadingEmployeeDetails">{{ employeeDetailsRows.length }} نتيجة</span>
+        <button type="button" class="ghost-btn" (click)="exportDetails.emit()">تصدير Excel</button>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoadingEmployeeDetails && employeeDetailsRows.length > 0" class="details-table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>وقت الحضور</th>
+            <th>وقت الانصراف</th>
+            <th>معاد الحضور</th>
+            <th>معاد الانصراف</th>
+            <th>وقت السماح</th>
+            <th>ساعات العمل</th>
+            <th>دقائق التأخير</th>
+            <th>دقائق الإضافي</th>
+            <th>الحالة</th>
+            <th>ملاحظات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of employeeDetailsRows">
+            <td>{{ row.date || row.attendanceDate || row.from || '-' }}</td>
+            <td>{{ row.actualIn || row.checkIn || row.in || '-' }}</td>
+            <td>{{ row.actualOut || row.checkOut || row.out || '-' }}</td>
+            <td>{{ row.scheduleIn || row.attendanceScheduleIn || '-' }}</td>
+            <td>{{ row.scheduleOut || row.attendanceScheduleOut || '-' }}</td>
+            <td>{{ row.graceTime || row.attendanceGraceTime || '-' }}</td>
+            <td>{{ row.workedMinutes }}</td>
+            <td>{{ row.lateMinutes != null ? row.lateMinutes : '-' }}</td>
+            <td>{{ row.overtimeMinutes != null ? row.overtimeMinutes : '-' }}</td>
+            <td>{{ getStatusLabel(row.status) }}</td>
+            <td>{{ row.notes || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!isLoadingEmployeeDetails && employeeDetailsRows.length === 0" class="details-empty">لا توجد سجلات حضور لهذا الموظف في الفترة المحددة.</div>
+
+    <div *ngIf="employeeDetailsTotalPages > 1" class="details-pagination">
+      <button type="button" [disabled]="employeeDetailsPageNumber <= 1" (click)="previousPage.emit()">السابق</button>
+      <span>صفحة {{ employeeDetailsPageNumber }} من {{ employeeDetailsTotalPages }}</span>
+      <button type="button" [disabled]="employeeDetailsPageNumber >= employeeDetailsTotalPages" (click)="nextPage.emit()">التالي</button>
+    </div>
+  </div>
+</section>
