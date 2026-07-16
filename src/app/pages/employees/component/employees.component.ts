@@ -23,6 +23,7 @@ import { EmployeeFormComponent } from './form/employee-form.component';
 import { EmployeeEditComponent } from './edit/employee-edit.component';
 import { EmployeeDetailsComponent } from './details/employee-details.component';
 import { EmployeeDeleteModalComponent } from './delete/employee-delete-modal.component';
+import { EmployeeNoteModalComponent } from './note/employee-note-modal.component';
 
 interface UnknownDepartment {
   key: string;
@@ -43,7 +44,8 @@ type EmployeePage = 'upload' | 'list' | 'form' | 'edit' | 'details' | 'analytics
     EmployeeFormComponent,
     EmployeeEditComponent,
     EmployeeDetailsComponent,
-    EmployeeDeleteModalComponent
+    EmployeeDeleteModalComponent,
+    EmployeeNoteModalComponent
   ],
   templateUrl: './employees.component.html',
   styleUrls: ['./employees.component.css']
@@ -69,6 +71,10 @@ export class EmployeesComponent implements OnInit {
   showDeleteModal = false;
   deleteTargetEmployee: Employee | null = null;
   deleteModalMessage = '';
+
+  showNoteModal = false;
+  noteTargetEmployee: Employee | null = null;
+  noteModalEmployeeName = '';
 
   selectedEmployeeId: number | null = null;
 
@@ -485,7 +491,8 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
       departmentId: [null, Validators.required],
       scheduleIn: ['', Validators.required],
       scheduleOut: ['', Validators.required],
-      graceTime: ['', Validators.required]
+      graceTime: ['', Validators.required],
+      note: ['']
     });
   }
 
@@ -943,6 +950,11 @@ openEmployeeDetails(employee: Employee): void {
 
         const data = response?.data || response;
 
+        this.selectedEmployeeForDetails = {
+          ...(this.selectedEmployeeForDetails || {}),
+          ...data
+        } as Employee;
+
         this.employeeDetailsRaw = data;
         this.employeeDetailsInfo = data;
 
@@ -1209,6 +1221,98 @@ openEmployeeDetails(employee: Employee): void {
     this.openDeleteModal(emp);
   }
 
+  openNoteModal(emp: Employee): void {
+    if (!emp || !emp.id) {
+      this.errorMessage = 'لا يمكن إضافة ملاحظة لهذا الموظف لأن معرفه غير متوفر';
+      return;
+    }
+
+    this.noteTargetEmployee = emp;
+    this.noteModalEmployeeName = emp.name || emp.employeeCode || 'الموظف';
+    this.showNoteModal = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  cancelNoteModal(): void {
+    this.showNoteModal = false;
+    this.noteTargetEmployee = null;
+    this.noteModalEmployeeName = '';
+  }
+
+  confirmAddEmployeeNote(content: string): void {
+    const id = this.noteTargetEmployee?.id;
+
+    if (!id) {
+      this.errorMessage = 'لم يتم تحديد موظف لإضافة الملاحظة';
+      this.showNoteModal = false;
+      return;
+    }
+
+    const trimmed = content?.trim();
+    if (!trimmed) {
+      this.errorMessage = 'نص الملاحظة مطلوب';
+      return;
+    }
+
+    this.isSaving = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.employeesService.addEmployeeNote(id, trimmed).subscribe({
+      next: (response: any) => {
+        this.isSaving = false;
+        this.showNoteModal = false;
+        this.noteTargetEmployee = null;
+        this.noteModalEmployeeName = '';
+
+        if (response?.isSuccess === false) {
+          this.errorMessage = response?.message || 'فشل إضافة الملاحظة';
+          return;
+        }
+
+        this.successMessage = response?.message || 'تمت إضافة الملاحظة بنجاح';
+        this.loadEmployees();
+      },
+      error: (err) => {
+        this.isSaving = false;
+        this.showNoteModal = false;
+        this.noteTargetEmployee = null;
+        this.noteModalEmployeeName = '';
+        this.errorMessage = err?.error?.message || err?.message || 'حدث خطأ أثناء إضافة الملاحظة';
+      }
+    });
+  }
+
+  deleteEmployeeNote(noteId: number | string): void {
+    if (noteId == null) {
+      this.errorMessage = 'لم يتم تحديد ملاحظة للحذف';
+      return;
+    }
+
+    this.isSaving = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.employeesService.deleteEmployeeNote(noteId).subscribe({
+      next: (response: any) => {
+        this.isSaving = false;
+
+        if (response?.isSuccess === false) {
+          this.errorMessage = response?.message || 'فشل حذف الملاحظة';
+          return;
+        }
+
+        this.successMessage = response?.message || 'تم حذف الملاحظة بنجاح';
+        this.loadEmployeeDetails();
+      },
+      error: (err) => {
+        this.isSaving = false;
+        this.errorMessage = err?.error?.message || err?.message || 'حدث خطأ أثناء حذف الملاحظة';
+      }
+    });
+  }
+
   openDeleteModal(emp: Employee): void {
     if (!emp || !emp.id) {
       this.errorMessage = 'لا يمكن حذف هذا الموظف لأن معرفه غير متوفر';
@@ -1390,7 +1494,8 @@ openEmployeeDetails(employee: Employee): void {
       departmentId: Number(this.employeeForm.value.departmentId),
       scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
       scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
-      graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime)
+      graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime),
+      note: String(this.employeeForm.value.note || '').trim()
     };
   }
 
@@ -1400,7 +1505,8 @@ openEmployeeDetails(employee: Employee): void {
       departmentId: Number(this.employeeForm.value.departmentId),
       scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
       scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
-      graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime)
+      graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime),
+      note: String(this.employeeForm.value.note || '').trim()
     };
   }
 
@@ -1425,7 +1531,8 @@ openEmployeeDetails(employee: Employee): void {
       departmentId: departmentId || null,
       scheduleIn: this.timeForInput(employee.scheduleIn),
       scheduleOut: this.timeForInput(employee.scheduleOut),
-      graceTime: this.timeForInput(employee.graceTime)
+      graceTime: this.timeForInput(employee.graceTime),
+      note: employee.note ?? (employee as any).notes ?? ''
     });
 
     this.successMessage = '';

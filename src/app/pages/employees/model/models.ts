@@ -5,6 +5,7 @@ export interface EmployeePayload {
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
+  note?: string;
 }
 
 export interface UpdateEmployeePayload {
@@ -13,6 +14,7 @@ export interface UpdateEmployeePayload {
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
+  note?: string;
 }
 
 export interface BulkImportEmployeePayload {
@@ -22,6 +24,7 @@ export interface BulkImportEmployeePayload {
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
+  note?: string;
 }
 
 export interface Employee {
@@ -33,6 +36,8 @@ export interface Employee {
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
+  note?: string;
+  notes?: unknown[] | string | null;
   createdBy?: string;
   createdByUserName?: string;
   lastModifiedBy?: string;

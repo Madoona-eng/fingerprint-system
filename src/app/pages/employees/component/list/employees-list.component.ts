@@ -25,6 +25,7 @@ export class EmployeesListComponent {
   @Output() export = new EventEmitter<void>();
   @Output() editEmployee = new EventEmitter<Employee>();
   @Output() openDetails = new EventEmitter<Employee>();
+  @Output() openNote = new EventEmitter<Employee>();
   @Output() deleteEmployee = new EventEmitter<Employee>();
   @Output() previousPage = new EventEmitter<void>();
   @Output() nextPage = new EventEmitter<void>();

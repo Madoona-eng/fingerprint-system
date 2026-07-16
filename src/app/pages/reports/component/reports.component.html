@@ -128,39 +128,7 @@
 </div>
   </section>
 
-  <section class="analytics-progress-card">
-    <h2>مؤشرات اليوم</h2>
-
-    <div class="progress-item">
-      <div>
-        <span>نسبة الحضور</span>
-        <strong>{{ attendancePercent }}%</strong>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill present-fill" [style.width.%]="attendancePercent"></div>
-      </div>
-    </div>
-
-    <div class="progress-item">
-      <div>
-        <span>نسبة التأخير</span>
-        <strong>{{ latePercent }}%</strong>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill late-fill" [style.width.%]="latePercent"></div>
-      </div>
-    </div>
-
-    <div class="progress-item">
-      <div>
-        <span>نسبة الغياب</span>
-        <strong>{{ absencePercent }}%</strong>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill absent-fill" [style.width.%]="absencePercent"></div>
-      </div>
-    </div>
-  </section>
+ >
 
   <section class="analytics-table-card" *ngIf="departmentRows.length > 0">
     <div class="section-title-row">

@@ -78,6 +78,29 @@
     </div>
   </div>
 
+  <div class="employee-notes-card">
+    <div class="section-title-row">
+      <h2>ملاحظات الموظف</h2>
+      <span>{{ getEmployeeNotes().length }} ملاحظة</span>
+    </div>
+
+    <div *ngIf="getEmployeeNotes().length > 0" class="notes-list">
+      <div class="note-item" *ngFor="let noteItem of getEmployeeNoteItems()">
+        <span class="note-icon">•</span>
+        <span class="note-text">{{ noteItem.content }}</span>
+        <button
+          type="button"
+          class="table-action-btn delete-note-btn"
+          (click)="deleteEmployeeNoteById(noteItem.id)"
+        >
+          حذف
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="getEmployeeNotes().length === 0" class="details-empty">لا توجد ملاحظات لهذا الموظف.</div>
+  </div>
+
   <div class="employee-details-table-card">
     <div class="section-title-row">
       <h2>سجلات الحضور والانصراف</h2>
@@ -100,7 +123,7 @@
             <th>وقت السماح</th>
             <th>ساعات العمل</th>
             <th>دقائق التأخير</th>
-            <th>دقائق الإضافي</th>
+            <!-- <th>دقائق الإضافي</th> -->
             <th>الحالة</th>
             <th>ملاحظات</th>
           </tr>
@@ -113,11 +136,11 @@
             <td>{{ row.scheduleIn || row.attendanceScheduleIn || '-' }}</td>
             <td>{{ row.scheduleOut || row.attendanceScheduleOut || '-' }}</td>
             <td>{{ row.graceTime || row.attendanceGraceTime || '-' }}</td>
-            <td>{{ row.workedMinutes }}</td>
+            <td>{{ formatMinutesToHours(row.workedMinutes) }}</td>
             <td>{{ row.lateMinutes != null ? row.lateMinutes : '-' }}</td>
             <td>{{ row.overtimeMinutes != null ? row.overtimeMinutes : '-' }}</td>
             <td>{{ getStatusLabel(row.status) }}</td>
-            <td>{{ row.notes || '-' }}</td>
+            <td>{{ getRowNotesLabel(row.notes) }}</td>
           </tr>
         </tbody>
       </table>

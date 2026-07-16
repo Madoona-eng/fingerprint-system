@@ -1,0 +1,169 @@
+/*=======================================================================
+   10. Employee Note Modal Styles
+=======================================================================*/
+
+/* الخلفية المظلمة الشفافة للمودال */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.6); /* رمادي داكن شفاف */
+  backdrop-filter: blur(4px); /* تأثير ضبابي أنيق للخلفية */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeInBackdrop 0.25s ease-out;
+}
+
+/* كارت المودال الرئيسي */
+.modal-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  direction: rtl;
+  text-align: right;
+}
+
+/* عنوان المودال */
+.modal-title {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* اسم الموظف أسفل العنوان */
+.modal-text {
+  margin: 0 0 20px 0;
+  font-size: 15px;
+  color: #64748b;
+  font-weight: 600;
+  background-color: #f1f5f9;
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+/* التسمية (Label) */
+.note-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+/* مربع النص لادخال الملاحظة */
+.note-textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  resize: vertical; /* السماح بالتكبير الرأسي فقط */
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background-color: #f8fafc;
+}
+
+.note-textarea:focus {
+  background-color: #ffffff;
+  border-color: #24a8c9;
+  box-shadow: 0 0 0 4px rgba(36, 168, 201, 0.1);
+}
+
+/* أزرار التحكم داخل المودال */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: flex-start;
+}
+
+.modal-actions .table-action-btn {
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14.5px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* زر حفظ (تأكيد) */
+.confirm-action {
+  background-color: #6f42c1 !important; /* الاحتفاظ باللون البنفسجي المميز للملاحظات */
+  color: #ffffff !important;
+  flex: 2; /* إعطاء مساحة أكبر لزر الحفظ */
+}
+
+.confirm-action:hover {
+  background-color: #5a2ca4 !important;
+  transform: translateY(-1px);
+}
+
+/* زر إلغاء */
+.cancel-action {
+  background-color: #e2e8f0 !important;
+  color: #475569 !important;
+  flex: 1;
+}
+
+.cancel-action:hover {
+  background-color: #cbd5e1 !important;
+}
+
+/*=======================================================================
+   11. Animations
+=======================================================================*/
+
+@keyframes fadeInBackdrop {
+  from {
+    background-color: rgba(15, 23, 42, 0);
+  }
+  to {
+    background-color: rgba(15, 23, 42, 0.6);
+  }
+}
+
+@keyframes slideUpModal {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/*=======================================================================
+   12. Media Queries
+=======================================================================*/
+@media (max-width: 576px) {
+  .modal-card {
+    margin: 16px;
+    padding: 20px;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-actions .table-action-btn {
+    width: 100%;
+  }
+}

@@ -179,6 +179,7 @@
         (export)="exportEmployeesListToExcel()"
         (editEmployee)="editEmployee($event)"
         (openDetails)="openEmployeeDetails($event)"
+        (openNote)="openNoteModal($event)"
         (deleteEmployee)="openDeleteModal($event)"
         (previousPage)="previousPage()"
         (nextPage)="nextPage()"
@@ -206,6 +207,7 @@
         (openDatePicker)="openEmployeeDetailsDatePicker($event)"
         (nativeDatePicked)="onEmployeeDetailsNativeDatePicked($event.event, $event.field)"
         (dateInputChanged)="onEmployeeDetailsDateInputChanged($event)"
+        (deleteEmployeeNote)="deleteEmployeeNote($event)"
       ></app-employee-details>
     </section>
 
@@ -230,4 +232,11 @@
     (confirm)="confirmDeleteModal()"
     (cancel)="cancelDeleteModal()"
   ></app-employee-delete-modal>
+
+  <app-employee-note-modal
+    [show]="showNoteModal"
+    [employeeName]="noteModalEmployeeName"
+    (confirm)="confirmAddEmployeeNote($event)"
+    (cancel)="cancelNoteModal()"
+  ></app-employee-note-modal>
 </div>

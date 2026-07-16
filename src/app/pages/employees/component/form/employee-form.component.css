@@ -59,8 +59,10 @@
 }
 
 .form-group input,
-.form-group select {
-    height: 58px;
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    min-height: 58px;
     border: 2px solid #e3ebf6;
     border-radius: 16px;
     background: #ffffff;
@@ -68,15 +70,24 @@
     font-size: 15px;
     transition: 0.25s ease;
     box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+    box-sizing: border-box;
+}
+
+.form-group textarea {
+    min-height: 110px;
+    padding: 14px 16px;
+    resize: vertical;
 }
 
 .form-group input:hover,
-.form-group select:hover {
+.form-group select:hover,
+.form-group textarea:hover {
     border-color: #93c5fd;
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: #2563eb;
     background: #ffffff;

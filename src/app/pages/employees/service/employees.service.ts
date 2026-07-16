@@ -115,6 +115,25 @@ export class EmployeesService {
     });
   }
 
+  addEmployeeNote(id: number, content: string): Observable<ApiResponse<boolean>> {
+    return this.http.post<ApiResponse<boolean>>(
+      `${this.apiUrl}/${id}/notes`,
+      { content },
+      {
+        headers: this.getHeaders()
+      }
+    );
+  }
+
+  deleteEmployeeNote(noteId: number | string): Observable<ApiResponse<boolean>> {
+    return this.http.delete<ApiResponse<boolean>>(
+      `${this.apiUrl}/notes/${noteId}`,
+      {
+        headers: this.getHeaders()
+      }
+    );
+  }
+
   getEmployeesSummary(date: string): Observable<any> {
     const params = new HttpParams().set('date', date);
 

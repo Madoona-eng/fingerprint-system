@@ -97,8 +97,8 @@
 }
 
 .ghost-btn {
-    background: white !important;
-    color: #4596f3 !important;
+    background: rgb(9, 112, 74) !important;
+    color: #070c11 !important;
     border: 1px solid #d9dfe8 !important;
 }
 
@@ -195,6 +195,14 @@ tbody tr:hover {
     background: #157347;
 }
 
+.note-action {
+    background: #6f42c1;
+}
+
+.note-action:hover {
+    background: #5a2ca4;
+}
+
 .delete-action {
     background: #dc3545;
 }
@@ -279,4 +287,38 @@ tbody tr:hover {
     .pagination-box {
         flex-direction: column;
     }
+}
+/*==================================
+    Table - تحديث عرض عمود الإجراءات
+===================================*/
+
+.actions-col {
+    /* زيادة العرض ليتحمل الأزرار الأربعة بجانب بعضها بشكل مريح */
+    width: 320px !important; 
+    min-width: 320px;
+}
+
+/*==================================
+    Actions - تعديل طريقة ترتيب الأزرار
+===================================*/
+
+.employee-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* منع الأزرار من النزول لسطر جديد */
+    flex-wrap: nowrap !important; 
+    gap: 6px; /* تقليل المسافة قليلاً لتوفير المساحة */
+}
+
+.table-action-btn {
+    padding: 8px 10px; /* تقليص الحواف الجانبية قليلاً لتناسب الحجم الجديد */
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    /* منع النص داخل الزر من النزول لسطر جديد */
+    white-space: nowrap; 
+    /* إعطاء الأزرار مرونة متساوية في التمدد والانكماش */
+    flex: 1; 
+    text-align: center;
 }

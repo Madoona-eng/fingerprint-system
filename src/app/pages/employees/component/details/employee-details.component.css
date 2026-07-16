@@ -133,7 +133,7 @@
   background: transparent;
   padding: 12px;
   font-size: 0.95rem;
-  color: #2d3748;
+  color: #121314;
   outline: none;
   flex: 1;
   width: 100%;
@@ -160,6 +160,7 @@
   width: 40px;
   height: 100%;
   cursor: pointer;
+  color: #000;
 }
 
 /* أزرار الفلترة */
@@ -186,7 +187,7 @@
 }
 
 .details-secondary-btn {
-  background-color: #edf2f7;
+  background-color: #053c74;
   color: #4a5568;
   border: 1px solid #e2e8f0;
   padding: 12px 24px;
@@ -210,6 +211,65 @@
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.employee-notes-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.note-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #0f172a;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.note-icon {
+  color: #2563eb;
+  font-weight: 900;
+  font-size: 1.1rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.note-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.delete-note-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.delete-note-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .section-title-row {
@@ -282,8 +342,8 @@
 }
 
 .ghost-btn {
-  background-color: transparent;
-  color: #10b981;
+  /* background-color: transparent; */
+  color: #4de7b4;
   border: 1px solid #10b981;
   padding: 8px 16px;
   border-radius: 6px;
@@ -293,7 +353,7 @@
 }
 
 .ghost-btn:hover {
-  background-color: #10b981;
+  background-color: #1083b9;
   color: #ffffff;
 }
 
@@ -435,4 +495,30 @@ table th:nth-child(11) { width: 11%; } /* ملاحظات */
   .details-main-btn, .details-secondary-btn {
     width: 100%;
   }
+}
+/* 1. لتغيير لون النص المكتوب الفعلي عند إدخال تاريخ */
+.date-text-input {
+  color: #1e293b !important; /* لون داكن وواضح جداً للنصوص المدخلة */
+}
+
+/* 2. لتغيير لون النص المؤقت (Placeholder) مثل "07/07/2026" الظاهر بالصورة */
+.date-text-input::placeholder {
+  color: #4a5568 !important; /* لون رمادي داكن واضح بدلاً من الأبيض الباهت */
+  opacity: 1 !important;       /* إلغاء أي شفافية افتراضية يضعها المتصفح */
+}
+
+/* لضمان التوافق مع متصفحات Chrome و Safari و Firefox */
+.date-text-input::-webkit-input-placeholder {
+  color: #4a5568 !important;
+  opacity: 1 !important;
+}
+
+.date-text-input::-moz-placeholder {
+  color: #4a5568 !important;
+  opacity: 1 !important;
+}
+
+.date-text-input:-ms-input-placeholder {
+  color: #4a5568 !important;
+  opacity: 1 !important;
 }
