@@ -241,6 +241,32 @@
   overflow: hidden;
 }
 
+.attendance-notes-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.attendance-note-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #e0f2fe;
+  color: #075985;
+  border: 1px solid #7dd3fc;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.attendance-no-notes {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 .table-wrapper {
   width: 100%;
   overflow-x: visible;

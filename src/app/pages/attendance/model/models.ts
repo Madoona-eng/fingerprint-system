@@ -18,13 +18,13 @@ export interface ApiResponse<T> {
 
 export interface AttendanceStatusPayload {
   status: string;
-  notes: string;
+   note: string;
 }
 
 export interface AttendanceTimePayload {
   actualIn: string | null;
   actualOut: string | null;
-  notes: string;
+  note: string;
 }
 
 export interface FingerprintPunch {

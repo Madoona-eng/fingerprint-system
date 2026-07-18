@@ -854,7 +854,7 @@ markAttendanceReviewed(row: any): void {
 
   const payload = {
     status: row.status,
-    notes: 'تمت المراجعة'
+    note: 'تمت المراجعة'
   };
 
   this.attendanceService.updateAttendanceStatus(attendanceId, payload).subscribe({
@@ -1661,7 +1661,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
     this.attendanceEditActualOut = this.timeForInput(row.actualOut);
 
     this.attendanceEditStatus = row.status || '';
-    this.attendanceEditNotes = row.notes || '';
+    this.attendanceEditNotes = this.normalizeNotesForEditor(row.notes);
 
     this.attendanceEditErrorMessage = '';
     this.attendanceEditSuccessMessage = '';
@@ -1694,15 +1694,26 @@ saveAttendanceEdit(): void {
     return;
   }
 
-  const actualIn = this.normalizeTimeForApi(this.attendanceEditActualIn);
-  const actualOut = this.normalizeTimeForApi(this.attendanceEditActualOut);
+  const originalActualIn = this.normalizeTimeForApi(
+    this.selectedAttendanceForEdit?.actualIn
+  );
+  const originalActualOut = this.normalizeTimeForApi(
+    this.selectedAttendanceForEdit?.actualOut
+  );
+
+  const sourceActualIn = this.normalizeTimeForApi(
+    this.attendanceEditActualIn || this.selectedAttendanceForEdit?.actualIn
+  );
+  const sourceActualOut = this.normalizeTimeForApi(
+    this.attendanceEditActualOut || this.selectedAttendanceForEdit?.actualOut
+  );
   const notes = String(this.attendanceEditNotes || '').trim();
 
   let finalStatus = String(this.attendanceEditStatus || '').trim();
 
   if (
-    actualIn &&
-    actualOut &&
+    sourceActualIn &&
+    sourceActualOut &&
     (
       finalStatus === '' ||
       finalStatus === 'Absent' ||
@@ -1722,14 +1733,14 @@ saveAttendanceEdit(): void {
   }
 
   const timePayload = {
-    actualIn,
-    actualOut,
-    notes
+    actualIn: sourceActualIn,
+    actualOut: sourceActualOut,
+    note: notes
   };
 
   const statusPayload = {
     status: finalStatus,
-    notes
+    note: notes
   };
 
   console.log('Attendance Edit ID:', this.attendanceEditId);
@@ -1740,52 +1751,86 @@ saveAttendanceEdit(): void {
   this.attendanceEditErrorMessage = '';
   this.attendanceEditSuccessMessage = '';
 
-  this.attendanceService.updateAttendanceTime(this.attendanceEditId, timePayload).subscribe({
-    next: (timeResponse: any) => {
-      console.log('Update Attendance Time Response:', timeResponse);
+  const finishStatusSave = () => {
+    this.attendanceService.updateAttendanceStatus(this.attendanceEditId!, statusPayload).subscribe({
+      next: (statusResponse: any) => {
+        console.log('Update Attendance Status Response:', statusResponse);
 
-      if (timeResponse?.isSuccess === false) {
-        this.attendanceEditErrorMessage =
-          timeResponse?.message || 'فشل تعديل وقت الحضور والانصراف';
-        this.isSavingAttendanceEdit = false;
-        return;
-      }
+        if (statusResponse?.isSuccess === false) {
+          this.attendanceEditErrorMessage =
+            statusResponse?.message || 'تم تعديل الوقت ولكن فشل تعديل الحالة';
+          this.isSavingAttendanceEdit = false;
+          return;
+        }
 
-      this.attendanceService.updateAttendanceStatus(this.attendanceEditId!, statusPayload).subscribe({
-        next: (statusResponse: any) => {
-          console.log('Update Attendance Status Response:', statusResponse);
+        this.attendanceEditStatus = finalStatus;
+        this.attendanceEditSuccessMessage =
+          'تم تعديل سجل الحضور بنجاح';
 
-          if (statusResponse?.isSuccess === false) {
-            this.attendanceEditErrorMessage =
-              statusResponse?.message || 'تم تعديل الوقت ولكن فشل تعديل الحالة';
-            this.isSavingAttendanceEdit = false;
-            return;
+        this.selectedAttendanceForEdit = {
+          ...this.selectedAttendanceForEdit,
+          status: finalStatus,
+          notes: notes || this.selectedAttendanceForEdit?.notes
+        };
+
+        this.dateRangeRows = this.dateRangeRows.map((row: any) => {
+          const rowId = row.id || row.attendanceId;
+          if (rowId === this.attendanceEditId) {
+            return {
+              ...row,
+              status: finalStatus,
+              notes: notes || row.notes || this.selectedAttendanceForEdit?.notes
+            };
           }
 
-          this.attendanceEditStatus = finalStatus;
-          this.attendanceEditSuccessMessage =
-            'تم تعديل وقت وحالة سجل الحضور بنجاح';
+          return row;
+        });
 
+        this.isSavingAttendanceEdit = false;
+
+        this.activeAttendancePage = 'report';
+        this.loadAttendanceByDateRange();
+      },
+      error: (err: any) => {
+        console.log('Update attendance status error:', err);
+
+        this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
+        this.isSavingAttendanceEdit = false;
+      }
+    });
+  };
+
+  const hasTimeChange =
+    sourceActualIn !== originalActualIn ||
+    sourceActualOut !== originalActualOut;
+
+  const shouldUpdateTime = hasTimeChange || notes.length > 0;
+
+  if (shouldUpdateTime) {
+    this.attendanceService.updateAttendanceTime(this.attendanceEditId, timePayload).subscribe({
+      next: (timeResponse: any) => {
+        console.log('Update Attendance Time Response:', timeResponse);
+
+        if (timeResponse?.isSuccess === false) {
+          this.attendanceEditErrorMessage =
+            timeResponse?.message || 'فشل تعديل وقت الحضور والانصراف';
           this.isSavingAttendanceEdit = false;
-
-          this.activeAttendancePage = 'report';
-          this.loadAttendanceByDateRange();
-        },
-        error: (err: any) => {
-          console.log('Update attendance status error:', err);
-
-          this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
-          this.isSavingAttendanceEdit = false;
+          return;
         }
-      });
-    },
-    error: (err: any) => {
-      console.log('Update attendance time error:', err);
 
-      this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
-      this.isSavingAttendanceEdit = false;
-    }
-  });
+        finishStatusSave();
+      },
+      error: (err: any) => {
+        console.log('Update attendance time error:', err);
+
+        this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
+        this.isSavingAttendanceEdit = false;
+      }
+    });
+    return;
+  }
+
+  finishStatusSave();
 }
   
 
@@ -1966,6 +2011,19 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
     return `${this.pad(Number(zMatch[1]))}:${zMatch[2]}:${zMatch[3]}`;
   }
 
+  const isoTimeMatch = text.match(/(?:^|T)(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (isoTimeMatch) {
+    const hours = Number(isoTimeMatch[1]);
+    const minutes = Number(isoTimeMatch[2]);
+    const seconds = Number(isoTimeMatch[3] || 0);
+
+    if (minutes > 59 || seconds > 59 || hours < 0 || hours > 23) {
+      return null;
+    }
+
+    return `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
+  }
+
   // يقبل 09:00 أو 09:00:00 أو 12:15 PM
   const match = text.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/);
 
@@ -2003,13 +2061,18 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
     }
 
     const text = String(value).trim();
-    const match = text.match(/^(\d{2}):(\d{2})/);
+    const directMatch = text.match(/^(\d{1,2}):(\d{2})/);
 
-    if (!match) {
-      return '';
+    if (directMatch) {
+      return `${directMatch[1]}:${directMatch[2]}`;
     }
 
-    return `${match[1]}:${match[2]}`;
+    const isoMatch = text.match(/(?:^|T)(\d{1,2}):(\d{2})/);
+    if (isoMatch) {
+      return `${isoMatch[1]}:${isoMatch[2]}`;
+    }
+
+    return '';
   }
 
   private getCellValue(row: any, possibleKeys: string[]): any {
@@ -2313,11 +2376,16 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     }
   }
 
-  getNotesLabel(notes: string | null | undefined): string {
-    const value = String(notes || '').trim();
+  getNotesList(notes: unknown): string[] {
+    const normalized = this.normalizeNotesValue(notes);
+    return normalized ? normalized.split('،').map((note) => note.trim()).filter(Boolean) : [];
+  }
 
-    if (!value || value === '-') {
-      return '-';
+  getNotesLabel(notes: unknown): string {
+    const value = this.normalizeNotesValue(notes);
+
+    if (!value) {
+      return 'لا توجد ملاحظات';
     }
 
     const translated = this.translateApiMessage(value, value);
@@ -2372,6 +2440,64 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     };
 
     return translated || notesMap[value] || value;
+  }
+
+  private normalizeNotesForEditor(notes: unknown): string {
+    return this.normalizeNotesValue(notes) || '';
+  }
+
+  private normalizeNotesValue(notes: unknown): string {
+    if (Array.isArray(notes)) {
+      return notes
+        .map((note) => this.extractNoteContent(note))
+        .filter((note): note is string => Boolean(note))
+        .join(', ');
+    }
+
+    if (typeof notes === 'string') {
+      const value = notes.trim();
+
+      if (!value || this.isFrameworkTypeValue(value)) {
+        return '';
+      }
+
+      return value;
+    }
+
+    if (notes && typeof notes === 'object') {
+      return this.extractNoteContent(notes);
+    }
+
+    return '';
+  }
+
+  private extractNoteContent(note: unknown): string {
+    if (typeof note === 'string') {
+      const value = note.trim();
+      return value && !this.isFrameworkTypeValue(value) ? value : '';
+    }
+
+    if (note && typeof note === 'object') {
+      const candidate = note as {
+        text?: string;
+        note?: string;
+        content?: string;
+        description?: string;
+        value?: string;
+        name?: string;
+      };
+
+      const text = candidate.text || candidate.note || candidate.content || candidate.description || candidate.value || candidate.name;
+      if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeValue(text)) {
+        return text.trim();
+      }
+    }
+
+    return '';
+  }
+
+  private isFrameworkTypeValue(value: string): boolean {
+    return /(System\.Collections\.Generic\.(HashSet|List)|HashSet`|ICollection|IEnumerable)/i.test(value);
   }
 
 }

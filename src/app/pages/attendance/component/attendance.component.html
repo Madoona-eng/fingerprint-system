@@ -357,7 +357,12 @@
         </td>
 
         <td>
-          {{ getNotesLabel(row.notes) }}
+          <div class="attendance-notes-cell" *ngIf="getNotesList(row.notes).length > 0; else noAttendanceNotes">
+            <span class="attendance-note-chip" *ngFor="let note of getNotesList(row.notes)">{{ note }}</span>
+          </div>
+          <ng-template #noAttendanceNotes>
+            <span class="attendance-no-notes">لا توجد ملاحظات</span>
+          </ng-template>
         </td>
 
         <td>
