@@ -38,12 +38,17 @@ export class EmployeesService {
   getEmployees(
     search: string = '',
     pageNumber: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
+    departmentId: number | null = null
   ): Observable<ApiResponse<EmployeesPagedData>> {
     let params = new HttpParams()
       .set('search', search || '')
       .set('pageNumber', String(pageNumber))
       .set('pageSize', String(pageSize));
+
+    if (departmentId !== null && departmentId !== undefined && departmentId > 0) {
+      params = params.set('departmentId', String(departmentId));
+    }
 
     return this.http.get<ApiResponse<EmployeesPagedData>>(this.apiUrl, {
       headers: this.getHeaders(),

@@ -14,6 +14,17 @@
       (keyup.enter)="onSearch()"
     />
 
+    <select
+      [(ngModel)]="departmentId"
+      [ngModelOptions]="{ standalone: true }"
+      (ngModelChange)="departmentChange.emit($event)"
+    >
+      <option [ngValue]="null">كل الأقسام</option>
+      <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">
+        {{ dep.name }}
+      </option>
+    </select>
+
     <button type="button" (click)="onSearch()">بحث</button>
     <button type="button" class="clear-search-btn" (click)="onClear()">مسح</button>
     <button type="button" class="ghost-btn" (click)="export.emit()">تصدير Excel</button>

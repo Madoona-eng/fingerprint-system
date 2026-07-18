@@ -60,6 +60,7 @@ export class EmployeesComponent implements OnInit {
   hasImportedCurrentSheet = false;
 
   searchTerm = '';
+  departmentId: number | null = null;
   pageNumber = 1;
   pageSize = 10;
   totalCount = 0;
@@ -501,7 +502,12 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
     this.errorMessage = '';
 
     this.employeesService
-      .getEmployees(this.searchTerm, this.pageNumber, this.pageSize)
+      .getEmployees(
+        this.searchTerm,
+        this.pageNumber,
+        this.pageSize,
+        this.departmentId
+      )
       .subscribe({
         next: (response: any) => {
           console.log('GET Employees Response (raw):', JSON.stringify(response, null, 2));
@@ -1119,6 +1125,7 @@ openEmployeeDetails(employee: Employee): void {
 
   clearSearch(): void {
     this.searchTerm = '';
+    this.departmentId = null;
     this.pageNumber = 1;
     this.loadEmployees();
   }
@@ -1147,7 +1154,12 @@ openEmployeeDetails(employee: Employee): void {
     try {
       while (page <= totalPages) {
         const resp: any = await firstValueFrom(
-          this.employeesService.getEmployees(this.searchTerm || '', page, exportPageSize)
+          this.employeesService.getEmployees(
+            this.searchTerm || '',
+            page,
+            exportPageSize,
+            this.departmentId
+          )
         );
 
         const data = resp?.data ?? resp;
