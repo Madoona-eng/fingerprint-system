@@ -4,7 +4,7 @@
     <div>
       <h1>إدارة الموظفين</h1>
       <p>
-        رفع شيت الحضور، استخراج الموظفين بدون تكرار، أو إضافة وتعديل بيانات الموظفين يدويًا.
+        رفع شيت الحضور، استخراج الموظفين بدون تكرار، إضافة وتعديل بيانات الموظفين يدويًا، واستعراض تحليلات الحضور.
       </p>
     </div>
 
@@ -37,10 +37,20 @@
     >
       ➕ إضافة موظف
     </button>
+
+    <!-- تبويب التحليلات الجديد المربوط بالـ Component -->
+    <button
+      type="button"
+      [class.active]="activeEmployeePage === 'analytics'"
+      (click)="openEmployeePage('analytics')"
+    >
+      📊 تحليلات الحضور
+    </button>
   </section>
 
   <ng-container [ngSwitch]="activeEmployeePage">
 
+    <!-- صفحة إضافة موظف -->
     <section *ngSwitchCase="'form'" class="employee-sub-page">
       <app-employee-form
         [employeeForm]="employeeForm"
@@ -54,6 +64,7 @@
       ></app-employee-form>
     </section>
 
+    <!-- صفحة رفع شيت الاكسيل -->
     <section *ngSwitchCase="'upload'" class="employee-sub-page">
       <section class="excel-upload-card">
         <div class="upload-info">
@@ -165,6 +176,7 @@
       </section>
     </section>
 
+    <!-- صفحة قائمة الموظفين الرئيسي -->
     <section *ngSwitchCase="'list'" class="employee-sub-page">
       <app-employees-list
         [employees]="employees"
@@ -189,6 +201,7 @@
       ></app-employees-list>
     </section>
 
+    <!-- صفحة تفاصيل الموظف وسجل الحضور والغياب المتقدم الخاص به -->
     <section *ngSwitchCase="'details'" class="employee-sub-page">
       <app-employee-details
         [selectedEmployeeForDetails]="selectedEmployeeForDetails"
@@ -214,6 +227,7 @@
       ></app-employee-details>
     </section>
 
+    <!-- صفحة تعديل بيانات موظف -->
     <section *ngSwitchCase="'edit'" class="employee-sub-page">
       <app-employee-edit
         [employeeForm]="employeeForm"
@@ -225,6 +239,199 @@
         (submitForm)="saveEmployee()"
         (cancel)="cancelEdit()"
       ></app-employee-edit>
+    </section>
+
+    <!-- واجهة صفحة تحليلات وإحصائيات الحضور (Analytics) الجديدة بالكامل -->
+    <section *ngSwitchCase="'analytics'" class="employee-sub-page text-right">
+      <div class="analytics-container">
+        
+        <!-- كارد الفلترة بالتاريخ -->
+        <div class="filter-card card mb-4 p-4 shadow-sm border-0">
+          <h3 class="mb-3 text-secondary font-weight-bold">🔎 تحديد تاريخ التحليلات</h3>
+          <div class="row align-items-center">
+            <div class="col-md-6 form-group">
+              <label for="analyticsDateInput" class="font-weight-bold text-muted">التاريخ (يوم/شهر/سنة):</label>
+              <div class="input-group">
+                <input
+                  id="analyticsDateInput"
+                  type="text"
+                  class="form-control text-center bg-light font-weight-bold"
+                  placeholder="31/03/2026"
+                  [(ngModel)]="analyticsDateDisplay"
+                  (input)="formatAnalyticsDateWhileTyping()"
+                />
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-primary font-weight-bold px-4" (click)="loadEmployeesAnalytics()">
+                    📊 عرض الإحصائيات
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary font-weight-bold" (click)="clearEmployeesAnalytics()">
+                    ❌ مسح
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- رسائل النجاح أو الفشل -->
+          <div *ngIf="employeesAnalyticsSuccessMessage" class="alert alert-success mt-3 shadow-sm border-0">
+            ✅ {{ employeesAnalyticsSuccessMessage }}
+          </div>
+          <div *ngIf="employeesAnalyticsErrorMessage" class="alert alert-danger mt-3 shadow-sm border-0">
+            ⚠️ {{ employeesAnalyticsErrorMessage }}
+          </div>
+        </div>
+
+        <!-- مؤشر التحميل المتجاوب -->
+        <div *ngIf="isLoadingEmployeesAnalytics" class="text-center py-5 my-4 card shadow-sm border-0 bg-white">
+          <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+          <p class="mt-3 text-muted font-weight-bold lead">جاري تحليل بيانات الحضور والغياب للمحافظة...</p>
+        </div>
+
+        <!-- المحتوى الإحصائي بعد تحميل البيانات -->
+        <div *ngIf="!isLoadingEmployeesAnalytics && employeesAnalyticsRows.length > 0">
+          
+          <!-- كروت الأرقام السريعة والنسب المئوية -->
+          <div class="row text-center mb-4">
+            <div class="col-md-4 mb-3">
+              <div class="card p-3 shadow-sm border-0 bg-primary text-white">
+                <h5 class="font-weight-bold">نسبة الحضور العام</h5>
+                <h2 class="display-4 my-2 font-weight-bold">{{ attendancePercent }}%</h2>
+                <small class="text-white-50">إجمالي الموظفين المتواجدين اليوم</small>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="card p-3 shadow-sm border-0 bg-warning text-dark">
+                <h5 class="font-weight-bold">نسبة التأخير</h5>
+                <h2 class="display-4 my-2 font-weight-bold">{{ latePercent }}%</h2>
+                <small class="text-dark-50">تجاوزوا فترات السماح المحددة</small>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="card p-3 shadow-sm border-0 bg-danger text-white">
+                <h5 class="font-weight-bold">نسبة الغياب</h5>
+                <h2 class="display-4 my-2 font-weight-bold">{{ absencePercent }}%</h2>
+                <small class="text-white-50">لم يسجلوا حركات دخول بالسيستم</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- تفاصيل الإحصائيات الشاملة بالسيستم -->
+          <div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+            <h4 class="mb-4 text-dark font-weight-bold border-bottom pb-2">📋 ملخص أعداد اليوم</h4>
+            <div class="row text-center font-weight-bold">
+              <div class="col-6 col-md-3 border-left pb-3">
+                <span class="text-muted d-block mb-1">إجمالي قوة الموظفين</span>
+                <span class="badge badge-secondary px-3 py-2 font-size-lg lead font-weight-bold">{{ analyticsStats.total }}</span>
+              </div>
+              <div class="col-6 col-md-3 border-left pb-3">
+                <span class="text-success d-block mb-1">الحضور الكلي</span>
+                <span class="badge badge-success px-3 py-2 font-size-lg lead font-weight-bold">{{ analyticsStats.present }}</span>
+              </div>
+              <div class="col-6 col-md-3 border-left pb-3">
+                <span class="text-danger d-block mb-1">الغياب الكلي</span>
+                <span class="badge badge-danger px-3 py-2 font-size-lg lead font-weight-bold">{{ analyticsStats.absent }}</span>
+              </div>
+              <div class="col-6 col-md-3 pb-3">
+                <span class="text-warning d-block mb-1">المتأخرين اليوم</span>
+                <span class="badge badge-warning px-3 py-2 font-size-lg lead font-weight-bold">{{ analyticsStats.late }}</span>
+              </div>
+            </div>
+            <div class="row text-center font-weight-bold mt-3 pt-3 border-top">
+              <div class="col-6 col-md-4 border-left">
+                <span class="text-info d-block mb-1">انصراف مبكر</span>
+                <span class="badge badge-info px-3 py-2 font-weight-bold">{{ analyticsStats.earlyDeparture }}</span>
+              </div>
+              <div class="col-6 col-md-4 border-left">
+                <span class="text-danger d-block mb-1">حركات تحتاج مراجعة يدويّة</span>
+                <span class="badge badge-dark px-3 py-2 font-weight-bold">{{ analyticsStats.needsReview }}</span>
+              </div>
+              <div class="col-12 col-md-4 mt-3 mt-md-0">
+                <span class="text-success d-block mb-1">تمت مراجعتها</span>
+                <span class="badge badge-light border text-success px-3 py-2 font-weight-bold">{{ analyticsStats.reviewed }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- جدول إحصائيات ونسب الحضور حسب كل إدارة وقسم داخل المحافظة -->
+          <div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+            <h4 class="mb-3 text-dark font-weight-bold">🏢 تحليلات الحضور التفصيلية حسب الإدارات</h4>
+            <div class="table-responsive">
+              <table class="table table-striped table-hover table-bordered text-center">
+                <thead class="bg-dark text-white">
+                  <tr>
+                    <th>اسم الإدارة / القسم</th>
+                    <th>إجمالي الموظفين</th>
+                    <th>حاضر</th>
+                    <th>متأخر</th>
+                    <th>انصراف مبكر</th>
+                    <th>غائب</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let depRow of analyticsDepartmentRows">
+                    <td class="font-weight-bold text-right pr-4">{{ depRow.departmentName }}</td>
+                    <td><span class="badge badge-light border px-2 py-1 font-weight-bold">{{ depRow.total }}</span></td>
+                    <td class="text-success font-weight-bold">{{ depRow.present }}</td>
+                    <td class="text-warning font-weight-bold">{{ depRow.late }}</td>
+                    <td class="text-info font-weight-bold">{{ depRow.earlyDeparture }}</td>
+                    <td class="text-danger font-weight-bold">{{ depRow.absent }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- السجل اليومي الشامل المفصل لحركات الموظفين -->
+          <div class="card p-4 shadow-sm border-0 bg-white">
+            <h4 class="mb-3 text-dark font-weight-bold">👥 حركات الحضور المسجلة للموظفين اليوم</h4>
+            <div class="table-responsive">
+              <table class="table table-bordered table-hover text-center">
+                <thead class="bg-secondary text-white">
+                  <tr>
+                    <th>كود الموظف</th>
+                    <th>الاسم ثلاثي / رباعي</th>
+                    <th>الإدارة</th>
+                    <th>حالة حركة اليوم</th>
+                    <th>ساعات العمل المنفذة</th>
+                    <th>ملاحظات وتنبيهات السيستم</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of employeesAnalyticsRows">
+                    <td class="font-weight-bold bg-light">{{ row.employeeCode || row.employee?.employeeCode || '-' }}</td>
+                    <td class="text-right pr-3">{{ row.name || row.employee?.name || '-' }}</td>
+                    <td>{{ row.departmentName || row.employee?.departmentName || '-' }}</td>
+                    <td>
+                      <span class="badge px-3 py-1 font-weight-bold" 
+                            [ngClass]="{
+                              'badge-success': row.status === 'Present' || row.status === 'OnTime',
+                              'badge-warning': row.status === 'Late',
+                              'badge-danger': row.status === 'Absent',
+                              'badge-info': row.status === 'EarlyDeparture',
+                              'badge-dark': row.status === 'Incomplete' || row.status === 'MissingIn' || row.status === 'MissingOut'
+                            }">
+                        {{ getStatusLabel(row.status) }}
+                      </span>
+                    </td>
+                    <td class="direction-ltr">{{ formatWorkedHours(row.workedHours || row.totalMinutes) }}</td>
+                    <td class="text-muted small font-weight-bold">{{ getNoteLabel(row.notes || row.note) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- حالة عدم وجود بيانات للتاريخ المحدد -->
+        <div *ngIf="!isLoadingEmployeesAnalytics && employeesAnalyticsRows.length === 0 && analyticsDateDisplay" 
+             class="alert alert-light text-center py-5 shadow-sm border rounded bg-white my-4">
+          <span style="font-size: 3rem;">📅</span>
+          <h4 class="mt-3 font-weight-bold text-muted">لا توجد سجلات حضور أو غياب للمحافظة في هذا التاريخ بعد</h4>
+          <p class="text-muted small">يرجى التحقق من صحة التاريخ المكتوب أو التأكد من رفع شيت البصمة الخاص بهذا اليوم في قسم (رفع Excel).</p>
+        </div>
+
+      </div>
     </section>
 
   </ng-container>
