@@ -50,6 +50,9 @@ dateRangeToDisplay = '';
   dateRangeSuccessMessage = '';
 
   selectedAttendanceForEdit: any = null;
+  notesModalOpen = false;
+  notesModalTitle = '';
+  notesModalContent = '';
 
   attendanceEditId: number | null = null;
   attendanceEditEmployeeCode = '';
@@ -806,12 +809,20 @@ get filteredDateRangeRows(): any[] {
 }
 
 isReviewed(row: any): boolean {
-  const notes = String(row?.notes || '').trim().toLowerCase();
+  const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
+
+  const reviewFlag = [
+    row?.isReviewed,
+    row?.reviewed,
+    row?.isReviewCompleted,
+    row?.hasBeenReviewed
+  ].some((value) => value === true);
 
   return (
-    notes.includes('تمت المراجعة') ||
-    notes.includes('تمت مراجعه') ||
-    notes.includes('reviewed')
+    reviewFlag ||
+    normalizedNotes.includes('تمت المراجعة') ||
+    normalizedNotes.includes('تمت مراجعه') ||
+    normalizedNotes.includes('reviewed')
   );
 }
 
@@ -820,15 +831,21 @@ needsReview(row: any): boolean {
     return false;
   }
 
-  const notes = String(row?.notes || '').trim().toLowerCase();
+  const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
   const status = String(row?.status || '').trim();
+  const explicitReviewFlag = [
+    row?.needsReview,
+    row?.requiresReview,
+    row?.reviewRequired
+  ].some((value) => value === true);
 
   return (
-    notes.includes('needs review') ||
-    notes.includes('يحتاج مراجعة') ||
-    notes.includes('يحتاج مراجعه') ||
-    notes.includes('checkin without checkout') ||
-    notes.includes('checkout without checkin') ||
+    explicitReviewFlag ||
+    normalizedNotes.includes('needs review') ||
+    normalizedNotes.includes('يحتاج مراجعة') ||
+    normalizedNotes.includes('يحتاج مراجعه') ||
+    normalizedNotes.includes('checkin without checkout') ||
+    normalizedNotes.includes('checkout without checkin') ||
     status === 'Incomplete' ||
     status === 'MissingIn' ||
     status === 'MissingOut'
@@ -1432,13 +1449,19 @@ this.dateRangeErrorMessage = this.translateApiMessage(
           if (Array.isArray(data?.items)) {
             this.dateRangeRows = this.prepareDateRangeRows(data.items);
 
-            this.dateRangePageNumber = data.pageNumber || 1;
-            this.dateRangePageSize = data.pageSize || this.dateRangePageSize;
-            this.dateRangeTotalCount = data.totalCount || 0;
-            this.dateRangeTotalPages = data.totalPages || 0;
+            const incomingPageNumber = Number(data.pageNumber) || 1;
+            const incomingPageSize = Number(data.pageSize) || this.dateRangePageSize;
+            const incomingTotalCount = Number(data.totalCount) || 0;
+            const incomingTotalPages = Number(data.totalPages) || 0;
+
+            this.dateRangePageNumber = Math.min(Math.max(incomingPageNumber, 1), incomingTotalPages || incomingPageNumber || 1);
+            this.dateRangePageSize = incomingPageSize || this.dateRangePageSize;
+            this.dateRangeTotalCount = incomingTotalCount;
+            this.dateRangeTotalPages = incomingTotalPages;
           } else if (Array.isArray(data)) {
             this.dateRangeRows = this.prepareDateRangeRows(data);
 
+            this.dateRangePageNumber = 1;
             this.dateRangeTotalCount = data.length;
             this.dateRangeTotalPages = 1;
           } else {
@@ -1492,6 +1515,17 @@ this.dateRangeErrorMessage = this.translateApiMessage(
     this.loadAttendanceByDateRange();
   }
 }
+
+  onEmployeeSearchInputChange(): void {
+    const trimmedValue = String(this.employeeSearchTerm || '').trim();
+
+    if (!trimmedValue) {
+      this.dateRangePageNumber = 1;
+      this.dateRangeErrorMessage = '';
+      this.dateRangeSuccessMessage = '';
+      this.loadAttendanceByDateRange();
+    }
+  }
 
   async searchEmployee(): Promise<void> {
     if (!this.dateRangeFrom || !this.dateRangeTo) {
@@ -1633,6 +1667,20 @@ this.dateRangeErrorMessage = this.translateApiMessage(
     }));
   }
 
+  openNotesModal(row: any): void {
+    const notes = this.normalizeNotesValue(row?.notes);
+
+    this.notesModalTitle = row?.employeeName || row?.name || row?.employee?.name || 'الملاحظات';
+    this.notesModalContent = notes || 'لا توجد ملاحظات';
+    this.notesModalOpen = true;
+  }
+
+  closeNotesModal(): void {
+    this.notesModalOpen = false;
+    this.notesModalTitle = '';
+    this.notesModalContent = '';
+  }
+
   openAttendanceEdit(row: any): void {
     const attendanceId = row.id || row.attendanceId;
 
@@ -1661,7 +1709,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
     this.attendanceEditActualOut = this.timeForInput(row.actualOut);
 
     this.attendanceEditStatus = row.status || '';
-    this.attendanceEditNotes = this.normalizeNotesForEditor(row.notes);
+    this.attendanceEditNotes = '';
 
     this.attendanceEditErrorMessage = '';
     this.attendanceEditSuccessMessage = '';
@@ -1711,13 +1759,15 @@ saveAttendanceEdit(): void {
 
   let finalStatus = String(this.attendanceEditStatus || '').trim();
 
+  const explicitAbsentStatuses = ['Absent', 'غائب'];
+  const shouldPreserveExplicitAbsentStatus = explicitAbsentStatuses.includes(finalStatus);
+
   if (
+    !shouldPreserveExplicitAbsentStatus &&
     sourceActualIn &&
     sourceActualOut &&
     (
       finalStatus === '' ||
-      finalStatus === 'Absent' ||
-      finalStatus === 'غائب' ||
       finalStatus === 'MissingIn' ||
       finalStatus === 'MissingOut' ||
       finalStatus === 'Incomplete'
@@ -1735,7 +1785,7 @@ saveAttendanceEdit(): void {
   const timePayload = {
     actualIn: sourceActualIn,
     actualOut: sourceActualOut,
-    note: notes
+    note: ''
   };
 
   const statusPayload = {
@@ -1804,7 +1854,7 @@ saveAttendanceEdit(): void {
     sourceActualIn !== originalActualIn ||
     sourceActualOut !== originalActualOut;
 
-  const shouldUpdateTime = hasTimeChange || notes.length > 0;
+  const shouldUpdateTime = hasTimeChange;
 
   if (shouldUpdateTime) {
     this.attendanceService.updateAttendanceTime(this.attendanceEditId, timePayload).subscribe({

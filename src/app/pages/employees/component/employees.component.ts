@@ -277,6 +277,7 @@ getDepartmentNameById(id: number | null | undefined): string {
     'الاتصال السياسي',
     'الإدارة العامة للتنمية',
     'الاستثمار',
+    
     'الإسكان',
     'الإعلانات',
     'الأمن',
@@ -498,6 +499,9 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
   }
 
   loadEmployees(): void {
+      
+      console.log('DepartmentId =', this.departmentId);
+  console.log('Search =', this.searchTerm);
     this.isLoading = true;
     this.errorMessage = '';
 

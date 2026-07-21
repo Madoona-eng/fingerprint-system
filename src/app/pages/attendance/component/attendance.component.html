@@ -219,6 +219,7 @@
     placeholder="اكتب اسم الموظف أو الكود"
     [(ngModel)]="employeeSearchTerm"
     [ngModelOptions]="{ standalone: true }"
+    (ngModelChange)="onEmployeeSearchInputChange()"
   />
 </div>
 
@@ -357,12 +358,9 @@
         </td>
 
         <td>
-          <div class="attendance-notes-cell" *ngIf="getNotesList(row.notes).length > 0; else noAttendanceNotes">
-            <span class="attendance-note-chip" *ngFor="let note of getNotesList(row.notes)">{{ note }}</span>
+          <div class="attendance-notes-cell">
+            <button type="button" class="notes-view-btn" (click)="openNotesModal(row)">عرض الملاحظات</button>
           </div>
-          <ng-template #noAttendanceNotes>
-            <span class="attendance-no-notes">لا توجد ملاحظات</span>
-          </ng-template>
         </td>
 
         <td>
@@ -399,7 +397,19 @@
   </table>
 </div>
 
-        <div class="pagination-box" *ngIf="dateRangeTotalPages > 1">
+<div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
+  <div class="notes-modal" (click)="$event.stopPropagation()">
+    <div class="notes-modal-header">
+      <h3>{{ notesModalTitle }}</h3>
+      <button type="button" class="notes-modal-close" (click)="closeNotesModal()">✕</button>
+    </div>
+    <div class="notes-modal-body">
+      {{ notesModalContent }}
+    </div>
+  </div>
+</div>
+
+        <div class="pagination-box">
           <button
             type="button"
             (click)="previousDateRangePage()"

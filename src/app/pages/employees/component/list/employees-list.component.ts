@@ -33,10 +33,11 @@ export class EmployeesListComponent {
   @Output() previousPage = new EventEmitter<void>();
   @Output() nextPage = new EventEmitter<void>();
 
-  onSearch(): void {
-    this.search.emit();
-  }
-
+onSearch(): void {
+  console.log('Selected department =', this.departmentId);
+  alert('Department = ' + this.departmentId);
+  this.search.emit();
+}
   onClear(): void {
     this.clear.emit();
   }
