@@ -73,4 +73,28 @@ describe('AttendanceComponent review state', () => {
       })
     );
   });
+
+  it('should expose detailed note items from the API payload', () => {
+    const notes = [
+      {
+        content: 'بصمة خروج من غير دخول - محتاجة مراجعة',
+        displayName: 'المنظومة',
+        createdAt: '2026-07-21T11:06:14.5966539+00:00'
+      },
+      {
+        content: 'تمت المراجعة',
+        displayName: 'asdan',
+        createdAt: '2026-07-21T14:26:26.448+03:00'
+      }
+    ];
+
+    const result = component.getAttendanceNotes(notes);
+
+    expect(result.length).toBe(2);
+    expect(result[0]).toEqual(jasmine.objectContaining({
+      content: 'بصمة خروج من غير دخول - محتاجة مراجعة',
+      displayName: 'المنظومة',
+      createdAt: '2026-07-21T11:06:14.5966539+00:00'
+    }));
+  });
 });

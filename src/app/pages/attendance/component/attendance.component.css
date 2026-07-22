@@ -248,17 +248,40 @@
   justify-content: center;
 }
 
-.attendance-note-chip {
-  display: inline-flex;
-  align-items: center;
-  background: #e0f2fe;
-  color: #075985;
-  border: 1px solid #7dd3fc;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 0.75rem;
+.attendance-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 260px;
+}
+
+.attendance-note-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(224, 242, 254, 0.85);
+  border: 1px solid rgba(125, 211, 252, 0.45);
+  text-align: right;
+}
+
+.attendance-note-content {
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.attendance-note-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #0369a1;
+  font-size: 0.72rem;
   font-weight: 700;
-  line-height: 1.4;
 }
 
 .attendance-no-notes {
@@ -339,12 +362,46 @@
   color: #0f172a;
   font-size: 14px;
   line-height: 1.8;
-  white-space: pre-wrap;
+}
+
+.notes-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notes-modal-item {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.notes-modal-text {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.7;
+}
+
+.notes-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.notes-modal-empty {
+  color: #64748b;
+  font-weight: 700;
 }
 
 .table-wrapper {
   width: 100%;
-  overflow-x: visible;
+  overflow-x: hidden;
   border-radius: 18px;
   padding-bottom: 8px;
 }
@@ -397,20 +454,22 @@
   border-spacing: 0;
   direction: rtl;
   color: #0f172a;
-  table-layout: fixed;
+  table-layout: auto;
   font-size: 12px;
 }
 
 .table-wrapper thead th {
-  padding: 10px 8px;
+  padding: 8px 6px;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   color: rgba(15, 23, 42, 0.9);
   background: rgba(248, 250, 252, 0.95);
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
   white-space: normal;
   word-break: break-word;
+  overflow-wrap: anywhere;
+  letter-spacing: 0;
 }
 
 .table-wrapper thead th:first-child {
@@ -422,16 +481,18 @@
 }
 
 .table-wrapper tbody td {
-  padding: 10px 8px;
+  padding: 8px 6px;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   color: rgba(15, 23, 42, 0.92);
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   white-space: normal;
   word-break: break-word;
+  overflow-wrap: anywhere;
   vertical-align: middle;
   line-height: 1.4;
+  letter-spacing: 0;
 }
 
 .table-wrapper tbody tr {

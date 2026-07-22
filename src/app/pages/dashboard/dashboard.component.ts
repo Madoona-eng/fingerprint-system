@@ -11,8 +11,13 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 export class DashboardComponent {
   userName = localStorage.getItem('userName') || 'مستخدمة النظام';
   userRole = localStorage.getItem('userRole') || 'Admin';
+  isSidebarCollapsed = false;
 
   constructor(private router: Router) {}
+
+  toggleSidebar(): void {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
 
   logout(): void {
     localStorage.clear();

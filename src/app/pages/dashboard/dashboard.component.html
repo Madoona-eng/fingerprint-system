@@ -1,8 +1,11 @@
 <div class="dashboard-layout" dir="rtl">
-  <aside class="sidebar">
+  <aside class="sidebar" [class.collapsed]="isSidebarCollapsed">
     <div class="sidebar-logo">
+      <button type="button" class="sidebar-toggle" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+        {{ isSidebarCollapsed ? '➡️' : '⬅️' }}
+      </button>
       <div class="logo-icon">🆔</div>
-      <div>
+      <div class="sidebar-title">
         <h2>نظام البصمة</h2>
         <p>لوحة التحكم</p>
       </div>
@@ -29,10 +32,7 @@
         <b>عرض التقرير</b>
       </a>
 
-      <a>
-        <span>⚙️</span>
-        <b>الإعدادات</b>
-      </a>
+    
     </nav>
 
     <button class="logout-btn" (click)="logout()">

@@ -302,12 +302,13 @@
   <table>
     <thead>
       <tr>
-        <th>الكود</th>
         <th>اسم الموظف</th>
         <th>القسم</th>
         <th>التاريخ</th>
-        <th>الحضور</th>
-        <th>الانصراف</th>
+        <th>معاد الحضور</th>
+        <th>معاد الانصراف</th>
+        <th>وقت الحضور</th>
+        <th>وقت الانصراف</th>
         <th>الحالة</th>
         <th>التأخير (د)</th>
         <th>العمل (س)</th>
@@ -320,10 +321,6 @@
     <tbody>
      <tr *ngFor="let row of filteredDateRangeRows">
         <td>
-          {{ row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-' }}
-        </td>
-
-        <td>
           {{ row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-' }}
         </td>
 
@@ -333,6 +330,14 @@
 
         <td>
           {{ row.date || row.attendanceDate || '-' }}
+        </td>
+
+        <td>
+          {{ row.scheduleIn || row.shift?.scheduleIn || '-' }}
+        </td>
+
+        <td>
+          {{ row.scheduleOut || row.shift?.scheduleOut || '-' }}
         </td>
 
         <td>
@@ -359,7 +364,9 @@
 
         <td>
           <div class="attendance-notes-cell">
-            <button type="button" class="notes-view-btn" (click)="openNotesModal(row)">عرض الملاحظات</button>
+            <button type="button" class="notes-view-btn" (click)="openNotesModal(row)">
+              {{ getAttendanceNotes(row.notes).length > 0 ? 'عرض الملاحظات' : 'لا توجد ملاحظات' }}
+            </button>
           </div>
         </td>
 
@@ -404,7 +411,20 @@
       <button type="button" class="notes-modal-close" (click)="closeNotesModal()">✕</button>
     </div>
     <div class="notes-modal-body">
-      {{ notesModalContent }}
+      <ng-container *ngIf="notesModalEntries.length > 0; else noNotesModal">
+        <div class="notes-modal-list">
+          <div *ngFor="let note of notesModalEntries" class="notes-modal-item">
+            <div class="notes-modal-text">{{ note.content }}</div>
+            <div class="notes-modal-meta" *ngIf="note.displayName || note.createdAt">
+              <span *ngIf="note.displayName">{{ note.displayName }}</span>
+              <span *ngIf="note.createdAt">{{ note.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #noNotesModal>
+        <span class="notes-modal-empty">لا توجد ملاحظات</span>
+      </ng-template>
     </div>
   </div>
 </div>

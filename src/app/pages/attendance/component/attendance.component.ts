@@ -52,7 +52,7 @@ dateRangeToDisplay = '';
   selectedAttendanceForEdit: any = null;
   notesModalOpen = false;
   notesModalTitle = '';
-  notesModalContent = '';
+  notesModalEntries: Array<{ content: string; displayName?: string; createdAt?: string }> = [];
 
   attendanceEditId: number | null = null;
   attendanceEditEmployeeCode = '';
@@ -1668,17 +1668,15 @@ this.dateRangeErrorMessage = this.translateApiMessage(
   }
 
   openNotesModal(row: any): void {
-    const notes = this.normalizeNotesValue(row?.notes);
-
     this.notesModalTitle = row?.employeeName || row?.name || row?.employee?.name || 'الملاحظات';
-    this.notesModalContent = notes || 'لا توجد ملاحظات';
+    this.notesModalEntries = this.getAttendanceNotes(row?.notes);
     this.notesModalOpen = true;
   }
 
   closeNotesModal(): void {
     this.notesModalOpen = false;
     this.notesModalTitle = '';
-    this.notesModalContent = '';
+    this.notesModalEntries = [];
   }
 
   openAttendanceEdit(row: any): void {
@@ -2431,6 +2429,44 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     return normalized ? normalized.split('،').map((note) => note.trim()).filter(Boolean) : [];
   }
 
+  getAttendanceNotes(notes: unknown): Array<{ content: string; displayName?: string; createdAt?: string }> {
+    if (Array.isArray(notes)) {
+      return notes
+        .map((note) => {
+          if (!note || typeof note !== 'object') {
+            return null;
+          }
+
+          const candidate = note as {
+            content?: string;
+            text?: string;
+            note?: string;
+            displayName?: string;
+            createdBy?: string;
+            createdAt?: string;
+            createdOn?: string;
+          };
+
+          const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
+
+          if (!content) {
+            return null;
+          }
+
+          return {
+            content,
+            displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+            createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn)
+          };
+        })
+        .filter((note): note is { content: string; displayName: string; createdAt: string } => Boolean(note));
+    }
+
+    const singleNote = this.normalizeNoteText(notes);
+
+    return singleNote ? [{ content: singleNote }] : [];
+  }
+
   getNotesLabel(notes: unknown): string {
     const value = this.normalizeNotesValue(notes);
 
@@ -2494,6 +2530,15 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
 
   private normalizeNotesForEditor(notes: unknown): string {
     return this.normalizeNotesValue(notes) || '';
+  }
+
+  private normalizeNoteText(value: unknown): string {
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    const text = value.trim();
+    return text && !this.isFrameworkTypeValue(text) ? text : '';
   }
 
   private normalizeNotesValue(notes: unknown): string {
