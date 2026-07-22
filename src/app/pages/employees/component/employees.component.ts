@@ -532,7 +532,7 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
             items = response;
           }
 
-          this.employees = items || [];
+          this.employees = (items || []).map((item: any) => this.normalizeEmployeeBooleans(item));
 
           console.log('Employees resolved from response, length:', this.employees.length);
           console.log(
@@ -960,10 +960,10 @@ openEmployeeDetails(employee: Employee): void {
 
         const data = response?.data || response;
 
-        this.selectedEmployeeForDetails = {
+        this.selectedEmployeeForDetails = this.normalizeEmployeeBooleans({
           ...(this.selectedEmployeeForDetails || {}),
           ...data
-        } as Employee;
+        });
 
         this.employeeDetailsRaw = data;
         this.employeeDetailsInfo = data;
@@ -1788,6 +1788,13 @@ openEmployeeDetails(employee: Employee): void {
       'Grace Time'
     ]);
 
+    const isChristian = this.getBooleanCellValue(row, [
+      'مسيحي',
+      'christian',
+      'isChristian',
+      'Christian'
+    ]);
+
     if (!employeeCode || !name) {
       return null;
     }
@@ -1799,7 +1806,8 @@ openEmployeeDetails(employee: Employee): void {
       departmentName,
       scheduleIn: this.normalizeExcelTime(scheduleInRaw),
       scheduleOut: this.normalizeExcelTime(scheduleOutRaw),
-      graceTime: this.calculateGraceTime(scheduleInRaw, graceRaw)
+      graceTime: this.calculateGraceTime(scheduleInRaw, graceRaw),
+      isChristian
     };
   }
 
@@ -1850,6 +1858,51 @@ openEmployeeDetails(employee: Employee): void {
     }
 
     return '';
+  }
+
+  private getBooleanCellValue(row: any, possibleKeys: string[]): boolean | undefined {
+    const cellValue = this.getCellValue(row, possibleKeys);
+
+    if (cellValue === '' || cellValue === null || cellValue === undefined) {
+      return undefined;
+    }
+
+    const value = String(cellValue).trim().toLowerCase();
+
+    if (value === '1' || value === 'true' || value === 'yes' || value === 'نعم') {
+      return true;
+    }
+
+    if (value === '0' || value === 'false' || value === 'no' || value === 'لا') {
+      return false;
+    }
+
+    return undefined;
+  }
+
+  private normalizeBoolean(value: any): boolean | undefined {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+
+    const normalized = String(value).trim().toLowerCase();
+
+    if (['1', 'true', 'yes', 'نعم'].includes(normalized)) {
+      return true;
+    }
+
+    if (['0', 'false', 'no', 'لا'].includes(normalized)) {
+      return false;
+    }
+
+    return undefined;
+  }
+
+  private normalizeEmployeeBooleans(employee: any): Employee {
+    return {
+      ...employee,
+      isChristian: this.normalizeBoolean(employee?.isChristian)
+    } as Employee;
   }
 
   private getMissingFields(employee: Employee): string[] {
@@ -2051,7 +2104,8 @@ openEmployeeDetails(employee: Employee): void {
       departmentName: this.getBestDepartmentNameFromDatabase(employee.departmentName || ''),
       scheduleIn: employee.scheduleIn,
       scheduleOut: employee.scheduleOut,
-      graceTime: employee.graceTime
+      graceTime: employee.graceTime,
+      isChristian: employee.isChristian
     }));
   }
 

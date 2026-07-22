@@ -25,6 +25,7 @@ export interface BulkImportEmployeePayload {
   scheduleOut: string;
   graceTime: string;
   note?: string;
+  isChristian?: boolean;
 }
 
 export interface Employee {
@@ -37,6 +38,7 @@ export interface Employee {
   scheduleOut: string;
   graceTime: string;
   note?: string;
+  isChristian?: boolean;
   notes?: unknown[] | string | null;
   createdBy?: string;
   createdByUserName?: string;
