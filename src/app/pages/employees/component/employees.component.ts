@@ -491,6 +491,7 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
       employeeCode: ['', Validators.required],
       name: ['', Validators.required],
       departmentId: [null, Validators.required],
+      locationId: [null],
       scheduleIn: ['', Validators.required],
       scheduleOut: ['', Validators.required],
       graceTime: ['', Validators.required],
@@ -1196,6 +1197,7 @@ openEmployeeDetails(employee: Employee): void {
       الكود: emp.employeeCode || '-',
       الاسم: emp.name || '-',
       القسم: emp.departmentName || emp.departmentId || '-',
+      'رقم اللوكيشن': emp.locationId != null ? emp.locationId : '-',
       'وقت الحضور': this.timeForInput(emp.scheduleIn),
       'وقت الانصراف': this.timeForInput(emp.scheduleOut),
       'وقت السماح': this.timeForInput(emp.graceTime)
@@ -1508,6 +1510,7 @@ openEmployeeDetails(employee: Employee): void {
       employeeCode: String(this.employeeForm.value.employeeCode || '').trim(),
       name: String(this.employeeForm.value.name || '').trim(),
       departmentId: Number(this.employeeForm.value.departmentId),
+      locationId: this.employeeForm.value.locationId != null ? Number(this.employeeForm.value.locationId) : undefined,
       scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
       scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
       graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime),
@@ -1519,6 +1522,7 @@ openEmployeeDetails(employee: Employee): void {
     return {
       name: String(this.employeeForm.value.name || '').trim(),
       departmentId: Number(this.employeeForm.value.departmentId),
+      locationId: this.employeeForm.value.locationId != null ? Number(this.employeeForm.value.locationId) : undefined,
       scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
       scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
       graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime),
@@ -1545,6 +1549,7 @@ openEmployeeDetails(employee: Employee): void {
       employeeCode: employee.employeeCode,
       name: employee.name,
       departmentId: departmentId || null,
+      locationId: employee.locationId != null ? employee.locationId : null,
       scheduleIn: this.timeForInput(employee.scheduleIn),
       scheduleOut: this.timeForInput(employee.scheduleOut),
       graceTime: this.timeForInput(employee.graceTime),
@@ -1788,6 +1793,18 @@ openEmployeeDetails(employee: Employee): void {
       'Grace Time'
     ]);
 
+    const locationId = this.getNumberCellValue(row, [
+      'Location',
+      'location',
+      'locationId',
+      'LocationId',
+      'Location ID',
+      'location id',
+      'لوكيشن',
+      'Location رقم',
+      'رقم اللوكيشن'
+    ]);
+
     const isChristian = this.getBooleanCellValue(row, [
       'مسيحي',
       'christian',
@@ -1804,6 +1821,7 @@ openEmployeeDetails(employee: Employee): void {
       name,
       departmentId: 0,
       departmentName,
+      locationId,
       scheduleIn: this.normalizeExcelTime(scheduleInRaw),
       scheduleOut: this.normalizeExcelTime(scheduleOutRaw),
       graceTime: this.calculateGraceTime(scheduleInRaw, graceRaw),
@@ -1878,6 +1896,22 @@ openEmployeeDetails(employee: Employee): void {
     }
 
     return undefined;
+  }
+
+  private getNumberCellValue(row: any, possibleKeys: string[]): number | undefined {
+    const cellValue = this.getCellValue(row, possibleKeys);
+
+    if (cellValue === '' || cellValue === null || cellValue === undefined) {
+      return undefined;
+    }
+
+    const value = Number(cellValue);
+    if (Number.isFinite(value)) {
+      return Math.trunc(value);
+    }
+
+    const parsedValue = parseInt(String(cellValue).replace(/\D+/g, ''), 10);
+    return Number.isFinite(parsedValue) ? parsedValue : undefined;
   }
 
   private normalizeBoolean(value: any): boolean | undefined {
@@ -2102,6 +2136,7 @@ openEmployeeDetails(employee: Employee): void {
       employeeCode: employee.employeeCode,
       name: employee.name,
       departmentName: this.getBestDepartmentNameFromDatabase(employee.departmentName || ''),
+      locationId: employee.locationId,
       scheduleIn: employee.scheduleIn,
       scheduleOut: employee.scheduleOut,
       graceTime: employee.graceTime,

@@ -2,6 +2,7 @@ export interface EmployeePayload {
   employeeCode?: string;
   name: string;
   departmentId: number;
+  locationId?: number;
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
@@ -11,6 +12,7 @@ export interface EmployeePayload {
 export interface UpdateEmployeePayload {
   name: string;
   departmentId: number;
+  locationId?: number;
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
@@ -21,6 +23,7 @@ export interface BulkImportEmployeePayload {
   employeeCode: string;
   name: string;
   departmentName: string;
+  locationId?: number;
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
@@ -34,6 +37,7 @@ export interface Employee {
   name: string;
   departmentId?: number;
   departmentName?: string;
+  locationId?: number;
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
