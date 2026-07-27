@@ -15,6 +15,17 @@
     />
 
     <select
+      [(ngModel)]="selectedLocationId"
+      [ngModelOptions]="{ standalone: true }"
+      (ngModelChange)="locationChange.emit($event)"
+    >
+      <option [ngValue]="null">اختر الموقع</option>
+      <option *ngFor="let loc of locationOptions" [ngValue]="loc.id">
+        {{ loc.name }}
+      </option>
+    </select>
+
+    <select
       [(ngModel)]="departmentId"
       [ngModelOptions]="{ standalone: true }"
       (ngModelChange)="departmentChange.emit($event)"
@@ -26,7 +37,7 @@
     </select>
 
     <button type="button" (click)="onSearch()">بحث</button>
-    <button type="button" class="clear-search-btn" (click)="onClear()">مسح</button>
+    <button type="button" class="clear-search-btn" (click)="onClear()">مسح الفلتره</button>
     <button type="button" class="ghost-btn" (click)="export.emit()">تصدير Excel</button>
   </div>
 

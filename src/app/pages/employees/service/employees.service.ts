@@ -56,6 +56,25 @@ export class EmployeesService {
     });
   }
 
+  getDepartments(locationId: number | null = null): Observable<any> {
+    let params = new HttpParams();
+
+    if (locationId !== null && locationId !== undefined && locationId > 0) {
+      params = params.set('locationId', String(locationId));
+    }
+
+    return this.http.get<any>('https://civil-protect.minya.gov.eg:1089/api/Departments', {
+      headers: this.getHeaders(),
+      params
+    });
+  }
+
+  getLocations(): Observable<any> {
+    return this.http.get<any>('https://civil-protect.minya.gov.eg:1089/api/Locations', {
+      headers: this.getHeaders()
+    });
+  }
+
   addEmployee(
     employee: EmployeePayload
   ): Observable<ApiResponse<Employee | boolean>> {

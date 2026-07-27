@@ -14,6 +14,8 @@ export class EmployeesListComponent {
   @Input() employees: Employee[] = [];
   @Input() searchTerm = '';
   @Input() departmentId: number | null = null;
+  @Input() locationOptions: Array<{ id: number; name: string }> = [];
+  @Input() selectedLocationId: number | null = null;
   @Input() departmentOptions: Array<{ id: number; name: string }> = [];
   @Input() isLoading = false;
   @Input() pageNumber = 1;
@@ -23,6 +25,7 @@ export class EmployeesListComponent {
 
   @Output() searchTermChange = new EventEmitter<string>();
   @Output() departmentChange = new EventEmitter<number | null>();
+  @Output() locationChange = new EventEmitter<number | null>();
   @Output() search = new EventEmitter<void>();
   @Output() clear = new EventEmitter<void>();
   @Output() export = new EventEmitter<void>();
@@ -34,8 +37,6 @@ export class EmployeesListComponent {
   @Output() nextPage = new EventEmitter<void>();
 
 onSearch(): void {
-  console.log('Selected department =', this.departmentId);
-  alert('Department = ' + this.departmentId);
   this.search.emit();
 }
   onClear(): void {

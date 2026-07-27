@@ -89,11 +89,11 @@
 }
 
 .clear-search-btn {
-    background: #dc3545 !important;
+    background: #358bdc !important;
 }
 
 .clear-search-btn:hover {
-    background: #bb2d3b !important;
+    background: #2dbb9c !important;
 }
 
 .ghost-btn {
@@ -196,19 +196,19 @@ tbody tr:hover {
 }
 
 .note-action {
-    background: #6f42c1;
+    background: #42c1b0;
 }
 
 .note-action:hover {
-    background: #5a2ca4;
+    background: #2c64a4;
 }
 
 .delete-action {
-    background: #dc3545;
+    background: #35c3dc;
 }
 
 .delete-action:hover {
-    background: #bb2d3b;
+    background: #2daabb;
 }
 
 /*==================================

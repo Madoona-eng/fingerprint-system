@@ -56,6 +56,48 @@ export class AuthService {
     return localStorage.getItem('role');
   }
 
+  getUserLocationId(): number | null {
+    const storedLocationId = Number(localStorage.getItem('locationId'));
+
+    if (Number.isFinite(storedLocationId) && storedLocationId > 0) {
+      return storedLocationId;
+    }
+
+    const token = localStorage.getItem('token');
+    const locationId = this.extractLocationIdFromToken(token);
+
+    if (locationId !== null) {
+      localStorage.setItem('locationId', String(locationId));
+    }
+
+    return locationId;
+  }
+
+  private extractLocationIdFromToken(token: string | null): number | null {
+    if (!token) {
+      return null;
+    }
+
+    const parts = token.split('.');
+
+    if (parts.length < 2) {
+      return null;
+    }
+
+    try {
+      const payload = parts[1]
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+      const normalized = payload.padEnd(Math.ceil(payload.length / 4) * 4, '=');
+      const decodedPayload = JSON.parse(atob(normalized));
+      const locationId = Number(decodedPayload?.LocationId ?? decodedPayload?.locationId);
+
+      return Number.isFinite(locationId) && locationId > 0 ? locationId : null;
+    } catch {
+      return null;
+    }
+  }
+
   // ميثود تسجيل الخروج
   logout(): void {
     localStorage.clear();

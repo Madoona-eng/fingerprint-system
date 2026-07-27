@@ -12,6 +12,7 @@ import { read, utils, writeFile, WorkBook, WorkSheet } from 'xlsx';
 import { firstValueFrom } from 'rxjs';
 
 import { EmployeesService } from '../service/employees.service';
+import { AuthService } from '../../../auth/Services/auth.service';
 import {
   Employee,
   EmployeePayload,
@@ -147,6 +148,9 @@ analyticsDepartmentRows: any[] = [];
     'الموارد البشرية': 1,
     'تكنولوجيا المعلومات': 2
   };
+  locationOptions: { id: number; name: string }[] = [];
+  selectedLocationId: number | null = null;
+
   departmentOptions: { id: number; name: string }[] = [
   { id: 1, name: 'إدارة الأزمات' },
   { id: 2, name: 'الاتصال السياسي' },
@@ -436,12 +440,15 @@ getDepartmentNameById(id: number | null | undefined): string {
   constructor(
     private fb: FormBuilder,
     private employeesService: EmployeesService,
+    private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.initForm();
+    this.loadLocations();
+    this.loadDepartmentOptions();
     this.route.queryParams.subscribe((params) => {
       const requestedPage = String(params['page'] || 'list') as EmployeePage;
       const requestedId = Number(params['id'] || 0);
@@ -497,6 +504,143 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
       graceTime: ['', Validators.required],
       note: ['']
     });
+  }
+
+  private loadLocations(): void {
+    const role = this.authService.getUserRole();
+    const normalizedRole = role?.trim().toLowerCase();
+
+    if (normalizedRole !== 'superadmin' && normalizedRole !== 'technicaladmin') {
+      return;
+    }
+
+    this.employeesService.getLocations().subscribe({
+      next: (response: any) => {
+        const locations = this.mapLocationOptions(response);
+        this.locationOptions = locations;
+
+        if (locations.length > 0) {
+          const userLocationId = this.authService.getUserLocationId();
+          this.selectedLocationId = userLocationId ?? locations[0].id;
+          this.loadDepartmentOptions(this.selectedLocationId);
+        }
+      },
+      error: () => {
+        console.warn('Failed to load locations.');
+      }
+    });
+  }
+
+  private loadDepartmentOptions(locationId: number | null = null): void {
+    const role = this.authService.getUserRole();
+    const normalizedRole = role?.trim().toLowerCase();
+
+    if (normalizedRole !== 'superadmin' && normalizedRole !== 'technicaladmin') {
+      return;
+    }
+
+    const resolvedLocationId =
+      locationId && locationId > 0
+        ? locationId
+        : this.authService.getUserLocationId() ?? this.getSuperAdminLocationId();
+
+    this.employeesService.getDepartments(resolvedLocationId).subscribe({
+      next: (response: any) => {
+        const departments = this.mapDepartmentOptions(response);
+
+        if (departments.length > 0) {
+          this.departmentOptions = departments;
+          return;
+        }
+
+        if (resolvedLocationId !== null) {
+          this.employeesService.getDepartments(null).subscribe({
+            next: (fallbackResponse: any) => {
+              const fallbackDepartments = this.mapDepartmentOptions(fallbackResponse);
+              if (fallbackDepartments.length > 0) {
+                this.departmentOptions = fallbackDepartments;
+              }
+            },
+            error: () => {
+              console.warn('Failed to load departments without location filter.');
+            }
+          });
+        }
+      },
+      error: () => {
+        console.warn('Failed to load departments for the selected location.');
+      }
+    });
+  }
+
+  private getSuperAdminLocationId(): number {
+    const storedLocationId = Number(localStorage.getItem('locationId'));
+
+    if (Number.isFinite(storedLocationId) && storedLocationId > 0) {
+      return storedLocationId;
+    }
+
+    return 2;
+  }
+
+  private mapLocationOptions(response: any): Array<{ id: number; name: string }> {
+    const payload = response?.data ?? response;
+    const source = Array.isArray(payload?.items)
+      ? payload.items
+      : Array.isArray(payload?.locations)
+        ? payload.locations
+        : Array.isArray(payload)
+          ? payload
+          : [];
+
+    return source
+      .map((item: any) => {
+        const rawId = item?.id ?? item?.locationId ?? item?.value;
+        const id = Number(rawId);
+        const name = String(item?.name ?? item?.locationName ?? item?.title ?? item?.label ?? '').trim();
+
+        if (!Number.isFinite(id) || id <= 0 || !name) {
+          return null;
+        }
+
+        return { id, name };
+      })
+      .filter((item: { id: number; name: string } | null): item is { id: number; name: string } => item !== null);
+  }
+
+  private mapDepartmentOptions(response: any): Array<{ id: number; name: string }> {
+    const payload = response?.data ?? response;
+    const source = Array.isArray(payload?.items)
+      ? payload.items
+      : Array.isArray(payload?.departments)
+        ? payload.departments
+        : Array.isArray(payload)
+          ? payload
+          : [];
+
+    return source
+      .map((item: any) => {
+        const rawId = item?.id ?? item?.departmentId ?? item?.department?.id ?? item?.value;
+        const id = Number(rawId);
+        const name = String(
+          item?.name ?? item?.departmentName ?? item?.title ?? item?.label ?? item?.department?.name ?? ''
+        ).trim();
+
+        if (!Number.isFinite(id) || id <= 0 || !name) {
+          return null;
+        }
+
+        return { id, name };
+      })
+      .filter((item: { id: number; name: string } | null): item is { id: number; name: string } => item !== null);
+  }
+
+  onLocationChanged(locationId: number | null): void {
+    this.selectedLocationId = locationId;
+    this.departmentId = null;
+    this.pageNumber = 1;
+    this.loadDepartmentOptions(locationId);
+    this.loadEmployees();
   }
 
   loadEmployees(): void {
