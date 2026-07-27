@@ -45,12 +45,10 @@ export class LoginComponent implements OnInit {
         this.isLoading = false;
         if (response.isSuccess) {
           console.log('Login successful:', response.message);
-          
-          if (response.data.role === 'SuperAdmin') {
-            this.router.navigate(['/dashboard']);
-          } else {
-            this.router.navigate(['/home']);
-          }
+
+          // توجيه جميع المستخدمين إلى لوحة التحكم الرئيسية.
+          // إذا أردت تخصيص طريق حسب الدور، اضف هنا شرط آخر.
+          this.router.navigate(['/dashboard']);
         } else {
           this.errorMessage = response.message;
         }

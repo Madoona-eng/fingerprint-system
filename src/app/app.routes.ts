@@ -66,6 +66,11 @@ export const routes: Routes = [
   },
 
   {
+    path: 'home',
+    redirectTo: 'dashboard',
+    pathMatch: 'full'
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full'
