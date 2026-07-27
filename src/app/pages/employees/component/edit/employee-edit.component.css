@@ -23,6 +23,36 @@
   backdrop-filter: blur(12px);
 }
 
+.back-btn {
+  margin: 14px;
+  background: transparent;
+  border: 1px solid rgba(15, 75, 168, 0.08);
+  color: #0f4ba8;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 150ms ease, transform 80ms ease, box-shadow 150ms ease;
+}
+
+.back-btn:hover {
+  background: rgba(15, 75, 168, 0.06);
+  box-shadow: 0 6px 18px rgba(15, 75, 168, 0.06);
+}
+
+.back-btn:active {
+  transform: translateY(1px);
+}
+
+.back-btn:focus {
+  outline: 2px solid rgba(15, 75, 168, 0.14);
+  outline-offset: 2px;
+}
+
 .employee-edit-header {
   padding: 28px 30px 22px;
   background: linear-gradient(135deg, #072a5b 0%, #0f4ba8 55%, #1d4ed8 100%);

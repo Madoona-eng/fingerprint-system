@@ -26,7 +26,7 @@
       <input type="time" formControlName="graceTime" />
     </div>
 
-    <div class="form-group full-width-field">
+    <div *ngIf="!hideNotes" class="form-group full-width-field">
       <label>ملاحظات</label>
       <textarea formControlName="note" rows="3" placeholder="أدخل ملاحظات الموظف إن وجدت"></textarea>
     </div>

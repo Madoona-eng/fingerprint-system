@@ -305,11 +305,11 @@
         <th>اسم الموظف</th>
         <th>القسم</th>
         <th>التاريخ</th>
+        <th>الحالة</th>
         <th>معاد الحضور</th>
         <th>معاد الانصراف</th>
         <th>وقت الحضور</th>
         <th>وقت الانصراف</th>
-        <th>الحالة</th>
         <th>التأخير (د)</th>
         <th>العمل (س)</th>
         <th>ملاحظات</th>
@@ -333,6 +333,12 @@
         </td>
 
         <td>
+          <span class="status-badge" [ngClass]="getStatusClass(row.status)">
+            {{ getStatusLabel(row.status) }}
+          </span>
+        </td>
+
+        <td>
           {{ row.scheduleIn || row.shift?.scheduleIn || '-' }}
         </td>
 
@@ -346,12 +352,6 @@
 
         <td>
           {{ row.actualOut || '-' }}
-        </td>
-
-        <td>
-          <span class="status-badge" [ngClass]="getStatusClass(row.status)">
-            {{ getStatusLabel(row.status) }}
-          </span>
         </td>
 
         <td>

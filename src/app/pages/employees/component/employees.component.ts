@@ -1802,7 +1802,7 @@ openEmployeeDetails(employee: Employee): void {
       'location id',
       'لوكيشن',
       'Location رقم',
-      'رقم اللوكيشن'
+      'المكان '
     ]);
 
     const isChristian = this.getBooleanCellValue(row, [

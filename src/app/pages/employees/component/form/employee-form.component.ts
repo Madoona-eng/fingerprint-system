@@ -17,6 +17,7 @@ export class EmployeeFormComponent {
   @Input() successMessage = '';
   @Input() errorMessage = '';
   @Input() departmentOptions: { id: number; name: string }[] = [];
+  @Input() hideNotes = false;
 
   @Output() submitForm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();

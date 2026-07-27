@@ -1,5 +1,7 @@
 <section class="employee-edit-page">
   <div class="employee-edit-shell">
+    <button type="button" class="back-btn" (click)="cancel.emit()">← رجوع</button>
+
     <div class="employee-edit-header">
       <span class="employee-edit-badge">تعديل موظف</span>
       <h2>تحديث بيانات الموظف</h2>
@@ -14,6 +16,7 @@
         [successMessage]="successMessage"
         [errorMessage]="errorMessage"
         [departmentOptions]="departmentOptions"
+        [hideNotes]="true"
         (submitForm)="submitForm.emit()"
         (cancel)="cancel.emit()"
       ></app-employee-form>
