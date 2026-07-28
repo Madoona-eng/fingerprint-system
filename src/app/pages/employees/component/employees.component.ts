@@ -502,6 +502,7 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
       scheduleIn: ['', Validators.required],
       scheduleOut: ['', Validators.required],
       graceTime: ['', Validators.required],
+      isChristian: [false],
       note: ['']
     });
   }
@@ -1658,6 +1659,7 @@ openEmployeeDetails(employee: Employee): void {
       scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
       scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
       graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime),
+      isChristian: Boolean(this.employeeForm.value.isChristian),
       note: String(this.employeeForm.value.note || '').trim()
     };
   }
@@ -1670,6 +1672,7 @@ openEmployeeDetails(employee: Employee): void {
       scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
       scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
       graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime),
+      isChristian: Boolean(this.employeeForm.value.isChristian),
       note: String(this.employeeForm.value.note || '').trim()
     };
   }
@@ -1697,6 +1700,7 @@ openEmployeeDetails(employee: Employee): void {
       scheduleIn: this.timeForInput(employee.scheduleIn),
       scheduleOut: this.timeForInput(employee.scheduleOut),
       graceTime: this.timeForInput(employee.graceTime),
+      isChristian: employee.isChristian ?? false,
       note: employee.note ?? (employee as any).notes ?? ''
     });
 

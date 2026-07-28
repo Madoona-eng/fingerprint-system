@@ -6,6 +6,7 @@ export interface EmployeePayload {
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
+  isChristian?: boolean;
   note?: string;
 }
 
@@ -16,6 +17,7 @@ export interface UpdateEmployeePayload {
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
+  isChristian?: boolean;
   note?: string;
 }
 

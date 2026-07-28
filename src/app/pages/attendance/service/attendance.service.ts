@@ -92,10 +92,20 @@ export class AttendanceService {
     });
   }
 
+  getAttendanceSummary(date: string): Observable<any> {
+    let params = new HttpParams().set('date', date);
+
+    return this.http.get<any>(`${this.apiUrl}/summary`, {
+      headers: this.getHeaders(),
+      params
+    });
+  }
+
   getRawPunches(
     fromDate: string,
     toDate: string,
     employeeCode: string = '',
+    employeeName: string = '',
     pageNumber: number = 1,
     pageSize: number = 10
   ): Observable<any> {
@@ -107,6 +117,10 @@ export class AttendanceService {
 
     if (employeeCode && employeeCode.trim() !== '') {
       params = params.set('employeeCode', employeeCode.trim());
+    }
+
+    if (employeeName && employeeName.trim() !== '') {
+      params = params.set('employeeName', employeeName.trim());
     }
 
     return this.http.get<any>(`${this.apiUrl}/raw-punches`, {

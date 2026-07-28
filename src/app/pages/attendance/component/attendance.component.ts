@@ -165,14 +165,14 @@ dateRangeToDisplay = '';
 ];
 
 statusOptions: { value: string; label: string }[] = [
-  
   { value: 'Present', label: 'حاضر' },
   { value: 'Late', label: 'متأخر' },
   { value: 'Absent', label: 'غائب' },
-  { value: 'EarlyDeparture', label: 'ترك عمل' },
-  { value: 'PersonalLeave', label: 'إذن شخصي' },
-  { value: 'WorkLeave', label: 'خط سير' },
-  { value: 'Mission', label: 'مأمورية' }
+  { value: 'EarlyDeparture', label: 'انصراف مبكر' },
+  { value: 'PersonalLeave', label: 'إذن شخصي / إجازة عارضة' },
+  { value: 'Mission', label: 'مأمورية' },
+  { value: 'DrivingRoute', label: 'خط سير' },
+  { value: 'OnLeave', label: 'في إجازة' }
 ];
 
 private setDateRangeFromDates(from: Date, to: Date): void {
@@ -2384,12 +2384,13 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
       Present: 'حاضر',
       Absent: 'غائب',
       Late: 'متأخر',
-      EarlyDeparture: 'ترك عمل',
-      PersonalLeave: 'إذن شخصي',
-      WorkLeave: 'إذن عمل',
+      EarlyDeparture: 'انصراف مبكر',
+      PersonalLeave: 'إذن شخصي / إجازة عارضة',
       Permission: 'إذن',
       Vacation: 'إجازة',
       Mission: 'مأمورية',
+      DrivingRoute: 'خط سير',
+      OnLeave: 'في إجازة',
       Incomplete: 'بيانات ناقصة',
       MissingIn: 'حضور ناقص',
       MissingOut: 'انصراف ناقص'
@@ -2417,6 +2418,9 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
       case 'Permission':
       case 'Vacation':
       case 'Mission':
+      case 'PersonalLeave':
+      case 'DrivingRoute':
+      case 'OnLeave':
         return 'status-permission';
 
       default:

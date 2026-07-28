@@ -13,7 +13,7 @@ import { AnalyticsStats } from '../model/models';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './reports.component.html',
-  styleUrls: ['./reports.component.css']
+  styleUrl: './reports.component.css'
 })
 export class ReportsComponent implements OnInit {
   analyticsDate = '';
@@ -147,8 +147,8 @@ constructor(
   this.successMessage = '';
 
   forkJoin({
-    // send API date (YYYY-MM-DD) not the displayed DD/MM/YYYY string
-    summary: this.reportsService.getEmployeesSummary(this.analyticsDate),
+    // send API date in DD-MM-YYYY for Attendance/summary
+    summary: this.reportsService.getAttendanceSummary(this.analyticsDate),
 
     attendance: this.reportsService.getAttendanceByDateRange(
       this.analyticsDate,

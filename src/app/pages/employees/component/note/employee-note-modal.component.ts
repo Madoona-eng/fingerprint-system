@@ -10,7 +10,19 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./employee-note-modal.component.css']
 })
 export class EmployeeNoteModalComponent {
-  @Input() show = false;
+  private _show = false;
+
+  @Input()
+  get show(): boolean {
+    return this._show;
+  }
+  set show(value: boolean) {
+    this._show = value;
+    if (value) {
+      this.draftNote = '';
+    }
+  }
+
   @Input() employeeName = '';
   @Output() confirm = new EventEmitter<string>();
   @Output() cancel = new EventEmitter<void>();

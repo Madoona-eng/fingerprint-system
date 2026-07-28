@@ -1,17 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { EmployeesService } from '../../employees/service/employees.service';
 import { AttendanceService } from '../../attendance/service/attendance.service';
 
 @Injectable({ providedIn: 'root' })
 export class ReportsService {
-  constructor(
-    private employeesService: EmployeesService,
-    private attendanceService: AttendanceService
-  ) {}
+  constructor(private attendanceService: AttendanceService) {}
 
-  getEmployeesSummary(date: string): Observable<any> {
-    return this.employeesService.getEmployeesSummary(date);
+  getAttendanceSummary(date: string): Observable<any> {
+    return this.attendanceService.getAttendanceSummary(date);
   }
 
   getAttendanceByDateRange(

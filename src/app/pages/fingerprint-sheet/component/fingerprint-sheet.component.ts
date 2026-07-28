@@ -20,6 +20,7 @@ export class FingerprintSheetComponent implements OnInit {
   toDateDisplay = '';
 
   employeeCode = '';
+  employeeName = '';
 
   pageNumber = 1;
   pageSize = 10;
@@ -204,6 +205,11 @@ export class FingerprintSheetComponent implements OnInit {
       return '-';
     }
 
+    // إذا القيمة أرقام فقط (كود الموظف)، نعرضها كما هي بدون تحويل لتاريخ
+    if (/^\d+$/.test(raw)) {
+      return raw;
+    }
+
     const dateOnlyMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (dateOnlyMatch) {
       const [, year, month, day] = dateOnlyMatch;
@@ -215,11 +221,6 @@ export class FingerprintSheetComponent implements OnInit {
       const [, year, month, day, hour, minute, second] = dateTimeMatch;
       const timePart = second ? `${hour}:${minute}:${second}` : `${hour}:${minute}`;
       return `${day}/${month}/${year} ${timePart}`;
-    }
-
-    const parsedDate = new Date(raw);
-    if (!Number.isNaN(parsedDate.getTime())) {
-      return `${this.pad(parsedDate.getDate())}/${this.pad(parsedDate.getMonth() + 1)}/${parsedDate.getFullYear()} ${this.pad(parsedDate.getHours())}:${this.pad(parsedDate.getMinutes())}`;
     }
 
     return raw;
@@ -236,6 +237,7 @@ export class FingerprintSheetComponent implements OnInit {
       from,
       to,
       this.employeeCode.trim(),
+      this.employeeName.trim(),
       this.pageNumber,
       this.pageSize
     ).subscribe({
@@ -269,6 +271,7 @@ export class FingerprintSheetComponent implements OnInit {
         this.fromDate,
         this.toDate,
         this.employeeCode.trim(),
+        this.employeeName.trim(),
         1000
       );
 
@@ -288,13 +291,13 @@ export class FingerprintSheetComponent implements OnInit {
 
   private downloadExcel(records: RawPunchRecord[]): void {
     const rows = records.map((item) => ({
-      employeeName: this.formatDisplayValue(item.employeeName || 'غير محدد'),
-      employeeCode: this.formatDisplayValue(item.employeeCode || '-'),
-      departmentRaw: this.formatDisplayValue(item['departmentRaw'] || '-'),
-      punchDate: this.formatDisplayValue(item['punchDate'] || item.date || '-'),
-      inRaw: this.formatDisplayValue(item['inRaw'] || item.time || '-'),
-      outRaw: this.formatDisplayValue(item['outRaw'] || item.punchTime || '-'),
-      importedAt: this.formatDisplayValue(item['importedAt'] || '-')
+      'الموظف': item.employeeName || 'غير محدد',
+      'الكود': item.employeeCode || '-',
+      'القسم': item['departmentRaw'] || '-',
+      'التاريخ': this.formatDisplayValue(item['punchDate'] || item.date || '-'),
+      'الدخول': item['inRaw'] || item.time || '-',
+      'الخروج': item['outRaw'] || item.punchTime || '-',
+      'وقت الاستيراد': this.formatDisplayValue(item['importedAt'] || '-')
     }));
 
     const worksheet = utils.json_to_sheet(rows);

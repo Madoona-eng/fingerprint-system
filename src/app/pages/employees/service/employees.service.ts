@@ -159,11 +159,52 @@ export class EmployeesService {
   }
 
   getEmployeesSummary(date: string): Observable<any> {
-    const params = new HttpParams().set('date', date);
+    const params = new HttpParams().set('date', this.normalizeSummaryDate(date));
+
+    let headers = new HttpHeaders({ Accept: 'application/json' });
+    const token =
+      localStorage.getItem('token') ||
+      localStorage.getItem('accessToken') ||
+      localStorage.getItem('jwt');
+
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
 
     return this.http.get<any>(`${this.apiUrl}/summary`, {
-      headers: this.getHeaders(),
+      headers,
       params
     });
+  }
+
+  private normalizeSummaryDate(date: string): string {
+    const value = String(date || '').trim();
+    if (!value) {
+      return value;
+    }
+
+    const isoMatch = value.match(/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/);
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch;
+      return `${day}-${month}-${year}`;
+    }
+
+    const slashIsoMatch = value.match(/^([0-9]{4})\/([0-9]{2})\/([0-9]{2})$/);
+    if (slashIsoMatch) {
+      const [, year, month, day] = slashIsoMatch;
+      return `${day}-${month}-${year}`;
+    }
+
+    const dashDayMatch = value.match(/^([0-9]{2})-([0-9]{2})-([0-9]{4})$/);
+    if (dashDayMatch) {
+      return value;
+    }
+
+    const slashDayMatch = value.match(/^([0-9]{2})\/([0-9]{2})\/([0-9]{4})$/);
+    if (slashDayMatch) {
+      return value.replace(/[\/]/g, '-');
+    }
+
+    return value;
   }
 }

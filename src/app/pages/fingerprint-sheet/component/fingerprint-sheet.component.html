@@ -2,7 +2,7 @@
   <div class="page-header">
     <div>
       <h2>شيت البصمة</h2>
-      <p>عرض مفصل للحضور والانصراف اليومي   </p>
+      <p>عرض مفصل للحضور والانصراف اليومي</p>
     </div>
     <a routerLink="/dashboard" class="back-link">العودة للوحة التحكم</a>
   </div>
@@ -72,6 +72,16 @@
       />
     </div>
 
+    <div class="filter-field search-field">
+      <label>اسم الموظف</label>
+      <input
+        type="text"
+        [(ngModel)]="employeeName"
+        placeholder="أدخل اسم الموظف"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </div>
+
     <div class="filter-field action-field">
       <label class="sr-only">إجراءات</label>
       <button type="button" class="load-btn" (click)="loadData()">تحميل البيانات</button>
@@ -108,14 +118,14 @@
         </thead>
         <tbody>
           <tr *ngFor="let item of records">
-            <td>{{ formatDisplayValue(item.employeeName || 'غير محدد') }}</td>
-            <td>{{ formatDisplayValue(item.employeeCode || '-') }}</td>
-            <td>{{ formatDisplayValue(item['departmentRaw'] || '-') }}</td>
-            <td>{{ formatDisplayValue(item['punchDate'] || '-') }}</td>
-            <td>{{ formatDisplayValue(item['inRaw'] || '-') }}</td>
-            <td>{{ formatDisplayValue(item['outRaw'] || '-') }}</td>
-            <td>{{ formatDisplayValue(item['importedAt'] || '-') }}</td>
-          </tr>
+  <td>{{ item.employeeName || 'غير محدد' }}</td>
+  <td>{{ item.employeeCode || '-' }}</td>
+  <td>{{ item['departmentRaw'] || '-' }}</td>
+  <td>{{ item['punchDate'] || '-' }}</td>
+  <td>{{ item['inRaw'] || '-' }}</td>
+  <td>{{ item['outRaw'] || '-' }}</td>
+  <td>{{ item['importedAt'] | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+</tr>
         </tbody>
       </table>
     </div>

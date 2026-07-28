@@ -12,6 +12,7 @@ export class FingerprintSheetService {
     fromDate: string,
     toDate: string,
     employeeCode: string = '',
+    employeeName: string = '',
     pageNumber: number = 1,
     pageSize: number = 10
   ) {
@@ -19,6 +20,7 @@ export class FingerprintSheetService {
       fromDate,
       toDate,
       employeeCode,
+      employeeName,
       pageNumber,
       pageSize
     );
@@ -28,6 +30,7 @@ export class FingerprintSheetService {
     fromDate: string,
     toDate: string,
     employeeCode: string = '',
+    employeeName: string = '',
     perPage: number = 1000
   ): Promise<any[]> {
     const allRecords: any[] = [];
@@ -41,6 +44,7 @@ export class FingerprintSheetService {
             fromDate,
             toDate,
             employeeCode,
+            employeeName,
             page,
             perPage
           )
