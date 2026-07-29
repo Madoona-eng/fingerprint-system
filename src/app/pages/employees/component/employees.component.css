@@ -35,8 +35,8 @@
   padding: 8px 14px;
   margin-bottom: 12px;
   border-radius: 999px;
-  background: rgba(56, 189, 248, 0.14);
-  color: #0369a1;
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+     color: #0891b2;
   font-size: 13px;
   font-weight: 900;
 }

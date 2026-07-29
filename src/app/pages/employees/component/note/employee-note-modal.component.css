@@ -1,169 +1,145 @@
-/*=======================================================================
-   10. Employee Note Modal Styles
-=======================================================================*/
-
-/* الخلفية المظلمة الشفافة للمودال */
+/* الخلفية */
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(15, 23, 42, 0.6); /* رمادي داكن شفاف */
-  backdrop-filter: blur(4px); /* تأثير ضبابي أنيق للخلفية */
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 1000;
-  animation: fadeInBackdrop 0.25s ease-out;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-in-out;
 }
 
-/* كارت المودال الرئيسي */
+/* الكارد */
 .modal-card {
-  background: #ffffff;
   width: 100%;
   max-width: 500px;
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  animation: slideUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.25s ease;
   direction: rtl;
-  text-align: right;
 }
 
-/* عنوان المودال */
+/* العنوان */
 .modal-title {
-  margin: 0 0 8px 0;
-  font-size: 20px;
+  margin: 0;
+  font-size: 22px;
   font-weight: 700;
-  color: #0f172a;
+  color: #1f2937;
+  text-align: center;
 }
 
-/* اسم الموظف أسفل العنوان */
+/* اسم الموظف */
 .modal-text {
-  margin: 0 0 20px 0;
+  margin: 10px 0 20px;
+  text-align: center;
+  color: #6b7280;
   font-size: 15px;
-  color: #64748b;
-  font-weight: 600;
-  background-color: #f1f5f9;
-  padding: 10px 14px;
-  border-radius: 8px;
-  display: inline-block;
 }
 
-/* التسمية (Label) */
+/* الليبل */
 .note-label {
   display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #334155;
   margin-bottom: 8px;
+  font-weight: 600;
+  color: #374151;
 }
 
-/* مربع النص لادخال الملاحظة */
+/* مربع الكتابة */
 .note-textarea {
   width: 100%;
-  border: 1px solid #cbd5e1;
+  min-height: 120px;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid #d1d5db;
   border-radius: 10px;
-  padding: 14px;
-  font-size: 14px;
-  color: #1e293b;
   outline: none;
-  resize: vertical; /* السماح بالتكبير الرأسي فقط */
+  font-size: 15px;
   font-family: inherit;
   transition: all 0.2s ease;
-  background-color: #f8fafc;
+  box-sizing: border-box;
 }
 
 .note-textarea:focus {
-  background-color: #ffffff;
-  border-color: #24a8c9;
-  box-shadow: 0 0 0 4px rgba(36, 168, 201, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* أزرار التحكم داخل المودال */
+/* الأزرار */
 .modal-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 12px;
-  margin-top: 24px;
-  justify-content: flex-start;
+  margin-top: 22px;
 }
 
-.modal-actions .table-action-btn {
-  height: 44px;
-  padding: 0 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14.5px;
-  cursor: pointer;
+/* ستايل مشترك */
+.table-action-btn {
+  min-width: 100px;
+  padding: 10px 18px;
   border: none;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: 0.2s;
 }
 
-/* زر حفظ (تأكيد) */
+/* زر الحفظ */
 .confirm-action {
-  background-color: #6f42c1 !important; /* الاحتفاظ باللون البنفسجي المميز للملاحظات */
-  color: #ffffff !important;
-  flex: 2; /* إعطاء مساحة أكبر لزر الحفظ */
+   background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+  color: #fff;
 }
 
 .confirm-action:hover {
-  background-color: #5a2ca4 !important;
-  transform: translateY(-1px);
+  background: #1d4ed8;
 }
 
-/* زر إلغاء */
+/* زر الإلغاء */
 .cancel-action {
-  background-color: #e2e8f0 !important;
-  color: #475569 !important;
-  flex: 1;
+  background: #f3f4f6;
+  color: #374151;
 }
 
 .cancel-action:hover {
-  background-color: #cbd5e1 !important;
+  background: #e5e7eb;
 }
 
-/*=======================================================================
-   11. Animations
-=======================================================================*/
-
-@keyframes fadeInBackdrop {
-  from {
-    background-color: rgba(15, 23, 42, 0);
-  }
-  to {
-    background-color: rgba(15, 23, 42, 0.6);
-  }
-}
-
-@keyframes slideUpModal {
+/* Animation */
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
 
-/*=======================================================================
-   12. Media Queries
-=======================================================================*/
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive */
 @media (max-width: 576px) {
   .modal-card {
-    margin: 16px;
-    padding: 20px;
+    padding: 18px;
   }
-  
+
   .modal-actions {
     flex-direction: column;
   }
-  
-  .modal-actions .table-action-btn {
+
+  .table-action-btn {
     width: 100%;
   }
 }

@@ -49,7 +49,11 @@
       <input type="time" formControlName="graceTime" />
     </div>
 
-    <div class="form-group checkbox-group full-width-field">
+    <!-- يظهر في الإضافة فقط -->
+    <div
+      *ngIf="selectedEmployeeId === null"
+      class="form-group checkbox-group full-width-field"
+    >
       <label class="checkbox-label">
         <input type="checkbox" formControlName="isChristian" />
         الموظف مسيحي
@@ -58,7 +62,11 @@
 
     <div *ngIf="!hideNotes" class="form-group full-width-field">
       <label>ملاحظات</label>
-      <textarea formControlName="note" rows="3" placeholder="أدخل ملاحظات الموظف إن وجدت"></textarea>
+      <textarea
+        formControlName="note"
+        rows="3"
+        placeholder="أدخل ملاحظات الموظف إن وجدت"
+      ></textarea>
     </div>
 
     <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
@@ -74,7 +82,10 @@
       >
         {{ isSaving ? 'جاري الحفظ...' : selectedEmployeeId ? 'حفظ التعديل' : 'حفظ الموظف' }}
       </button>
-      <button type="button" class="cancel-btn" (click)="cancel.emit()">رجوع للقائمة</button>
+
+      <button type="button" class="cancel-btn" (click)="cancel.emit()">
+        رجوع للقائمة
+      </button>
     </div>
   </form>
 </div>

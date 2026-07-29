@@ -137,45 +137,5 @@
   </section>
 
   <!-- جدول تحليل الأقسام -->
-  <section class="analytics-table-card" *ngIf="departmentRows.length > 0">
-    <div class="section-title-row">
-      <h2>تحليل الأقسام</h2>
-      <div class="section-actions">
-        <span>{{ departmentRows.length }} قسم</span>
-        <button
-          type="button"
-          class="ghost-btn"
-          (click)="exportDepartmentToExcel()"
-        >
-          تصدير الأقسام
-        </button>
-      </div>
-    </div>
 
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>القسم</th>
-            <th>الإجمالي</th>
-            <th>حاضر</th>
-            <th>غائب</th>
-            <th>متأخر</th>
-            <th>ترك عمل</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr *ngFor="let row of departmentRows">
-            <td>{{ row.departmentName }}</td>
-            <td>{{ row.total }}</td>
-            <td>{{ row.present }}</td>
-            <td>{{ row.absent }}</td>
-            <td>{{ row.late }}</td>
-            <td>{{ row.earlyDeparture }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
 </div>
