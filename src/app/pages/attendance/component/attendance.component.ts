@@ -5,6 +5,8 @@ import { read, utils, writeFile, WorkBook, WorkSheet } from 'xlsx';
 import { firstValueFrom } from 'rxjs';
 import { AttendanceService } from '../service/attendance.service';
 import { AttendancePayload, FingerprintPunch } from '../model/models';
+import { AuthService } from '../../../auth/Services/auth.service';
+import { EmployeesService } from '../../employees/service/employees.service';
 
 @Component({
   selector: 'app-attendance',
@@ -15,6 +17,7 @@ import { AttendancePayload, FingerprintPunch } from '../model/models';
 })
 export class AttendanceComponent implements OnInit {
   attendanceRows: AttendancePayload[] = [];
+
   sheetPreviewRows: Array<{ [key: string]: any }> = [];
   sheetPreviewHeaders: string[] = [];
 
@@ -82,19 +85,83 @@ dateRangeToDisplay = '';
   lateSummaryPageSize = 10;
   lateSummaryTotalCount = 0;
   lateSummaryTotalPages = 0;
-  isLoadingLateSummary = false;
+    isLoadingLateSummary = false;
   lateSummaryErrorMessage = '';
   lateSummarySuccessMessage = '';
 
+  isSuperAdmin = false;
+  locations: { id: number; name: string }[] = [];
+  selectedLocationId: number | null = null;
+  lateSummaryLocationId: number | null = null;
+
   private lateSummarySearchTimer: any = null;
 
-  constructor(private attendanceService: AttendanceService) {}
+  constructor(
+    private attendanceService: AttendanceService,
+    private authService: AuthService,
+    private employeesService: EmployeesService
+  ) {}
 
   ngOnInit(): void {
+    this.checkUserRole();
     this.loadRouteOptions();
+    this.initializeDepartments();
+  }
+
+  checkUserRole(): void {
+    const role = this.authService.getUserRole();
+    this.isSuperAdmin = role === 'SuperAdmin';
+
+    if (this.isSuperAdmin) {
+      this.loadLocations();
+    }
+  }
+
+  loadLocations(): void {
+    this.employeesService.getLocations().subscribe({
+      next: (response: any) => {
+        this.locations = response?.data || [];
+      },
+      error: (err) => {
+        console.error('Failed to load locations:', err);
+      }
+    });
+  }
+
+  onLocationChange(locationId: number | null): void {
+    if (locationId) {
+      this.employeesService.getDepartments(locationId).subscribe({
+        next: (response: any) => {
+          this.departmentOptions = response?.data || [];
+        },
+        error: (err) => {
+          console.error('Failed to load departments for location:', err);
+          this.departmentOptions = [];
+        }
+      });
+    } else {
+      this.initializeDepartments();
+    }
+  }
+
+  initializeDepartments(): void {
+    if (this.isSuperAdmin) {
+       this.departmentOptions = [];
+       return;
+    }
+
+    this.employeesService.getDepartments().subscribe({
+        next: (response: any) => {
+          this.departmentOptions = response?.data || [];
+        },
+        error: (err) => {
+           console.error('Failed to load initial departments:', err);
+        }
+    });
   }
 
   loadRouteOptions(): void {
+
     this.attendanceService.getAttendanceRoutes().subscribe({
       next: (response: any) => {
         const data = response?.data || response;
@@ -120,49 +187,8 @@ dateRangeToDisplay = '';
     });
   }
 
-   departmentOptions: { id: number; name: string }[] = [
-  { id: 1, name: 'إدارة الأزمات' },
-  { id: 2, name: 'الاتصال السياسي' },
-  { id: 3, name: 'الإدارة العامة للتنمية' },
-  { id: 4, name: 'الاستثمار' },
-  { id: 5, name: 'الإسكان' },
-  { id: 6, name: 'الاعلام' },
-  { id: 7, name: 'الإعلانات' },
-  { id: 8, name: 'الأمن' },
-  { id: 9, name: 'الأمومة والطفولة' },
-  { id: 10, name: 'التخطيط العمراني' },
-  { id: 11, name: 'التخطيط والمتابعة' },
-  { id: 12, name: 'التنمية الحضارية' },
-  { id: 13, name: 'التوريدات' },
-  { id: 14, name: 'الحجز الإداري' },
-  { id: 15, name: 'الحسابات' },
-  { id: 16, name: 'الحوكمة' },
-  { id: 17, name: 'الخزينة' },
-  { id: 18, name: 'الرصد الإعلامي' },
-  { id: 19, name: 'السياحة' },
-  { id: 20, name: 'الشؤون الإدارية' },
-  { id: 21, name: 'الشؤون القانونية' },
-  { id: 22, name: 'الشؤون المالية' },
-  { id: 23, name: 'الصندوق التأميني' },
-  { id: 24, name: 'العلاقات الدولية' },
-  { id: 25, name: 'العلاقات العامة' },
-  { id: 26, name: 'المتغيرات المكانية' },
-  { id: 27, name: 'المخازن' },
-  { id: 28, name: 'المركبات' },
-  { id: 29, name: 'المكتب الفني' },
-  { id: 30, name: 'الموارد البشرية' },
-  { id: 31, name: 'الهيئة الموازنية' },
-  { id: 32, name: 'ترشيد الطاقة' },
-  { id: 33, name: 'حساب الخدمات' },
-  { id: 34, name: 'خدمة المواطنين' },
-  { id: 35, name: 'شؤون المجالس' },
-  { id: 36, name: 'شؤون المقر' },
-  { id: 37, name: 'صندوق الخدمات' },
-  { id: 38, name: 'فض المنازعات' },
-  { id: 39, name: 'مكتب الإعلام' },
-  { id: 40, name: 'مكتب المستشار القضائي' },
-  { id: 41, name: 'مكتب مفوض الدولة' }
-];
+      departmentOptions: { id: number; name: string }[] = [];
+
 
 statusOptions: { value: string; label: string }[] = [
   { value: 'Present', label: 'حاضر' },
@@ -1630,11 +1656,14 @@ this.dateRangeErrorMessage = this.translateApiMessage(
     }
   }
 
-  clearDateRangeFilter(): void {
+    clearDateRangeFilter(): void {
     this.dateRangeFrom = '';
     this.dateRangeTo = '';
+    this.selectedLocationId = null;
     this.dateRangeDepartmentId = null;
+    this.initializeDepartments();
     this.dateRangeStatus = '';
+
     this.dateRangeRoute = '';
     this.dateRangePageNumber = 1;
     this.dateRangeRows = [];
@@ -2011,14 +2040,17 @@ loadLateSummary(): void {
     });
 }
 
-  clearLateSummary(): void {
+    clearLateSummary(): void {
   this.lateSummaryFrom = '';
   this.lateSummaryTo = '';
   this.lateSummaryFromDisplay = '';
   this.lateSummaryToDisplay = '';
 
+  this.lateSummaryLocationId = null;
   this.lateSummaryEmployeeId = null;
+  this.initializeDepartments();
   this.lateSummaryEmployeeSearch = '';
+
   this.lateSummarySelectedEmployee = null;
   this.lateSummaryDepartmentId = null;
   this.lateSummaryPageNumber = 1;

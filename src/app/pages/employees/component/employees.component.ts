@@ -79,6 +79,7 @@ export class EmployeesComponent implements OnInit {
   noteModalEmployeeName = '';
 
   selectedEmployeeId: number | null = null;
+  isSuperAdmin = false;
 
   selectedEmployeeForDetails: Employee | null = null;
   employeeDetailsRows: any[] = [];
@@ -447,6 +448,8 @@ getDepartmentNameById(id: number | null | undefined): string {
 
   ngOnInit(): void {
     this.initForm();
+    const role = this.authService.getUserRole();
+    this.isSuperAdmin = ['superadmin', 'technicaladmin'].includes((role || '').trim().toLowerCase());
     this.loadLocations();
     this.loadDepartmentOptions();
     this.route.queryParams.subscribe((params) => {
@@ -508,23 +511,24 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
   }
 
   private loadLocations(): void {
-    const role = this.authService.getUserRole();
-    const normalizedRole = role?.trim().toLowerCase();
-
-    if (normalizedRole !== 'superadmin' && normalizedRole !== 'technicaladmin') {
-      return;
-    }
-
     this.employeesService.getLocations().subscribe({
       next: (response: any) => {
         const locations = this.mapLocationOptions(response);
         this.locationOptions = locations;
 
-        if (locations.length > 0) {
-          const userLocationId = this.authService.getUserLocationId();
+        const role = this.authService.getUserRole();
+        const normalizedRole = role?.trim().toLowerCase();
+        const userLocationId = this.authService.getUserLocationId();
+
+        if (normalizedRole === 'superadmin' || normalizedRole === 'technicaladmin') {
+          this.selectedLocationId = userLocationId ?? null;
+        } else if (locations.length > 0) {
           this.selectedLocationId = userLocationId ?? locations[0].id;
-          this.loadDepartmentOptions(this.selectedLocationId);
+        } else {
+          this.selectedLocationId = null;
         }
+
+        this.loadDepartmentOptions(this.selectedLocationId);
       },
       error: () => {
         console.warn('Failed to load locations.');
@@ -533,13 +537,6 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
   }
 
   private loadDepartmentOptions(locationId: number | null = null): void {
-    const role = this.authService.getUserRole();
-    const normalizedRole = role?.trim().toLowerCase();
-
-    if (normalizedRole !== 'superadmin' && normalizedRole !== 'technicaladmin') {
-      return;
-    }
-
     const resolvedLocationId =
       locationId && locationId > 0
         ? locationId

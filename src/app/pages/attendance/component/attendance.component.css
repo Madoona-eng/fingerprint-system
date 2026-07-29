@@ -21,7 +21,7 @@
   padding: 8px 14px;
   margin-bottom: 12px;
   border-radius: 999px;
-  background: rgba(56, 189, 248, 0.14);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   color: #0369a1;
   font-size: 13px;
   font-weight: 900;
@@ -67,7 +67,7 @@
 
 .attendance-page-tabs button:hover {
   transform: translateY(-2px);
-  background: rgba(56, 189, 248, 0.16);
+   background: linear-gradient(135deg, #7dd3fc, #22d3ee);
 }
 
 .attendance-page-tabs button.active {
@@ -88,7 +88,7 @@
   margin-top: 18px;
   border-radius: 22px;
   border: 1px dashed rgba(101, 228, 233, 0.65);
-  background: rgba(101, 228, 233, 0.08);
+   background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,7 +120,7 @@
 
 .success-message {
   color: #b8fff1;
-  background: rgba(45, 212, 191, 0.14);
+    background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   border: 1px solid rgba(45, 212, 191, 0.28);
 }
 
@@ -135,7 +135,7 @@
   padding: 14px 28px;
   border-radius: 16px;
   color: #ffe1e1;
-  background: rgba(255, 68, 68, 0.09);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   border: 1px solid rgba(255, 100, 100, 0.18);
   font-size: 13px;
   line-height: 1.9;
@@ -162,7 +162,7 @@
 
 .import-btn {
   color: #07111f;
-  background: linear-gradient(135deg, #65e4e9, #2dd4bf);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
 }
 
 .import-btn:disabled {
@@ -172,10 +172,18 @@
 
 .ghost-btn {
   color: #0f172a;
-  background: rgba(248, 250, 252, 0.95);
+   background: linear-gradient(135deg, #077716, #066e3a);
   border: 1px solid rgba(148, 163, 184, 0.2);
 }
-
+.ghost{
+    background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+      color: #0f172a;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+         height: 52px;
+  min-width: 160px;
+  margin-top: 8px;
+  border-radius: 16px;
+}
 /* Filters */
 .attendance-filter-box {
   display: grid;
@@ -263,7 +271,7 @@
   padding: 8px 10px;
   border-radius: 12px;
   background: rgba(224, 242, 254, 0.85);
-  border: 1px solid rgba(125, 211, 252, 0.45);
+  border: 1px solid rgba(125, 227, 252, 0.45);
   text-align: right;
 }
 
@@ -500,7 +508,7 @@
 }
 
 .table-wrapper tbody tr:hover {
-  background: rgba(45, 212, 191, 0.08);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
 }
 
 .table-wrapper tbody td button {
@@ -522,31 +530,31 @@
 
 .status-present {
   color: #67f7d4;
-  background: rgba(45, 212, 191, 0.14);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   border: 1px solid rgba(45, 212, 191, 0.28);
 }
 
 .status-absent {
   color: #ff9b9b;
-  background: rgba(239, 68, 68, 0.14);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   border: 1px solid rgba(239, 68, 68, 0.28);
 }
 
 .status-late {
   color: #ffd37a;
-  background: rgba(245, 158, 11, 0.15);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .status-early {
   color: #c4b5fd;
-  background: rgba(139, 92, 246, 0.16);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
 .status-permission {
   color: #93c5fd;
-  background: rgba(59, 130, 246, 0.14);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   border: 1px solid rgba(59, 130, 246, 0.28);
 }
 
@@ -613,7 +621,7 @@
   border-radius: 999px;
   font-weight: 900;
   color: #86efac;
-  background: rgba(34, 197, 94, 0.16);
+   background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   border: 1px solid rgba(34, 197, 94, 0.35);
   white-space: nowrap;
 }
@@ -852,7 +860,7 @@
   border: none;
   border-radius: 16px;
   cursor: pointer;
-  background: linear-gradient(135deg, #65e4e9, #2dd4bf);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   color: #07111f;
   font-size: 18px;
   font-weight: 900;

@@ -1,4 +1,5 @@
 <div class="reports-page" dir="rtl">
+  <!-- هيدر الفلاتر والبحث -->
   <section class="reports-hero-card">
     <div>
       <h1>تحليل بيانات الحضور والانصراف</h1>
@@ -70,6 +71,7 @@
     </div>
   </section>
 
+  <!-- رسائل الخطأ والنجاح -->
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>
@@ -78,58 +80,63 @@
     {{ successMessage }}
   </div>
 
-  <section class="analytics-cards-grid">
-    <div class="analytics-card">
-      <span>إجمالي الموظفين</span>
-      <strong>{{ analyticsStats.total }}</strong>
+  <!-- جدول ملخص الإحصائيات (البديل للكروت) -->
+  <section class="summary-table-card">
+    <div class="table-wrapper">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>الإحصائية</th>
+            <th>القيمة</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>إجمالي الموظفين</td>
+            <td><strong class="val-total">{{ analyticsStats.total }}</strong></td>
+          </tr>
+          <tr>
+            <td>حاضر منتظم</td>
+            <td><strong class="val-present">{{ analyticsStats.present }}</strong></td>
+          </tr>
+          <tr>
+            <td>غائب</td>
+            <td><strong class="val-absent">{{ analyticsStats.absent }}</strong></td>
+          </tr>
+          <tr>
+            <td>متأخر</td>
+            <td><strong class="val-late">{{ analyticsStats.late }}</strong></td>
+          </tr>
+          <tr>
+            <td>ترك عمل</td>
+            <td><strong class="val-early">{{ analyticsStats.earlyDeparture }}</strong></td>
+          </tr>
+          <tr>
+            <td>إجازة شخصية</td>
+            <td><strong class="val-default">{{ analyticsStats.personalLeave }}</strong></td>
+          </tr>
+          <tr>
+            <td>إجازة عمل</td>
+            <td><strong class="val-default">{{ analyticsStats.workLeave }}</strong></td>
+          </tr>
+          <tr>
+            <td>مأمورية</td>
+            <td><strong class="val-default">{{ analyticsStats.mission }}</strong></td>
+          </tr>
+          <tr>
+            <td>خط سير</td>
+            <td><strong class="val-default">{{ analyticsStats.drivingRoute }}</strong></td>
+          </tr>
+          <tr>
+            <td>يحتاج مراجعة</td>
+            <td><strong class="val-review">{{ analyticsStats.needsReview }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-<div class="analytics-card present-card">
-  <span>حاضر منتظم</span>
-  <strong>{{ analyticsStats.present }}</strong>
-</div>
-    <div class="analytics-card absent-card">
-      <span>غائب</span>
-      <strong>{{ analyticsStats.absent }}</strong>
-    </div>
-
-    <div class="analytics-card late-card">
-      <span>متأخر</span>
-      <strong>{{ analyticsStats.late }}</strong>
-    </div>
-
-    <div class="analytics-card early-card">
-      <span>ترك عمل</span>
-      <strong>{{ analyticsStats.earlyDeparture }}</strong>
-    </div>
-
-    <div class="analytics-card">
-      <span>إجازة شخصية</span>
-      <strong>{{ analyticsStats.personalLeave }}</strong>
-    </div>
-
-    <div class="analytics-card">
-      <span>إجازة عمل</span>
-      <strong>{{ analyticsStats.workLeave }}</strong>
-    </div>
-
-    <div class="analytics-card">
-      <span>مأمورية</span>
-      <strong>{{ analyticsStats.mission }}</strong>
-    </div>
-
-    <div class="analytics-card">
-      <span>خط سير </span>
-      <strong>{{ analyticsStats.drivingRoute }}</strong>
-    </div>
-
-   <div class="analytics-card review-card">
-  <span>يحتاج مراجعة</span>
-  <strong>{{ analyticsStats.needsReview }}</strong>
-</div>
   </section>
 
- >
-
+  <!-- جدول تحليل الأقسام -->
   <section class="analytics-table-card" *ngIf="departmentRows.length > 0">
     <div class="section-title-row">
       <h2>تحليل الأقسام</h2>

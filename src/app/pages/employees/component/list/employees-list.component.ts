@@ -23,6 +23,9 @@ export class EmployeesListComponent {
   @Input() totalCount = 0;
   @Input() totalPages = 0;
 
+  // 1. إضافة إدخال الصلاحية هنا
+  @Input() isSuperAdmin = false; 
+
   @Output() searchTermChange = new EventEmitter<string>();
   @Output() departmentChange = new EventEmitter<number | null>();
   @Output() locationChange = new EventEmitter<number | null>();
@@ -36,9 +39,10 @@ export class EmployeesListComponent {
   @Output() previousPage = new EventEmitter<void>();
   @Output() nextPage = new EventEmitter<void>();
 
-onSearch(): void {
-  this.search.emit();
-}
+  onSearch(): void {
+    this.search.emit();
+  }
+
   onClear(): void {
     this.clear.emit();
   }

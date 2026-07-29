@@ -53,7 +53,20 @@ export class AuthService {
 
   // ميثود لجلب صلاحية المستخدم الحالية (مثل SuperAdmin)
   getUserRole(): string | null {
-    return localStorage.getItem('role');
+    const storedRole = localStorage.getItem('role');
+
+    if (storedRole) {
+      return storedRole.trim();
+    }
+
+    const token = localStorage.getItem('token');
+    const role = this.extractRoleFromToken(token);
+
+    if (role) {
+      localStorage.setItem('role', role);
+    }
+
+    return role;
   }
 
   getUserLocationId(): number | null {
@@ -73,7 +86,42 @@ export class AuthService {
     return locationId;
   }
 
+  private extractRoleFromToken(token: string | null): string | null {
+    const decodedPayload = this.decodeTokenPayload(token);
+
+    if (!decodedPayload) {
+      return null;
+    }
+
+    const role = decodedPayload?.role ?? decodedPayload?.Role;
+
+    if (typeof role === 'string' && role.trim()) {
+      return role.trim();
+    }
+
+    const roleClaimKey = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
+    const roleFromClaim = decodedPayload?.[roleClaimKey];
+
+    if (typeof roleFromClaim === 'string' && roleFromClaim.trim()) {
+      return roleFromClaim.trim();
+    }
+
+    return null;
+  }
+
   private extractLocationIdFromToken(token: string | null): number | null {
+    const decodedPayload = this.decodeTokenPayload(token);
+
+    if (!decodedPayload) {
+      return null;
+    }
+
+    const locationId = Number(decodedPayload?.LocationId ?? decodedPayload?.locationId);
+
+    return Number.isFinite(locationId) && locationId > 0 ? locationId : null;
+  }
+
+  private decodeTokenPayload(token: string | null): any | null {
     if (!token) {
       return null;
     }
@@ -89,10 +137,7 @@ export class AuthService {
         .replace(/-/g, '+')
         .replace(/_/g, '/');
       const normalized = payload.padEnd(Math.ceil(payload.length / 4) * 4, '=');
-      const decodedPayload = JSON.parse(atob(normalized));
-      const locationId = Number(decodedPayload?.LocationId ?? decodedPayload?.locationId);
-
-      return Number.isFinite(locationId) && locationId > 0 ? locationId : null;
+      return JSON.parse(atob(normalized));
     } catch {
       return null;
     }

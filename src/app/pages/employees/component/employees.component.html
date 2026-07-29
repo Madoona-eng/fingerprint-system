@@ -8,9 +8,7 @@
       </p>
     </div>
 
-    <button class="refresh-btn" type="button" (click)="openEmployeePage('list')">
-      🔄 تحديث البيانات
-    </button>
+   
   </section>
 
   <section class="employee-page-tabs">
@@ -173,6 +171,7 @@
         [locationOptions]="locationOptions"
         [selectedLocationId]="selectedLocationId"
         [departmentOptions]="departmentOptions"
+        [isSuperAdmin]="isSuperAdmin"
         [isLoading]="isLoading"
         [pageNumber]="pageNumber"
         [totalPages]="totalPages"
