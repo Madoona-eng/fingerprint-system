@@ -63,13 +63,13 @@
 
 /* زر التأكيد (أزرق عالي التباين) */
 .confirm-action {
-  background-color: #af3b0d;
+  background-color: var(--action-delete);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
 }
 
 .confirm-action:hover {
-  background-color: #c7560a;
+  background-color: var(--action-delete-hover);
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
 }

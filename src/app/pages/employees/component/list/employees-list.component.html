@@ -5,14 +5,22 @@
   </div>
 
   <div class="employees-search-box">
-    <input
-      type="text"
-      placeholder="ابحثي بالكود أو الاسم"
-      [(ngModel)]="searchTerm"
-      [ngModelOptions]="{ standalone: true }"
-      (input)="searchTermChange.emit(searchTerm)"
-      (keyup.enter)="onSearch()"
-    />
+    <div class="search-input-wrapper">
+      <input
+        type="text"
+        placeholder="قم بالبحث بالكود أو الاسم"
+        [(ngModel)]="searchTerm"
+        [ngModelOptions]="{ standalone: true }"
+        (input)="searchTermChange.emit(searchTerm)"
+        (keyup.enter)="onSearch()"
+      />
+      <button type="button" class="search-icon-btn" (click)="onSearch()" aria-label="بحث">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 20L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
 
     <!-- قائمة اختر الموقع -->
     <div class="custom-select-wrapper" *ngIf="isSuperAdmin">
@@ -44,9 +52,8 @@
       </select>
     </div>
 
-    <button type="button" (click)="onSearch()">بحث</button>
     <button type="button" class="clear-search-btn" (click)="onClear()">مسح الفلتره</button>
-    <button type="button" class="ghost-btn" (click)="export.emit()">تصدير Excel</button>
+    <button type="button" class="export-excel-btn" (click)="export.emit()">تصدير لملف اكسل</button>
   </div>
 
   <div *ngIf="isLoading" class="loading-box">جاري تحميل بيانات الموظفين...</div>

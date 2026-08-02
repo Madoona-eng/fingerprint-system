@@ -90,12 +90,12 @@
 
 /* زر الحفظ */
 .confirm-action {
-   background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+   background: var(--main-color);
   color: #fff;
 }
 
 .confirm-action:hover {
-  background: #1d4ed8;
+  background: var(--main-color-hover);
 }
 
 /* زر الإلغاء */

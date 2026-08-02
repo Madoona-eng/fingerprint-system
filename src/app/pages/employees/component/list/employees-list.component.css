@@ -46,21 +46,50 @@
     margin-bottom: 24px;
 }
 
-.employees-search-box input {
+/* --- صندوق البحث + الأيقونة (Flexbox، من غير position/px ثابتة) --- */
+
+.search-input-wrapper {
+    display: flex;
+    align-items: center;
     flex: 1;
     min-width: 260px;
     height: 46px;
     border: 1px solid #d8dee8;
     border-radius: 10px;
-    padding: 0 16px;
-    font-size: 15px;
-    outline: none;
+    background: #fff;
     transition: .25s;
 }
 
-.employees-search-box input:focus {
+.search-input-wrapper:focus-within {
     border-color: #65777a;
     box-shadow: 0 0 0 4px rgba(92, 174, 221, 0.08);
+}
+
+.search-input-wrapper input {
+    flex: 1;
+    border: none;
+    outline: none;
+    height: 100%;
+    padding-right:1em;
+    font-size: 15px;
+    background: transparent;
+    min-width: 0;
+}
+
+.search-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #8a97a8;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.search-icon-btn:hover {
+    color: var(--main-color-hover);
 }
 
 /*==================================
@@ -68,20 +97,18 @@
 ===================================*/
 
 .employees-search-box .filter-select {
-    min-width: 180px;
-    height: 46px;
-    padding: 0 44px 0 16px;
+    min-width: 11.25rem;   
+    height: 2.875rem; 
+    padding: 0.50em; 
     border: 1px solid #d9e4f2;
     border-radius: 999px;
     background: linear-gradient(135deg, #ffffff 0%, #f4f9ff 100%);
     color: #1f3b5b;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 600;
     outline: none;
     cursor: pointer;
     box-shadow: 0 8px 20px rgba(23, 162, 172, 0.08);
-    background-image: linear-gradient(45deg, transparent 50%, #17a2ac 50%),
-                      linear-gradient(135deg, #17a2ac 50%, transparent 50%);
     background-position: calc(100% - 20px) calc(50% - 3px), calc(100% - 14px) calc(50% - 3px);
     background-size: 6px 6px, 6px 6px;
     background-repeat: no-repeat;
@@ -105,32 +132,31 @@
     height: 46px;
     padding: 0 22px;
     border-radius: 10px;
-    background: #17a2ac;
+    background: var(--main-color);
     color: white;
 }
 
 .employees-search-box button:hover {
-    background: #2faebe;
+    background: var(--main-color-hover);
 }
 
 .clear-search-btn {
-    background: #1fd7dd !important;
+    background:var(--main-color) ;
 }
 
 .clear-search-btn:hover {
-    background: #2dbb9c !important;
+    background: var(--main-color-hover);
+}
+ 
+.export-excel-btn {
+    background: var(--excel-color) !important;
+    color: #fff !important;
+    border: 1px solid var(--excel-color) !important;
 }
 
-.ghost-btn {
-    background: rgb(9, 112, 74) !important;
-    color: #070c11 !important;
-    border: 1px solid #d9dfe8 !important;
+.export-excel-btn:hover {
+    background: var(--excel-color-hover) !important;
 }
-
-.ghost-btn:hover {
-    background: #f5f8fc !important;
-}
-
 /*==================================
     Loading
 ===================================*/
@@ -157,7 +183,7 @@ table {
 }
 
 thead {
-     background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+     background: var(--main-color);
 }
 
 thead th {
@@ -176,7 +202,6 @@ tbody td {
 
 tbody tr {
     transition: .2s;
-    
 }
 
 tbody tr:hover {
@@ -184,7 +209,8 @@ tbody tr:hover {
 }
 
 .actions-col {
-    width: 240px;
+    width: 320px !important;
+    min-width: 320px;
 }
 
 /*==================================
@@ -194,47 +220,46 @@ tbody tr:hover {
 .employee-actions {
     display: flex;
     justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
+    align-items: center;
+    flex-wrap: nowrap !important;
+    gap: 6px;
 }
 
 .table-action-btn {
-    padding: 8px 14px;
+    padding: 8px 10px;
     border-radius: 8px;
     color: white;
     font-size: 13px;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
 }
-
 .edit-action {
-    background: #fded03;
+    background: var(--action-edit);
 }
-
 .edit-action:hover {
-    background: #b8d70b;
+    background: var(--action-edit-hover);
 }
 
 .details-action {
-    background: lab(87.28% -0.69 0.85);
+    background: var(--action-details);
 }
-
 .details-action:hover {
-    background: #f7faf9;
+    background: var(--action-details-hover);
 }
 
 .note-action {
-    background: lab(71.17% -38.53 -1.64);
+    background: var(--action-note);
 }
-
 .note-action:hover {
-    background: #1d6b4a;
+    background: var(--action-note-hover);
 }
 
 .delete-action {
-    background: #c23105;
+    background: var(--action-delete);
 }
-
 .delete-action:hover {
-    background: #c23105;
+    background: var(--action-delete-hover);
 }
 
 /*==================================
@@ -297,7 +322,7 @@ tbody tr:hover {
         flex-direction: column;
     }
 
-    .employees-search-box input,
+    .search-input-wrapper,
     .employees-search-box button {
         width: 100%;
     }
@@ -313,38 +338,4 @@ tbody tr:hover {
     .pagination-box {
         flex-direction: column;
     }
-}
-/*==================================
-    Table - تحديث عرض عمود الإجراءات
-===================================*/
-
-.actions-col {
-    /* زيادة العرض ليتحمل الأزرار الأربعة بجانب بعضها بشكل مريح */
-    width: 320px !important; 
-    min-width: 320px;
-}
-
-/*==================================
-    Actions - تعديل طريقة ترتيب الأزرار
-===================================*/
-
-.employee-actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* منع الأزرار من النزول لسطر جديد */
-    flex-wrap: nowrap !important; 
-    gap: 6px; /* تقليل المسافة قليلاً لتوفير المساحة */
-}
-
-.table-action-btn {
-    padding: 8px 10px; /* تقليص الحواف الجانبية قليلاً لتناسب الحجم الجديد */
-    border-radius: 8px;
-    color: white;
-    font-size: 13px;
-    /* منع النص داخل الزر من النزول لسطر جديد */
-    white-space: nowrap; 
-    /* إعطاء الأزرار مرونة متساوية في التمدد والانكماش */
-    flex: 1; 
-    text-align: center;
 }

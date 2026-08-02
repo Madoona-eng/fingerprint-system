@@ -1,10 +1,5 @@
 <div class="employee-form-card form-page-card" dir="rtl">
-  <div class="employee-form-title-row">
-    <div>
-      <span class="employee-form-tag">{{ selectedEmployeeId ? 'تعديل بيانات' : 'إضافة جديدة' }}</span>
-      <h3>{{ selectedEmployeeId ? 'تعديل موظف' : 'إضافة موظف يدوي' }}</h3>
-    </div>
-  </div>
+
 
   <form [formGroup]="employeeForm" (ngSubmit)="employeeForm.valid && submitForm.emit()">
     <div class="form-group">

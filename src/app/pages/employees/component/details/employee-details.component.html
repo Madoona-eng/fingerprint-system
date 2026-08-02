@@ -1,9 +1,11 @@
 <section class="employee-details-page" dir="rtl">
+  <button type="button" class="details-back-btn" (click)="back.emit()">
+   → رجوع للقائمة 
+  </button>
+
   <div class="employee-details-hero">
     <div class="hero-top">
-      <button type="button" class="details-back-btn" (click)="back.emit()">رجوع للقائمة</button>
       <div class="hero-title">
-        <span class="hero-badge">تفاصيل الموظف</span>
         <h1>{{ selectedEmployeeForDetails?.name || '-' }}</h1>
         <p>كود الموظف: <strong>{{ selectedEmployeeForDetails?.employeeCode || '-' }}</strong></p>
       </div>
@@ -75,6 +77,18 @@
         <span>القسم</span>
         <strong>{{ selectedEmployeeForDetails?.departmentName || selectedEmployeeForDetails?.departmentId || '-' }}</strong>
       </div>
+      <div class="info-box">
+        <span>وقت الحضور</span>
+        <strong>{{ selectedEmployeeForDetails?.scheduleIn || '-' }}</strong>
+      </div>
+      <div class="info-box">
+        <span>وقت الانصراف</span>
+        <strong>{{ selectedEmployeeForDetails?.scheduleOut || '-' }}</strong>
+      </div>
+      <div class="info-box">
+        <span>وقت السماح</span>
+        <strong>{{ selectedEmployeeForDetails?.graceTime || '-' }}</strong>
+      </div>
     </div>
   </div>
 
@@ -107,7 +121,7 @@
       <div class="section-actions">
         <span *ngIf="isLoadingEmployeeDetails">جاري التحميل...</span>
         <span *ngIf="!isLoadingEmployeeDetails">{{ employeeDetailsRows.length }} نتيجة</span>
-        <button type="button" class="ghost-btn" (click)="exportDetails.emit()">تصدير Excel</button>
+        <button type="button" class="export-excel-btn" (click)="exportDetails.emit()">تصدير لملف اكسل</button>
       </div>
     </div>
 
@@ -116,7 +130,6 @@
         <thead>
           <tr>
             <th>التاريخ</th>
-            
             <th>معاد الحضور</th>
             <th>معاد الانصراف</th>
             <th>وقت الحضور</th>
@@ -124,7 +137,7 @@
             <th>وقت السماح</th>
             <th>ساعات العمل</th>
             <th>دقائق التأخير</th>
-            <th>دقائق الإضافي</th>
+            <th>الوقت الاضافي</th>
             <th>الحالة</th>
             <th>ملاحظات</th>
           </tr>

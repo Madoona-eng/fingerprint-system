@@ -17,7 +17,7 @@
    منطقة الهيرو (العنوان وبطاقة الفلتر)
    ========================================== */
 .employee-details-hero {
-   background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+   background: var(--main-color);
   border-radius: 16px;
   padding: 32px;
   color: #ffffff;
@@ -26,31 +26,32 @@
   flex-direction: column;
   gap: 24px;
 }
-
 .hero-top {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
-/* زر الرجوع */
 .details-back-btn {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  align-self: flex-start;
+  background-color: var(--main-color);
+  color: #ffffff; 
+  border: 1px solid #d8dee8;
   padding: 10px 20px;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .details-back-btn:hover {
-  background-color: #ffffff;
-  color: #dddf9b;
+  background-color: var(--main-color-hover);
+  color: #ffffff; 
   transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
 }
 
 /* تفاصيل العنوان */
@@ -165,7 +166,7 @@
 
 /* أزرار الفلترة */
 .details-main-btn {
-  background-color: #3b82f6;
+  background-color: var(--main-color);
   color: #ffffff;
   border: none;
   padding: 12px 24px;
@@ -177,19 +178,19 @@
 }
 
 .details-main-btn:hover:not(:disabled) {
-  background-color: #c8cf5c;
+  background-color: var(--main-color-hover);
   transform: translateY(-1px);
 }
 
 .details-main-btn:disabled {
-  background-color: #0f478b;
+  background-color: #94a3b8;
   cursor: not-allowed;
 }
 
 .details-secondary-btn {
-  background-color: #053c74;
-  color: #4a5568;
-  border: 1px solid #e2e8f0;
+  background-color: #64748b;
+  color: #ffffff;
+  border: none;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -199,10 +200,8 @@
 }
 
 .details-secondary-btn:hover {
-  background-color: #e2e8f0;
-  color: #2d3748;
+  background-color: #475569;
 }
-
 /* ==========================================
    بطاقة بيانات الموظف (القسم)
    ========================================== */
@@ -295,8 +294,9 @@
 }
 
 .employee-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
 }
 
@@ -307,7 +307,9 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.5em;
+  min-width: 200px;
+  flex: 0 1 220px;
 }
 
 .info-box span {
@@ -341,20 +343,22 @@
   gap: 16px;
 }
 
-.ghost-btn {
-  /* background-color: transparent; */
-  color: #4de7b4;
-  border: 1px solid #10b981;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
+
+.export-excel-btn {
+    background: var(--excel-color) !important;
+    color: #fff !important;
+    border: 1px solid var(--excel-color) !important;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
 }
 
-.ghost-btn:hover {
-  background-color: #1083b9;
-  color: #ffffff;
+.export-excel-btn:hover {
+    background: var(--excel-color-hover) !important;
+     color: #ffffff;
+
 }
 
 /* تعديل حاوية الجدول لإخفاء السكرول */

@@ -25,6 +25,7 @@ import { EmployeeEditComponent } from './edit/employee-edit.component';
 import { EmployeeDetailsComponent } from './details/employee-details.component';
 import { EmployeeDeleteModalComponent } from './delete/employee-delete-modal.component';
 import { EmployeeNoteModalComponent } from './note/employee-note-modal.component';
+import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
 
 interface UnknownDepartment {
   key: string;
@@ -229,30 +230,7 @@ getDepartmentNameById(id: number | null | undefined): string {
   }
 
   getStatusLabel(status: unknown): string {
-    const value = String(status ?? '').trim();
-
-    if (!value) {
-      return '-';
-    }
-
-    const normalized = value.toLowerCase();
-
-    const translations: Record<string, string> = {
-      present: 'حاضر',
-      absent: 'غائب',
-      late: 'متأخر',
-      earlydeparture: 'انصراف مبكر',
-      early_departure: 'انصراف مبكر',
-      overtime: 'إضافي',
-      ontime: 'في الميعاد',
-      'في الميعاد': 'في الميعاد',
-      حاضر: 'حاضر',
-      غائب: 'غائب',
-      متأخر: 'متأخر',
-      'انصراف مبكر': 'انصراف مبكر'
-    };
-
-    return translations[normalized] || value;
+    return getAttendanceStatusLabel(status);
   }
 
   getNoteLabel(notes: string | null | undefined): string {
@@ -1103,11 +1081,7 @@ openEmployeeDetails(employee: Employee): void {
 
         const data = response?.data || response;
 
-        this.selectedEmployeeForDetails = this.normalizeEmployeeBooleans({
-          ...(this.selectedEmployeeForDetails || {}),
-          ...data
-        });
-
+        this.selectedEmployeeForDetails = this.normalizeEmployeeBooleans(data);
         this.employeeDetailsRaw = data;
         this.employeeDetailsInfo = data;
 

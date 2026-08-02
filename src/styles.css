@@ -5,6 +5,23 @@
   color-scheme: light;
   color: #0f172a;
   background-color: #f8fafc;
+
+  --main-color: #3d90c3;
+  --main-color-hover: #2f739e;
+  --excel-color: #217346;
+  --excel-color-hover: #1a5c38;
+
+    --action-edit: #f5a623;
+    --action-edit-hover: #d6890a;
+
+    --action-details: #3d90c3;
+    --action-details-hover: #2f739e;
+
+    --action-note: #65777a;
+    --action-note-hover: #4f6063;
+
+    --action-delete: #c23105;
+    --action-delete-hover: #9c2704;
 }
 
 body {
