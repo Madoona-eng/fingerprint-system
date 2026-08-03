@@ -1,4 +1,7 @@
 <div class="attendance-page" dir="rtl">
+  <!-- ==========================================
+       الهيدر العام لصفحة الحضور والانصراف
+  ========================================== -->
   <section class="attendance-card">
     <div class="upload-info">
       <h1>الحضور والانصراف</h1>
@@ -6,6 +9,9 @@
     </div>
   </section>
 
+  <!-- ==========================================
+       أزرار التابات (رفع Excel / عرض السجلات / ملخص التأخير)
+  ========================================== -->
   <section class="attendance-page-tabs">
     <button
       type="button"
@@ -36,7 +42,10 @@
   </section>
 
   <ng-container [ngSwitch]="activeAttendancePage">
-    <!-- صفحة رفع شيت الحضور -->
+
+    <!-- ==========================================
+         الصفحة 1: رفع شيت الحضور (Import)
+    ========================================== -->
     <section *ngSwitchCase="'import'" class="attendance-sub-page">
       <section class="attendance-card">
         <div class="upload-info">
@@ -127,15 +136,17 @@
       </section>
     </section>
 
-    <!-- صفحة عرض سجلات الحضور -->
+    <!-- ==========================================
+         الصفحة 2: عرض سجلات الحضور (Report)
+    ========================================== -->
     <section *ngSwitchCase="'report'" class="attendance-sub-page">
       <section class="attendance-card">
         <div class="upload-info">
           <h1>عرض سجلات الحضور والانصراف</h1>
-          <p>قم بإختيار الفترة والقسم والحالة لعرض سجلات الحضور والانصراف المحفوظة في السيستم.</p>
         </div>
 
         <div class="attendance-filter-box">
+          
           <div class="filter-field date-field">
             <label>من تاريخ</label>
 
@@ -244,7 +255,7 @@
             </select>
           </div>
 
-          <div class="filter-field needs-review-field">
+          <div class="filter-field">
             <label>يحتاج مراجعة</label>
             <select [(ngModel)]="dateRangeNeedsReview" [ngModelOptions]="{ standalone: true }">
               <option [ngValue]="null">الكل</option>
@@ -252,26 +263,23 @@
               <option [ngValue]="false">لا يحتاج مراجعة</option>
             </select>
           </div>
+                  
+       </div>
 
-          <button
-            type="button"
-            class="ghost-btn"
-            (click)="applyDateRangeFilter()"
-          >
+       <div class="filter-btns">
+           <button type="button" class="apply-search-btn" (click)="applyDateRangeFilter()">
             تطبيق الفلتر
           </button>
 
-          <button type="button" class="ghost" (click)="clearDateRangeFilter()">مسح الفلتر</button>
+          <button type="button" class="clear-search-btn" (click)="clearDateRangeFilter()">
+            مسح الفلتر
+          </button>
 
-          <button type="button" class="ghost-btn" (click)="exportAttendanceReportToExcel()">
+          <button type="button" class="export-excel-btn" (click)="exportAttendanceReportToExcel()">
             تصدير لملف اكسل
           </button>
-        </div>
-
-        <div *ngIf="dateRangeSuccessMessage" class="success-message">
-          {{ dateRangeSuccessMessage }}
-        </div>
-
+       </div>
+<!--  -->
         <div *ngIf="dateRangeErrorMessage" class="error-message">
           {{ dateRangeErrorMessage }}
         </div>
@@ -406,22 +414,16 @@
           </table>
         </div>
 
-<div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
-  <div class="notes-modal" (click)="$event.stopPropagation()">
+        <!-- مودال عرض ملاحظات الحضور -->
+        <div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
+          <div class="notes-modal" (click)="$event.stopPropagation()">
+            <div class="notes-modal-header">
+              <button type="button" class="notes-modal-close" (click)="closeNotesModal()">
+                ✕
+              </button>
 
-    <!-- Header -->
-    <div class="notes-modal-header">
-
-      <button
-        type="button"
-        class="notes-modal-close"
-        (click)="closeNotesModal()">
-        ✕
-      </button>
-
-      <h3>{{ notesModalTitle }}</h3>
-
-    </div>
+              <h3>{{ notesModalTitle }}</h3>
+            </div>
 
     <!-- Body -->
     <div class="notes-modal-body">
@@ -499,7 +501,9 @@
       </div>
     </section>
 
-    <!-- صفحة ملخص التأخير -->
+    <!-- ==========================================
+         الصفحة 3: ملخص التأخير (Late Summary)
+    ========================================== -->
     <section *ngSwitchCase="'lateSummary'" class="attendance-sub-page">
       <section class="attendance-card">
         <div class="upload-info">
@@ -713,6 +717,10 @@
         </div>
       </section>
     </section>
+
+    <!-- ==========================================
+         الصفحة 4: تعديل سجل حضور واحد (Edit)
+    ========================================== -->
     <section *ngSwitchCase="'edit'" class="attendance-sub-page">
       <section class="attendance-card edit-attendance-card">
         <div class="upload-info">
@@ -744,15 +752,6 @@
         </div>
 
         <div class="attendance-edit-form">
-          <!-- <div class="filter-field">
-        <label>وقت الحضور</label>
-        <input
-          type="time"
-          [(ngModel)]="attendanceEditActualIn"
-          [ngModelOptions]="{ standalone: true }"
-        />
-      </div> -->
-
           <div class="filter-field">
             <label>الحالة</label>
             <select [(ngModel)]="attendanceEditStatus" [ngModelOptions]="{ standalone: true }">

@@ -8,6 +8,6 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(), provideAnimationsAsync() // <-- وبكده بنحل مشكلة الـ NullInjectorError تماماً
+    provideHttpClient(), provideAnimationsAsync(), provideAnimationsAsync() // <-- وبكده بنحل مشكلة الـ NullInjectorError تماماً
   ]
 };
