@@ -121,6 +121,32 @@
     background: #2dbb9c !important;
 }
 
+.system-settings-toggle-btn {
+    height: 38px;
+    border: none;
+    border-radius: 999px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .25s;
+}
+
+.system-settings-toggle-btn.on {
+    background: #34d399;
+    color: #064e3b;
+}
+
+.system-settings-toggle-btn.off {
+    background: #fb7185;
+    color: #7f1d1d;
+}
+
+.system-settings-toggle-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .ghost-btn {
     background: rgb(9, 112, 74) !important;
     color: #070c11 !important;

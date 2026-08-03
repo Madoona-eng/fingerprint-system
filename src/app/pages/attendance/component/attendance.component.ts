@@ -913,8 +913,12 @@ markAttendanceReviewed(row: any): void {
         return;
       }
 
-      row.notes = 'تمت المراجعة';
+      row.notes = this.appendReviewNoteToNotes(row.notes);
       row.isReviewed = true;
+
+      if (this.notesModalOpen) {
+        this.notesModalEntries = this.getAttendanceNotes(row.notes);
+      }
 
       this.dateRangeSuccessMessage = 'تم اعتماد مراجعة السجل بنجاح';
       this.reviewingAttendanceId = null;
@@ -922,7 +926,7 @@ markAttendanceReviewed(row: any): void {
     error: (err) => {
       console.log('Mark attendance reviewed error:', err);
 
-this.dateRangeErrorMessage = this.translateApiMessage(
+      this.dateRangeErrorMessage = this.translateApiMessage(
           err?.error?.message || err?.message || 'حدث خطأ أثناء اعتماد مراجعة سجل الحضور',
           'حدث خطأ أثناء اعتماد مراجعة سجل الحضور'
         );
@@ -2462,7 +2466,12 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
 
   getNotesList(notes: unknown): string[] {
     const normalized = this.normalizeNotesValue(notes);
-    return normalized ? normalized.split('،').map((note) => note.trim()).filter(Boolean) : [];
+    return normalized
+      ? normalized
+          .split(/[,،;]/)
+          .map((note) => note.trim())
+          .filter(Boolean)
+      : [];
   }
 
   getAttendanceNotes(notes: unknown): Array<{ content: string; displayName?: string; createdAt?: string }> {
@@ -2498,9 +2507,9 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
         .filter((note): note is { content: string; displayName: string; createdAt: string } => Boolean(note));
     }
 
-    const singleNote = this.normalizeNoteText(notes);
+    const notesList = this.getNotesList(notes);
 
-    return singleNote ? [{ content: singleNote }] : [];
+    return notesList.length > 0 ? notesList.map((note) => ({ content: note })) : [];
   }
 
   getNotesLabel(notes: unknown): string {
@@ -2566,6 +2575,20 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
 
   private normalizeNotesForEditor(notes: unknown): string {
     return this.normalizeNotesValue(notes) || '';
+  }
+
+  private appendReviewNoteToNotes(notes: unknown): string {
+    const normalized = this.normalizeNotesValue(notes);
+
+    if (!normalized) {
+      return 'تمت المراجعة';
+    }
+
+    if (normalized.includes('تمت المراجعة') || normalized.toLowerCase().includes('reviewed')) {
+      return normalized;
+    }
+
+    return `${normalized}، تمت المراجعة`;
   }
 
   private normalizeNoteText(value: unknown): string {

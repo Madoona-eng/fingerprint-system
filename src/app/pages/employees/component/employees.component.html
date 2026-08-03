@@ -7,8 +7,6 @@
         رفع شيت الحضور، استخراج الموظفين بدون تكرار، أو إضافة وتعديل بيانات الموظفين يدويًا.
       </p>
     </div>
-
-   
   </section>
 
   <section class="employee-page-tabs">
@@ -27,6 +25,7 @@
     >
       👥 قائمة الموظفين
     </button>
+    
 
     <button
       type="button"
@@ -176,12 +175,15 @@
         [pageNumber]="pageNumber"
         [totalPages]="totalPages"
         [totalCount]="totalCount"
+        [systemSettingsData]="systemSettingsData"
+        [systemSettingsUpdating]="systemSettingsUpdating"
         (searchTermChange)="searchTerm = $event"
         (departmentChange)="departmentId = $event; pageNumber = 1; loadEmployees()"
         (locationChange)="onLocationChanged($event)"
         (search)="searchEmployees()"
         (clear)="clearSearch()"
         (export)="exportEmployeesListToExcel()"
+        (toggleSystemSettings)="toggleSystemSettings()"
         (editEmployee)="editEmployee($event)"
         (openDetails)="openEmployeeDetails($event)"
         (openNote)="openNoteModal($event)"

@@ -13,6 +13,7 @@
       (input)="searchTermChange.emit(searchTerm)"
       (keyup.enter)="onSearch()"
     />
+        <button type="button" (click)="onSearch()">بحث</button>
 
     <!-- قائمة اختر الموقع -->
     <div class="custom-select-wrapper" *ngIf="isSuperAdmin">
@@ -44,7 +45,18 @@
       </select>
     </div>
 
-    <button type="button" (click)="onSearch()">بحث</button>
+
+    <button
+      type="button"
+      class="system-settings-toggle-btn"
+      [class.on]="systemSettingsData"
+      [class.off]="!systemSettingsData"
+      [disabled]="systemSettingsUpdating || systemSettingsData === null"
+      (click)="onToggleSystemSettings()"
+    >
+      {{ systemSettingsData ? 'ON' : 'OFF' }}
+    </button>
+
     <button type="button" class="clear-search-btn" (click)="onClear()">مسح الفلتره</button>
     <button type="button" class="ghost-btn" (click)="export.emit()">تصدير Excel</button>
   </div>
