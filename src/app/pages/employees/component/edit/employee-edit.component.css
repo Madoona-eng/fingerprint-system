@@ -23,9 +23,20 @@
   backdrop-filter: blur(12px);
 }
 
-.back-btn {
-  margin: 14px;
-  background: transparent;
+/* Container الرئيسي للصفحة */
+.employee-edit-page {
+  display: flex !important;
+  flex-direction: column !important; /* بيخلي الزر ينزل فوق الكارد */
+  align-items: flex-start;          /* بيحاذي الزر مع بداية الكارد على اليمين */
+  width: 100%;
+  max-width: 800px;                 /* أو نفس العرض الخاص بالكارد عندك */
+  margin: 0 auto;                   /* لتوسيط الصفحة */
+}
+
+/* ستايل الزرار بتاعك زي ما هو بالضبط مع ضبط المارجن */
+.back-btn.page-back-btn {
+  margin: 0 0 16px 0; /* مسافة 16px أسفل الزرار فقط بينه وبين الكارد */
+  /* background: transparent; */
   border: 1px solid rgba(15, 75, 168, 0.08);
   color: #0f70a8;
   font-weight: 700;
@@ -37,6 +48,15 @@
   align-items: center;
   gap: 8px;
   transition: background 150ms ease, transform 80ms ease, box-shadow 150ms ease;
+}
+
+.back-btn.page-back-btn:hover {
+  background: rgba(15, 112, 168, 0.05);
+}
+
+/* تأكيدي إن الحاوية بتاعة الكارد بتاخد عرض 100% */
+.employee-edit-shell {
+  width: 100%;
 }
 
 .back-btn:hover {
@@ -110,4 +130,11 @@
   .employee-edit-form-wrap {
     padding: 16px;
   }
+}
+/* الكارد/الحاوية الخارجية ذات الخلفية الموف */
+.employee-edit-shell {
+  background: transparent !important; /* إلغاء الخلفية */
+  box-shadow: none !important;        /* إلغاء الظل الخارجي لو موجود */
+  border: none !important;            /* إلغاء أي حدود خارجية */
+  padding: 0 !important;             /* إزالة البادنج الخارجي ليكون الزرار حُر */
 }

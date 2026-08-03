@@ -80,15 +80,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: none;
+    background: #f6f8fb;
     border: none;
     cursor: pointer;
     color: #8a97a8;
     padding: 0;
     flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
 }
 
 .search-icon-btn:hover {
+    background: #eef4ff;
     color: var(--main-color-hover);
 }
 
@@ -119,7 +123,7 @@
     box-shadow: 0 0 0 4px rgba(23, 162, 172, 0.14);
 }
 
-.employees-search-box button,
+.employees-search-box > button,
 .pagination-box button,
 .table-action-btn {
     border: none;
@@ -128,7 +132,7 @@
     font-weight: 600;
 }
 
-.employees-search-box button {
+.employees-search-box > button {
     height: 46px;
     padding: 0 22px;
     border-radius: 10px;
@@ -136,7 +140,7 @@
     color: white;
 }
 
-.employees-search-box button:hover {
+.employees-search-box > button:hover {
     background: var(--main-color-hover);
 }
 
@@ -172,6 +176,54 @@
 .system-settings-toggle-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.system-settings-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.confirm-trigger {
+    height: 28px;
+    width: 28px;
+    border-radius: 6px;
+    border: none;
+    background: #eef2ff;
+    color: #1f3b5b;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.confirm-trigger:hover {
+    background: #e0e7ff;
+}
+
+.confirm-row {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(15,23,42,0.04);
+    padding: 6px 8px;
+    border-radius: 8px;
+}
+
+.confirm-row .confirm-yes {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.confirm-row .confirm-no {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
 }
 
 .export-excel-btn {
@@ -362,4 +414,226 @@ tbody tr:hover {
     .pagination-box {
         flex-direction: column;
     }
+}
+.system-status-card {
+
+  position: relative;
+  width: 470px;
+}
+
+.status-card {
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: white;
+
+  border-radius: 22px;
+
+  padding: 18px 22px;
+
+  box-shadow: 0 12px 35px rgba(0,0,0,.08);
+
+  border: 2px solid transparent;
+
+  transition: .3s;
+
+}
+
+.status-card.online{
+
+  border-color:#21b26f33;
+
+}
+
+.status-card.offline{
+
+  border-color:#ef444433;
+
+}
+
+.status-icon{
+
+    width:64px;
+    height:64px;
+
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:#eef7ff;
+
+    margin-left:18px;
+
+    mat-icon{
+
+        font-size:30px;
+        width:30px;
+        height:30px;
+
+        color:#2b7bbb;
+
+    }
+
+}
+
+.status-content{
+
+    flex:1;
+
+    h4{
+
+        margin:0;
+        font-size:20px;
+        font-weight:700;
+
+    }
+
+    p{
+
+        margin-top:6px;
+        color:#666;
+        font-size:14px;
+
+    }
+
+}
+
+.online-text{
+
+    color:#16a34a;
+
+}
+
+.offline-text{
+
+    color:#dc2626;
+
+}
+
+.status-actions{
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+}
+
+.confirm-popup{
+
+    position:absolute;
+
+    top:115%;
+
+    left:25px;
+
+    width:360px;
+
+    background:white;
+
+    border-radius:20px;
+
+    padding:24px;
+
+    box-shadow:0 18px 45px rgba(0,0,0,.15);
+
+    z-index:100;
+
+}
+
+.popup-icon{
+
+    width:70px;
+    height:70px;
+
+    border-radius:50%;
+
+    background:#ffecec;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    margin:auto;
+
+    mat-icon{
+
+        color:#dc2626;
+        font-size:34px;
+        width:34px;
+        height:34px;
+
+    }
+
+}
+
+.confirm-popup h3{
+
+    text-align:center;
+
+    margin:18px 0 12px;
+
+    color:#dc2626;
+
+}
+
+.confirm-popup p{
+
+    text-align:center;
+
+    color:#666;
+
+    line-height:1.8;
+
+}
+
+.popup-actions{
+
+    display:flex;
+
+    gap:12px;
+
+    margin-top:22px;
+
+}
+
+.confirm-btn{
+
+    flex:1;
+
+    height:48px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:#dc2626;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-weight:700;
+
+}
+
+.cancel-btn{
+
+    flex:1;
+
+    height:48px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:#eef3f7;
+
+    cursor:pointer;
+
+    font-weight:600;
+
 }

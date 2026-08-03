@@ -2480,41 +2480,124 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
   }
 
   getAttendanceNotes(notes: unknown): Array<{ content: string; displayName?: string; createdAt?: string }> {
+    type NoteEntry = { content: string; displayName?: string; createdAt?: string };
+
     if (Array.isArray(notes)) {
-      return notes
-        .map((note) => {
-          if (!note || typeof note !== 'object') {
-            return null;
-          }
+      const entries: NoteEntry[] = notes.reduce((acc, note) => {
+        if (!note || typeof note !== 'object') {
+          return acc;
+        }
 
-          const candidate = note as {
-            content?: string;
-            text?: string;
-            note?: string;
-            displayName?: string;
-            createdBy?: string;
-            createdAt?: string;
-            createdOn?: string;
-          };
+        const candidate = note as {
+          content?: string;
+          text?: string;
+          note?: string;
+          displayName?: string;
+          createdBy?: string;
+          createdAt?: string;
+          createdOn?: string;
+        };
 
-          const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
+        const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
+        if (!content) {
+          return acc;
+        }
 
-          if (!content) {
-            return null;
-          }
+        acc.push({
+          content,
+          displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+          createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn)
+        });
 
-          return {
-            content,
-            displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
-            createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn)
-          };
-        })
-        .filter((note): note is { content: string; displayName: string; createdAt: string } => Boolean(note));
+        return acc;
+      }, [] as NoteEntry[]);
+
+      if (entries.length === 0) {
+        return [];
+      }
+
+      return this.attachReviewMetadata(entries);
     }
 
-    const notesList = this.getNotesList(notes);
+    if (typeof notes === 'string') {
+      return this.parseNotesString(notes);
+    }
 
-    return notesList.length > 0 ? notesList.map((note) => ({ content: note })) : [];
+    if (typeof notes === 'object' && notes !== null) {
+      const candidate = notes as {
+        content?: string;
+        text?: string;
+        note?: string;
+        displayName?: string;
+        createdBy?: string;
+        createdAt?: string;
+        createdOn?: string;
+      };
+
+      const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
+      if (!content) {
+        return [];
+      }
+
+      return this.attachReviewMetadata([
+        {
+          content,
+          displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+          createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn)
+        }
+      ]);
+    }
+
+    return [];
+  }
+
+  private parseNotesString(notes: string): Array<{ content: string; displayName?: string; createdAt?: string }> {
+    const normalized = this.normalizeNotesValue(notes);
+    if (!normalized) {
+      return [];
+    }
+
+    const parts = normalized
+      .split(/[,،؛;]/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    const entries: Array<{ content: string; displayName?: string; createdAt?: string }> = [];
+
+    for (const part of parts) {
+      if (this.isReviewMarker(part)) {
+        if (entries.length > 0) {
+          entries[entries.length - 1].displayName = this.getReviewNoteAuthor();
+          entries[entries.length - 1].createdAt = new Date().toISOString();
+        }
+        continue;
+      }
+
+      entries.push({ content: part });
+    }
+
+    return entries.length > 0 ? entries : [];
+  }
+
+  private attachReviewMetadata(entries: Array<{ content: string; displayName?: string; createdAt?: string }>) {
+    return entries.map((entry) => {
+      if (this.isReviewMarker(entry.content)) {
+        return {
+          content: entry.content,
+          displayName: this.getReviewNoteAuthor(),
+          createdAt: new Date().toISOString()
+        };
+      }
+      return entry;
+    });
+  }
+
+  private getReviewNoteAuthor(): string {
+    return this.authService.getUserName() || 'المستخدم';
+  }
+
+  private isReviewMarker(text: string): boolean {
+    return /^(تمت المراجعة|reviewed)$/i.test(text.trim());
   }
 
   getNotesLabel(notes: unknown): string {
@@ -2582,18 +2665,84 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     return this.normalizeNotesValue(notes) || '';
   }
 
-  private appendReviewNoteToNotes(notes: unknown): string {
+  private appendReviewNoteToNotes(notes: unknown): unknown {
+    const reviewNoteContent = 'تمت المراجعة';
     const normalized = this.normalizeNotesValue(notes);
 
-    if (!normalized) {
-      return 'تمت المراجعة';
+    if (Array.isArray(notes)) {
+      const existingNotes: Array<{ content: string; displayName?: string; createdAt?: string }> = notes.reduce(
+        (acc, note) => {
+          if (!note || typeof note !== 'object') {
+            return acc;
+          }
+
+          const candidate = note as {
+            content?: string;
+            text?: string;
+            note?: string;
+            displayName?: string;
+            createdBy?: string;
+            createdAt?: string;
+            createdOn?: string;
+          };
+
+          const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
+          if (!content) {
+            return acc;
+          }
+
+          acc.push({
+            content,
+            displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+            createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn)
+          });
+
+          return acc;
+        },
+        [] as Array<{ content: string; displayName?: string; createdAt?: string }>
+      );
+
+      if (existingNotes.some((note) => note.content.includes(reviewNoteContent) || note.content.toLowerCase().includes('reviewed'))) {
+        return notes;
+      }
+
+      return [...existingNotes, { content: reviewNoteContent, createdAt: new Date().toISOString() }];
     }
 
-    if (normalized.includes('تمت المراجعة') || normalized.toLowerCase().includes('reviewed')) {
+    if (typeof notes === 'object' && notes !== null) {
+      const candidate = notes as {
+        content?: string;
+        text?: string;
+        note?: string;
+        displayName?: string;
+        createdBy?: string;
+        createdAt?: string;
+        createdOn?: string;
+      };
+
+      const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
+      const noteObject = content ? {
+        content,
+        displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+        createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn)
+      } : null;
+
+      if (noteObject && (noteObject.content.includes(reviewNoteContent) || noteObject.content.toLowerCase().includes('reviewed'))) {
+        return notes;
+      }
+
+      return noteObject ? [noteObject, { content: reviewNoteContent, createdAt: new Date().toISOString() }] : reviewNoteContent;
+    }
+
+    if (!normalized) {
+      return reviewNoteContent;
+    }
+
+    if (normalized.includes(reviewNoteContent) || normalized.toLowerCase().includes('reviewed')) {
       return normalized;
     }
 
-    return `${normalized}، تمت المراجعة`;
+    return `${normalized}، ${reviewNoteContent}`;
   }
 
   private normalizeNoteText(value: unknown): string {

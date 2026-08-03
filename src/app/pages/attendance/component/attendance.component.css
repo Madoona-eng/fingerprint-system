@@ -378,31 +378,52 @@
 .notes-modal-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .notes-modal-item {
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(248, 250, 252, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-}
-
-.notes-modal-text {
-  font-size: 14px;
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.7;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .notes-modal-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 6px;
-  color: #0369a1;
-  font-size: 12px;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.notes-modal-user {
+  color: #0f172a;
+}
+
+.notes-modal-time {
+  color: #475569;
+  font-size: 13px;
+}
+
+.notes-modal-card {
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.06);
+}
+
+.notes-modal-text {
+  font-size: 15px;
   font-weight: 700;
+  color: #0f172a;
+  line-height: 1.8;
 }
 
 .notes-modal-empty {

@@ -2,11 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Employee } from '../../model/models';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-employees-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatSlideToggleModule, MatButtonModule],
   templateUrl: './employees-list.component.html',
   styleUrls: ['./employees-list.component.css']
 })
@@ -24,6 +27,7 @@ export class EmployeesListComponent {
   @Input() totalPages = 0;
   @Input() systemSettingsData: boolean | null = null;
   @Input() systemSettingsUpdating = false;
+  confirmToggle = false;
 
   // 1. إضافة إدخال الصلاحية هنا
   @Input() isSuperAdmin = false; 
@@ -46,8 +50,30 @@ export class EmployeesListComponent {
     this.search.emit();
   }
 
-  onToggleSystemSettings(): void {
+  onToggleClick(): void {
+    if (this.systemSettingsUpdating || this.systemSettingsData === null) {
+      return;
+    }
+
+    // Immediate toggle on pill click
     this.toggleSystemSettings.emit();
+  }
+
+  openConfirm(): void {
+    if (this.systemSettingsUpdating || this.systemSettingsData === null) {
+      return;
+    }
+
+    this.confirmToggle = true;
+  }
+
+  confirmToggleYes(): void {
+    this.toggleSystemSettings.emit();
+    this.confirmToggle = false;
+  }
+
+  confirmToggleNo(): void {
+    this.confirmToggle = false;
   }
 
   onClear(): void {

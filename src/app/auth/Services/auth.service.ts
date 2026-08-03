@@ -86,6 +86,11 @@ export class AuthService {
     return locationId;
   }
 
+  getUserName(): string | null {
+    const storedUserName = localStorage.getItem('userName');
+    return storedUserName ? storedUserName.trim() : null;
+  }
+
   private extractRoleFromToken(token: string | null): string | null {
     const decodedPayload = this.decodeTokenPayload(token);
 

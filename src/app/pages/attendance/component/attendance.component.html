@@ -437,32 +437,21 @@
 
           <div
             *ngFor="let note of notesModalEntries"
-            class="chat-message">
+            class="notes-modal-item">
 
-            <div class="chat-bubble">
+            <div class="notes-modal-meta" *ngIf="note.displayName || note.createdAt">
+              <span class="notes-modal-user" *ngIf="note.displayName">
+                {{ note.displayName }}
+              </span>
+              <span class="notes-modal-time" *ngIf="note.createdAt">
+                {{ note.createdAt | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
 
-              <div class="chat-text">
+            <div class="notes-modal-card">
+              <div class="notes-modal-text">
                 {{ note.content }}
               </div>
-
-              <div
-                class="chat-footer"
-                *ngIf="note.displayName || note.createdAt">
-
-                <span
-                  class="chat-user"
-                  *ngIf="note.displayName">
-                  {{ note.displayName }}
-                </span>
-
-                <span
-                  class="chat-time"
-                  *ngIf="note.createdAt">
-                  {{ note.createdAt | date:'dd/MM/yyyy HH:mm' }}
-                </span>
-
-              </div>
-
             </div>
 
           </div>

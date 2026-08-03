@@ -3,10 +3,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { EmployeeFormComponent } from '../form/employee-form.component';
 
+import { MatIconModule } from '@angular/material/icon'; 
+
 @Component({
   selector: 'app-employee-edit',
   standalone: true,
-  imports: [CommonModule, EmployeeFormComponent],
+  imports: [CommonModule, EmployeeFormComponent, MatIconModule],
   templateUrl: './employee-edit.component.html',
   styleUrls: ['./employee-edit.component.css']
 })
