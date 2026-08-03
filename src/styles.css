@@ -6,22 +6,29 @@
   color: #0f172a;
   background-color: #f8fafc;
 
-  --main-color: #3d90c3;
-  --main-color-hover: #2f739e;
+  --main-color: #3bc3e0;
+  --main-color-hover: #22d3ee;
+
   --excel-color: #217346;
   --excel-color-hover: #1a5c38;
 
-    --action-edit: #f5a623;
-    --action-edit-hover: #d6890a;
+  --action-edit: #f5a623;
+  --action-edit-hover: #d6890a;
 
-    --action-details: #3d90c3;
-    --action-details-hover: #2f739e;
+  --action-details: #3d90c3;
+  --action-details-hover: #2f739e;
 
-    --action-note: #65777a;
-    --action-note-hover: #4f6063;
+  --action-note: #65777a;
+  --action-note-hover: #4f6063;
 
-    --action-delete: #c23105;
-    --action-delete-hover: #9c2704;
+  --action-delete: #c23105;
+  --action-delete-hover: #9c2704;
+
+  --filter-apply-color: #3bc3e0;
+  --filter-apply-hover: #22d3ee;
+
+  --filter-clear-color: #64748b;
+  --filter-clear-hover: #475569;
 }
 
 body {
@@ -51,6 +58,11 @@ li {
   line-height: inherit !important;
 }
 
-
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}

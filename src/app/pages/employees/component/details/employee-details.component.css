@@ -166,7 +166,7 @@
 
 /* أزرار الفلترة */
 .details-main-btn {
-  background-color: var(--main-color);
+  background-color: var(--filter-apply-color);
   color: #ffffff;
   border: none;
   padding: 12px 24px;
@@ -178,7 +178,7 @@
 }
 
 .details-main-btn:hover:not(:disabled) {
-  background-color: var(--main-color-hover);
+  background-color: var(--filter-apply-hover);
   transform: translateY(-1px);
 }
 
@@ -188,7 +188,7 @@
 }
 
 .details-secondary-btn {
-  background-color: #64748b;
+  background-color: var(--filter-clear-color);
   color: #ffffff;
   border: none;
   padding: 12px 24px;
@@ -200,7 +200,7 @@
 }
 
 .details-secondary-btn:hover {
-  background-color: #475569;
+  background-color: var(--filter-clear-hover);
 }
 /* ==========================================
    بطاقة بيانات الموظف (القسم)
