@@ -1,6 +1,11 @@
 <section class="employee-edit-page">
-  <div class="employee-edit-shell">
+  <!-- الزرار في البداية -->
+  <button type="button" class="back-btn page-back-btn" (click)="cancel.emit()">
+    <mat-icon>arrow_forward</mat-icon>
+    <span>رجوع للقائمة</span>
+  </button>
 
+  <div class="employee-edit-shell">
     <div class="employee-edit-form-wrap">
       <app-employee-form
         [employeeForm]="employeeForm"

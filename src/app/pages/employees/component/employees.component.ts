@@ -27,6 +27,8 @@ import { EmployeeDeleteModalComponent } from './delete/employee-delete-modal.com
 import { EmployeeNoteModalComponent } from './note/employee-note-modal.component';
 import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
 
+
+import { MatIconModule } from '@angular/material/icon'; // 1. استيراد الموديول هنا
 interface UnknownDepartment {
   key: string;
   name: string;
@@ -47,7 +49,9 @@ type EmployeePage = 'upload' | 'list' | 'form' | 'edit' | 'details' | 'analytics
     EmployeeEditComponent,
     EmployeeDetailsComponent,
     EmployeeDeleteModalComponent,
-    EmployeeNoteModalComponent
+    EmployeeNoteModalComponent,
+    MatIconModule,
+
   ],
   templateUrl: './employees.component.html',
   styleUrls: ['./employees.component.css']

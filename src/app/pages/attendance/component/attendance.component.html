@@ -425,28 +425,37 @@
               <h3>{{ notesModalTitle }}</h3>
             </div>
 
-            <div class="notes-modal-body">
-              <ng-container *ngIf="notesModalEntries.length > 0; else noNotesModal">
-                <div class="notes-modal-list">
-                  <div *ngFor="let note of notesModalEntries" class="chat-message">
-                    <div class="chat-bubble">
-                      <div class="chat-text">
-                        {{ note.content }}
-                      </div>
+    <!-- Body -->
+    <div class="notes-modal-body">
 
-                      <div class="chat-footer" *ngIf="note.displayName || note.createdAt">
-                        <span class="chat-user" *ngIf="note.displayName">
-                          {{ note.displayName }}
-                        </span>
+      <ng-container *ngIf="notesModalEntries.length > 0; else noNotesModal">
 
-                        <span class="chat-time" *ngIf="note.createdAt">
-                          {{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </ng-container>
+        <div class="notes-modal-list">
+
+          <div
+            *ngFor="let note of notesModalEntries"
+            class="notes-modal-item">
+
+            <div class="notes-modal-meta" *ngIf="note.displayName || note.createdAt">
+              <span class="notes-modal-user" *ngIf="note.displayName">
+                {{ note.displayName }}
+              </span>
+              <span class="notes-modal-time" *ngIf="note.createdAt">
+                {{ note.createdAt | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+
+            <div class="notes-modal-card">
+              <div class="notes-modal-text">
+                {{ note.content }}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </ng-container>
 
               <ng-template #noNotesModal>
                 <div class="notes-modal-empty">لا توجد ملاحظات</div>
