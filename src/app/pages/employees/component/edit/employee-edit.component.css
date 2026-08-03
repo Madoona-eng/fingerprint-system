@@ -7,10 +7,7 @@
   padding: 24px;
   box-sizing: border-box;
   direction: rtl;
-  background:
-    radial-gradient(circle at top right, rgba(37, 99, 235, 0.22), transparent 30%),
-    radial-gradient(circle at bottom left, rgba(14, 165, 233, 0.22), transparent 35%),
-    linear-gradient(180deg, #f4f8ff 0%, #eef5ff 100%);
+
 }
 
 .employee-edit-shell {
@@ -48,10 +45,12 @@
   align-items: center;
   gap: 8px;
   transition: background 150ms ease, transform 80ms ease, box-shadow 150ms ease;
+  background-color: #3bc3e0;
 }
 
 .back-btn.page-back-btn:hover {
   background: rgba(15, 112, 168, 0.05);
+  background-color: #22d3ee;
 }
 
 /* تأكيدي إن الحاوية بتاعة الكارد بتاخد عرض 100% */
