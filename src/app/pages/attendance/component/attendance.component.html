@@ -407,12 +407,7 @@
         </div>
 
 <div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
-<div class="notes-modal-backdrop"
-     *ngIf="notesModalOpen"
-     (click)="closeNotesModal()">
-
-  <div class="notes-modal"
-       (click)="$event.stopPropagation()">
+  <div class="notes-modal" (click)="$event.stopPropagation()">
 
     <!-- Header -->
     <div class="notes-modal-header">
@@ -448,10 +443,8 @@
               </span>
             </div>
 
-            <div class="notes-modal-card">
-              <div class="notes-modal-text">
-                {{ note.content }}
-              </div>
+            <div class="notes-modal-text">
+              {{ note.content }}
             </div>
 
           </div>
@@ -469,8 +462,6 @@
     </div>
 
   </div>
-
-</div>
 </div>
 
         <div class="pagination-box">

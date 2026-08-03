@@ -385,6 +385,11 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding: 18px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.06);
 }
 
 .notes-modal-meta {
@@ -393,10 +398,6 @@
   gap: 10px;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
-  border-radius: 18px;
-  background: rgba(248, 250, 252, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.2);
   color: #0f172a;
   font-size: 14px;
   font-weight: 800;
@@ -411,15 +412,8 @@
   font-size: 13px;
 }
 
-.notes-modal-card {
-  padding: 16px 18px;
-  border-radius: 20px;
-  background: #ffffff;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.06);
-}
-
 .notes-modal-text {
+  padding-top: 4px;
   font-size: 15px;
   font-weight: 700;
   color: #0f172a;
@@ -545,40 +539,41 @@
   align-items: center;
   justify-content: center;
   min-width: 95px;
-  padding: 7px 12px;
+  padding: 8px 14px;
   border-radius: 999px;
   font-size: 13px;
   font-weight: 900;
   white-space: nowrap;
+  text-transform: none;
 }
 
 .status-present {
-  color: #67f7d4;
-  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
-  border: 1px solid rgba(45, 212, 191, 0.28);
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid rgba(16, 185, 129, 0.28);
 }
 
 .status-absent {
-  color: #ff9b9b;
-  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+  color: #991b1b;
+  background: #fee2e2;
   border: 1px solid rgba(239, 68, 68, 0.28);
 }
 
 .status-late {
-  color: #ffd37a;
-  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+  color: #92400e;
+  background: #fef3c7;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .status-early {
-  color: #c4b5fd;
-  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+  color: #5b21b6;
+  background: #ede9fe;
   border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
 .status-permission {
-  color: #93c5fd;
-  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+  color: #1d4ed8;
+  background: #dbeafe;
   border: 1px solid rgba(59, 130, 246, 0.28);
 }
 
@@ -618,8 +613,8 @@
   border-radius: 12px;
   cursor: pointer;
   font-weight: 900;
-  color: #c52020;
-  background: linear-gradient(135deg, #e70b0b, #c71212);
+  color: #4d0b0b;
+  background: linear-gradient(135deg, #f59169, #c71212);
   box-shadow: 0 8px 18px rgba(155, 56, 10, 0.25);
   white-space: nowrap;
   transition: 0.2s ease;
