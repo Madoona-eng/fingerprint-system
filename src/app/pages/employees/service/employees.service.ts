@@ -177,6 +177,25 @@ export class EmployeesService {
     });
   }
 
+  getSystemSettings(): Observable<ApiResponse<boolean>> {
+    return this.http.get<ApiResponse<boolean>>(
+      'https://civil-protect.minya.gov.eg:1089/api/SystemSettings',
+      {
+        headers: this.getHeaders()
+      }
+    );
+  }
+
+  updateSystemSettings(enabled: boolean): Observable<ApiResponse<boolean>> {
+    return this.http.put<ApiResponse<boolean>>(
+      'https://civil-protect.minya.gov.eg:1089/api/SystemSettings',
+      { enabled },
+      {
+        headers: this.getHeaders()
+      }
+    );
+  }
+
   private normalizeSummaryDate(date: string): string {
     const value = String(date || '').trim();
     if (!value) {

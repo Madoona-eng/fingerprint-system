@@ -52,6 +52,18 @@
       </select>
     </div>
 
+
+    <button
+      type="button"
+      class="system-settings-toggle-btn"
+      [class.on]="systemSettingsData"
+      [class.off]="!systemSettingsData"
+      [disabled]="systemSettingsUpdating || systemSettingsData === null"
+      (click)="onToggleSystemSettings()"
+    >
+      {{ systemSettingsData ? 'ON' : 'OFF' }}
+    </button>
+
     <button type="button" class="clear-search-btn" (click)="onClear()">مسح الفلتره</button>
     <button type="button" class="export-excel-btn" (click)="export.emit()">تصدير لملف اكسل</button>
   </div>

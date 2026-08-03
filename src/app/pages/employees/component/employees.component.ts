@@ -122,6 +122,12 @@ isLoadingEmployeesAnalytics = false;
 employeesAnalyticsErrorMessage = '';
 employeesAnalyticsSuccessMessage = '';
 
+systemSettingsLoaded = false;
+systemSettingsUpdating = false;
+systemSettingsData: boolean | null = null;
+systemSettingsMessage = '';
+systemSettingsErrorMessage = '';
+
 employeesAnalyticsRaw: any = null;
 employeesAnalyticsRows: any[] = [];
 
@@ -442,6 +448,7 @@ getDepartmentNameById(id: number | null | undefined): string {
       this.openEmployeePage(requestedPage, null);
     });
     this.loadEmployees();
+    this.loadSystemSettings();
   }
 
 openEmployeePage(page: EmployeePage, id: number | null = null): void {
@@ -510,6 +517,49 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
       },
       error: () => {
         console.warn('Failed to load locations.');
+      }
+    });
+  }
+
+  private loadSystemSettings(): void {
+    this.systemSettingsLoaded = false;
+    this.systemSettingsErrorMessage = '';
+
+    this.employeesService.getSystemSettings().subscribe({
+      next: (response) => {
+        this.systemSettingsLoaded = true;
+        this.systemSettingsData = response?.data ?? null;
+        this.systemSettingsMessage = response?.message || '';
+      },
+      error: (err) => {
+        console.error('Failed to load system settings:', err);
+        this.systemSettingsLoaded = true;
+        this.systemSettingsErrorMessage =
+          err?.error?.message || err?.message || 'فشل تحميل إعدادات النظام';
+      }
+    });
+  }
+
+  toggleSystemSettings(): void {
+    if (this.systemSettingsData === null || this.systemSettingsUpdating) {
+      return;
+    }
+
+    const newState = !this.systemSettingsData;
+    this.systemSettingsUpdating = true;
+    this.systemSettingsErrorMessage = '';
+
+    this.employeesService.updateSystemSettings(newState).subscribe({
+      next: (response) => {
+        this.systemSettingsUpdating = false;
+        this.systemSettingsData = response?.data ?? newState;
+        this.systemSettingsMessage = response?.message ||
+          (this.systemSettingsData ? 'تم تشغيل السياسة' : 'تم إيقاف السياسة');
+      },
+      error: (err) => {
+        this.systemSettingsUpdating = false;
+        this.systemSettingsErrorMessage =
+          err?.error?.message || err?.message || 'فشل تحديث إعدادات النظام';
       }
     });
   }

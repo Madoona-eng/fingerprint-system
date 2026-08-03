@@ -22,6 +22,8 @@ export class EmployeesListComponent {
   @Input() pageSize = 10;
   @Input() totalCount = 0;
   @Input() totalPages = 0;
+  @Input() systemSettingsData: boolean | null = null;
+  @Input() systemSettingsUpdating = false;
 
   // 1. إضافة إدخال الصلاحية هنا
   @Input() isSuperAdmin = false; 
@@ -32,6 +34,7 @@ export class EmployeesListComponent {
   @Output() search = new EventEmitter<void>();
   @Output() clear = new EventEmitter<void>();
   @Output() export = new EventEmitter<void>();
+  @Output() toggleSystemSettings = new EventEmitter<void>();
   @Output() editEmployee = new EventEmitter<Employee>();
   @Output() openDetails = new EventEmitter<Employee>();
   @Output() openNote = new EventEmitter<Employee>();
@@ -41,6 +44,10 @@ export class EmployeesListComponent {
 
   onSearch(): void {
     this.search.emit();
+  }
+
+  onToggleSystemSettings(): void {
+    this.toggleSystemSettings.emit();
   }
 
   onClear(): void {
