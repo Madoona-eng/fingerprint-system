@@ -38,6 +38,7 @@ export class AttendanceComponent implements OnInit {
   dateRangeTo = '';
   dateRangeDepartmentId: number | null = null;
   dateRangeStatus = '';
+  dateRangeNeedsReview: boolean | null = null;
   dateRangeRoute = '';
   routeOptions: string[] = [];
   reviewingAttendanceId: number | null = null;
@@ -694,7 +695,8 @@ get filteredDateRangeRows(): any[] {
               page,
               perPage,
               this.dateRangeRoute,
-              this.employeeSearchTerm || null
+              this.employeeSearchTerm || null,
+              this.dateRangeNeedsReview
             )
           );
 
@@ -1455,7 +1457,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
     this.dateRangeErrorMessage = '';
     this.dateRangeSuccessMessage = '';
 
-    this.attendanceService
+ this.attendanceService
       .getAttendanceByDateRange(
         this.dateRangeFrom,
         this.dateRangeTo,
@@ -1464,7 +1466,8 @@ this.dateRangeErrorMessage = this.translateApiMessage(
         this.dateRangePageNumber,
         this.dateRangePageSize,
         this.dateRangeRoute,
-        this.employeeSearchTerm || null
+        this.employeeSearchTerm || null,
+        this.dateRangeNeedsReview
       )
       .subscribe({
         next: (response: any) => {
@@ -1578,7 +1581,7 @@ this.dateRangeErrorMessage = this.translateApiMessage(
       const allMatches: any[] = [];
 
       while (page <= totalPages) {
-        const resp: any = await firstValueFrom(
+       const resp: any = await firstValueFrom(
           this.attendanceService.getAttendanceByDateRange(
             this.dateRangeFrom,
             this.dateRangeTo,
@@ -1587,7 +1590,8 @@ this.dateRangeErrorMessage = this.translateApiMessage(
             page,
             perPage,
             this.dateRangeRoute,
-            this.employeeSearchTerm || null
+            this.employeeSearchTerm || null,
+            this.dateRangeNeedsReview
           )
         );
 
@@ -1656,13 +1660,14 @@ this.dateRangeErrorMessage = this.translateApiMessage(
     }
   }
 
-    clearDateRangeFilter(): void {
+  clearDateRangeFilter(): void {
     this.dateRangeFrom = '';
     this.dateRangeTo = '';
     this.selectedLocationId = null;
     this.dateRangeDepartmentId = null;
     this.initializeDepartments();
     this.dateRangeStatus = '';
+    this.dateRangeNeedsReview = null;
 
     this.dateRangeRoute = '';
     this.dateRangePageNumber = 1;

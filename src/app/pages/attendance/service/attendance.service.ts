@@ -48,7 +48,7 @@ export class AttendanceService {
     );
   }
 
-  getAttendanceByDateRange(
+getAttendanceByDateRange(
     from: string,
     to: string,
     departmentId: number | null = null,
@@ -56,7 +56,8 @@ export class AttendanceService {
     pageNumber: number = 1,
     pageSize: number = 10,
     route: string = '',
-    employeeName: string | null = null
+    employeeName: string | null = null,
+    needsReview: boolean | null = null
   ): Observable<any> {
     let params = new HttpParams()
       .set('from', from)
@@ -80,12 +81,16 @@ export class AttendanceService {
       params = params.set('employeeName', String(employeeName).trim());
     }
 
+    if (needsReview !== null && needsReview !== undefined) {
+      params = params.set('needsReview', String(needsReview));
+    }
+
     return this.http.get<any>(`${this.apiUrl}/date-range`, {
       headers: this.getHeaders(),
       params
     });
   }
-
+  
   getAttendanceRoutes(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/routes`, {
       headers: this.getHeaders()

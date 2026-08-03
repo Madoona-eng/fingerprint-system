@@ -11,6 +11,7 @@
   <section class="attendance-page-tabs">
     <button
       type="button"
+      class="tab-import"
       [class.active]="activeAttendancePage === 'import'"
       (click)="openAttendancePage('import')"
     >
@@ -19,6 +20,7 @@
 
     <button
       type="button"
+      class="tab-report"
       [class.active]="activeAttendancePage === 'report'"
       (click)="openAttendancePage('report')"
     >
@@ -27,6 +29,7 @@
 
     <button
       type="button"
+      class="tab-late-summary"
       [class.active]="activeAttendancePage === 'lateSummary'"
       (click)="openAttendancePage('lateSummary')"
     >
@@ -57,7 +60,7 @@
             (change)="onAttendanceSheetSelected($event)"
           />
 
-          <span>📁 قم بإختيار ملف Excel أو اسحبيه هنا</span>
+          <span>📁 قم بإختيار ملف Excel أو اسحبه هنا</span>
         </label>
 
         <div *ngIf="excelFileName" class="file-name">
@@ -266,7 +269,18 @@
             </select>
           </div>
 
-          
+
+            <div class="filter-field needs-review-field">
+    <label>يحتاج مراجعة</label>
+    <select
+      [(ngModel)]="dateRangeNeedsReview"
+      [ngModelOptions]="{ standalone: true }"
+    >
+      <option [ngValue]="null">الكل</option>
+      <option [ngValue]="true">يحتاج مراجعة </option>
+      <option [ngValue]="false">لا يحتاج مراجعة</option>
+    </select>
+  </div>
 
           <button
             type="button"
@@ -290,7 +304,7 @@
             class="ghost-btn"
             (click)="exportAttendanceReportToExcel()"
           >
-            تصدير Excel
+           تصدير لملف اكسل 
           </button>
         </div>
 
