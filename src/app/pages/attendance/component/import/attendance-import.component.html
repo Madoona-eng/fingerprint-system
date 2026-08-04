@@ -1,0 +1,87 @@
+<section class="attendance-card">
+  <div class="upload-info">
+    <h1>استيراد الحضور والانصراف</h1>
+    <p>
+      قم برفع شيت الحضور، وسيتم استخراج كود الموظف، التاريخ، وقت الحضور، ووقت الانصراف ثم حفظهم في السيستم.
+    </p>
+  </div>
+
+  <label
+    class="upload-box"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onFileDrop($event)"
+  >
+    <input
+      type="file"
+      accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+      (change)="onAttendanceSheetSelected($event)"
+    />
+
+    <span>📁 قم بإختيار ملف Excel أو اسحبه هنا</span>
+  </label>
+
+  <div *ngIf="excelFileName" class="file-name">الملف المختار: {{ excelFileName }}</div>
+
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <ul *ngIf="rowErrors.length > 0" class="row-errors">
+    <li *ngFor="let rowError of rowErrors | slice: 0 : 6">
+      {{ rowError }}
+    </li>
+    <li *ngIf="rowErrors.length > 6">ويوجد {{ rowErrors.length - 6 }} أخطاء أخرى...</li>
+  </ul>
+
+  <div class="actions" *ngIf="attendanceRowsLength > 0">
+    <button
+      type="button"
+      class="import-btn"
+      [disabled]="isImporting || hasImportedCurrentSheet"
+      (click)="importAttendance.emit()"
+    >
+      {{
+        isImporting
+          ? 'جاري الحفظ...'
+          : hasImportedCurrentSheet
+            ? 'تم الحفظ في السيستم'
+            : 'استيراد الحضور للسيستم'
+      }}
+    </button>
+
+    <button type="button" class="ghost-btn" (click)="clearData.emit()">
+      مسح الشيت
+    </button>
+  </div>
+</section>
+
+<section *ngIf="sheetPreviewRows.length > 0" class="json-preview-card">
+  <div class="table-header">
+    <h3>عرض الملف المرفوع</h3>
+    <span>{{ sheetPreviewRows.length }} صف</span>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="preview-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>الورقة</th>
+          <th *ngFor="let header of sheetPreviewHeaders">{{ header }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of sheetPreviewRows; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ row['__sheetName'] }}</td>
+          <td *ngFor="let header of sheetPreviewHeaders">{{ row[header] }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

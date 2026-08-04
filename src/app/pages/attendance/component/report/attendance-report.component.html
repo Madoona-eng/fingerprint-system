@@ -1,0 +1,241 @@
+<section class="attendance-card">
+  <div class="upload-info">
+    <h1>عرض سجلات الحضور والانصراف</h1>
+  </div>
+
+  <div class="attendance-filter-box">
+    <div class="filter-field date-field">
+      <label>من تاريخ</label>
+
+      <div class="date-input-wrap">
+        <input
+          class="date-text-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="10"
+          placeholder="31/03/2026"
+          [ngModel]="dateRangeFromDisplay"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="dateRangeInputChange.emit({ value: $any($event.target).value, field: 'from' })"
+        />
+
+        <button type="button" class="calendar-btn" (click)="openNativeDatePicker.emit(fromDatePicker)">
+          📅
+        </button>
+
+        <input
+          #fromDatePicker
+          class="native-date-picker"
+          type="date"
+          [value]="dateRangeFrom"
+          (change)="nativeDatePicked.emit({ event: $event, field: 'from' })"
+        />
+      </div>
+    </div>
+
+    <div class="filter-field date-field">
+      <label>إلى تاريخ</label>
+
+      <div class="date-input-wrap">
+        <input
+          class="date-text-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="10"
+          placeholder="31/03/2026"
+          [ngModel]="dateRangeToDisplay"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="dateRangeInputChange.emit({ value: $any($event.target).value, field: 'to' })"
+        />
+
+        <button type="button" class="calendar-btn" (click)="openNativeDatePicker.emit(toDatePicker)">
+          📅
+        </button>
+
+        <input
+          #toDatePicker
+          class="native-date-picker"
+          type="date"
+          [value]="dateRangeTo"
+          (change)="nativeDatePicked.emit({ event: $event, field: 'to' })"
+        />
+      </div>
+    </div>
+
+    <div class="filter-field search-field">
+      <label>بحث عن موظف</label>
+      <input
+        type="text"
+        placeholder="اكتب اسم الموظف  "
+        [ngModel]="employeeSearchTerm"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="employeeSearchTermChange.emit($event); onEmployeeSearchInputChange.emit()"
+      />
+    </div>
+
+    <div class="filter-field" *ngIf="isSuperAdmin">
+      <label>المكان</label>
+      <select
+        [ngModel]="selectedLocationId"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="onLocationChange.emit($event)"
+      >
+        <option *ngFor="let loc of locations" [ngValue]="loc.id">{{ loc.name }}</option>
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label>القسم</label>
+      <select
+        [ngModel]="dateRangeDepartmentId"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="dateRangeDepartmentIdChange.emit($event)"
+      >
+        <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label>الحالة</label>
+      <select
+        [ngModel]="dateRangeStatus"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="dateRangeStatusChange.emit($event)"
+      >
+        <option *ngFor="let status of statusOptions" [ngValue]="status.value">{{ status.label }}</option>
+      </select>
+    </div>
+
+    
+
+    <div class="filter-field">
+      <label>يحتاج مراجعة</label>
+      <select
+        [ngModel]="dateRangeNeedsReview"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="dateRangeNeedsReviewChange.emit($event)"
+      >
+        <option [ngValue]="null">الكل</option>
+        <option [ngValue]="true">يحتاج مراجعة</option>
+        <option [ngValue]="false">لا يحتاج مراجعة</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filter-btns">
+    <button type="button" class="apply-search-btn" [disabled]="isLoadingDateRange" (click)="applyDateRangeFilter.emit()">
+      {{ isLoadingDateRange ? 'جاري التحميل...' : 'تطبيق الفلتر' }}
+    </button>
+
+    <button type="button" class="clear-search-btn" (click)="clearDateRangeFilter.emit()">
+      مسح الفلتر
+    </button>
+
+    <button type="button" class="export-excel-btn" (click)="exportAttendanceReportToExcel.emit()">
+      تصدير لملف اكسل
+    </button>
+  </div>
+
+  <div *ngIf="dateRangeErrorMessage" class="error-message">{{ dateRangeErrorMessage }}</div>
+</section>
+
+<section *ngIf="filteredDateRangeRows.length > 0" class="json-preview-card">
+  <div class="table-header">
+    <h3>نتائج الحضور والانصراف</h3>
+    <span>{{ dateRangeTotalCount }} سجل</span>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>اسم الموظف</th>
+          <th>القسم</th>
+          <th>التاريخ</th>
+          <th>الحالة</th>
+          <th>معاد الحضور</th>
+          <th>معاد الانصراف</th>
+          <th>وقت الحضور</th>
+          <th>وقت الانصراف</th>
+          <th>التأخير (د)</th>
+          <th>العمل (س)</th>
+          <th>ملاحظات</th>
+          <th>المراجعة</th>
+          <th>تعديل</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of filteredDateRangeRows">
+          <td>{{ row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-' }}</td>
+          <td>{{ row.departmentName || row.employee?.departmentName || row.department?.name || '-' }}</td>
+          <td>{{ row.date || row.attendanceDate || '-' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(row.status)">
+              {{ getAttendanceStatusLabel(row.status) }}
+            </span>
+          </td>
+          <td>{{ row.scheduleIn || row.shift?.scheduleIn || '-' }}</td>
+          <td>{{ row.scheduleOut || row.shift?.scheduleOut || '-' }}</td>
+          <td>{{ row.actualIn || '-' }}</td>
+          <td>{{ row.actualOut || '-' }}</td>
+          <td>{{ row.lateMinutes ?? '-' }}</td>
+          <td>{{ formatMinutesToHoursLabel(row.workedMinutes) }}</td>
+          <td>
+            <div class="attendance-notes-cell">
+              <button type="button" class="notes-view-btn" (click)="openNotesModal.emit(row)">
+                {{ getAttendanceNotes(row.notes).length > 0 ? 'عرض الملاحظات' : 'لا توجد ملاحظات' }}
+              </button>
+            </div>
+          </td>
+          <td>
+            <button
+              *ngIf="needsReview(row)"
+              type="button"
+              class="review-btn"
+              [disabled]="reviewingAttendanceId === getAttendanceId(row)"
+              (click)="markAttendanceReviewed.emit(row)"
+            >
+              {{ reviewingAttendanceId === getAttendanceId(row) ? 'جاري...' : 'يحتاج الي المراجعة' }}
+            </button>
+            <span *ngIf="isReviewed(row)" class="reviewed-badge"> تمت المراجعة </span>
+            <span *ngIf="!needsReview(row) && !isReviewed(row)" class="no-review-needed">-</span>
+          </td>
+          <td>
+            <button type="button" class="edit-attendance-btn" (click)="openAttendanceEdit.emit(row)">تعديل</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination-box">
+    <button type="button" (click)="previousDateRangePage.emit()" [disabled]="dateRangePageNumber === 1">السابق</button>
+    <span> صفحة {{ dateRangePageNumber }} من {{ dateRangeTotalPages }} </span>
+    <button type="button" (click)="nextDateRangePage.emit()" [disabled]="dateRangePageNumber === dateRangeTotalPages">التالي</button>
+  </div>
+</section>
+
+<div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal.emit()">
+  <div class="notes-modal" (click)="$event.stopPropagation()">
+    <div class="notes-modal-header">
+      <button type="button" class="notes-modal-close" (click)="closeNotesModal.emit()">✕</button>
+      <h3>{{ notesModalTitle }}</h3>
+    </div>
+    <div class="notes-modal-body">
+      <ng-container *ngIf="notesModalEntries.length > 0; else noNotesModal">
+        <div class="notes-modal-list">
+          <div *ngFor="let note of notesModalEntries" class="notes-modal-item">
+            <div class="notes-modal-meta" *ngIf="note.displayName || note.createdAt">
+              <span class="notes-modal-user" *ngIf="note.displayName">{{ note.displayName }}</span>
+              <span class="notes-modal-time" *ngIf="note.createdAt">{{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="notes-modal-text">{{ note.content }}</div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #noNotesModal>
+        <div class="notes-modal-empty">لا توجد ملاحظات</div>
+      </ng-template>
+    </div>
+  </div>
+</div>

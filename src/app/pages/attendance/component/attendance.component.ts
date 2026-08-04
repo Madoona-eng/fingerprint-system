@@ -8,11 +8,15 @@ import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-statu
 import { EmployeesService } from '../../employees/service/employees.service';
 import { AttendancePayload, FingerprintPunch } from '../model/models';
 import { AttendanceService } from '../service/attendance.service';
+import { AttendanceImportComponent } from './import/attendance-import.component';
+import { AttendanceReportComponent } from './report/attendance-report.component';
+import { AttendanceLateSummaryComponent } from './late-summary/attendance-late-summary.component';
+import { AttendanceEditComponent } from './edit/attendance-edit.component';
 
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AttendanceImportComponent, AttendanceReportComponent, AttendanceLateSummaryComponent, AttendanceEditComponent],
   templateUrl: './attendance.component.html',
   styleUrls: ['./attendance.component.css'],
 })
@@ -320,16 +324,19 @@ export class AttendanceComponent implements OnInit {
   // onDateRangeInputChange
   // ============================================================
   onDateRangeInputChange(value: string, field: 'from' | 'to'): void {
-    const apiDate = value || '';
+    const displayValue = String(value || '').trim();
+
+    // Convert the display string (e.g. 31/03/2026) to API date (YYYY-MM-DD)
+    const apiDate = this.displayDateToApi(displayValue);
 
     if (field === 'from') {
+      this.dateRangeFromDisplay = displayValue;
       this.dateRangeFrom = apiDate;
-      this.dateRangeFromDisplay = this.apiDateToDisplay(apiDate);
       return;
     }
 
+    this.dateRangeToDisplay = displayValue;
     this.dateRangeTo = apiDate;
-    this.dateRangeToDisplay = this.apiDateToDisplay(apiDate);
   }
 
   // ============================================================
@@ -368,16 +375,17 @@ export class AttendanceComponent implements OnInit {
   // onLateSummaryDateInputChange
   // ============================================================
   onLateSummaryDateInputChange(value: string, field: 'from' | 'to'): void {
-    const apiDate = value || '';
+    const displayValue = String(value || '').trim();
+    const apiDate = this.displayDateToApi(displayValue);
 
     if (field === 'from') {
+      this.lateSummaryFromDisplay = displayValue;
       this.lateSummaryFrom = apiDate;
-      this.lateSummaryFromDisplay = this.apiDateToDisplay(apiDate);
       return;
     }
 
+    this.lateSummaryToDisplay = displayValue;
     this.lateSummaryTo = apiDate;
-    this.lateSummaryToDisplay = this.apiDateToDisplay(apiDate);
   }
 
   // ============================================================
@@ -525,17 +533,8 @@ export class AttendanceComponent implements OnInit {
   // ============================================================
   // onAttendanceSheetSelected
   // ============================================================
-  onAttendanceSheetSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-
-    if (!input.files || input.files.length === 0) {
-      return;
-    }
-
-    const file = input.files[0];
+  onAttendanceSheetSelected(file: File): void {
     this.readAttendanceFile(file);
-
-    input.value = '';
   }
 
   // ============================================================
@@ -736,34 +735,10 @@ export class AttendanceComponent implements OnInit {
   }
 
   // ============================================================
-  // filteredDateRangeRows (getter) - CLIENT-SIDE filter on top of dateRangeRows
+  // filteredDateRangeRows (getter) - SERVER-SIDE filtered rows only
   // ============================================================
   get filteredDateRangeRows(): any[] {
-    const search = this.normalizeArabicText(this.employeeSearchTerm);
-
-    if (!search) {
-      return this.dateRangeRows;
-    }
-
-    return this.dateRangeRows.filter((row: any) => {
-      const employeeCode = this.normalizeArabicText(
-        row.employeeCode || row.employee?.employeeCode || row.employee?.code || '',
-      );
-
-      const employeeName = this.normalizeArabicText(
-        row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '',
-      );
-
-      const departmentName = this.normalizeArabicText(
-        row.departmentName || row.employee?.departmentName || row.department?.name || '',
-      );
-
-      return (
-        employeeCode.includes(search) ||
-        employeeName.includes(search) ||
-        departmentName.includes(search)
-      );
-    });
+    return this.dateRangeRows;
   }
 
   // ============================================================
@@ -796,6 +771,7 @@ export class AttendanceComponent implements OnInit {
               perPage,
               this.dateRangeRoute,
               this.employeeSearchTerm || null,
+              this.selectedLocationId,
               this.dateRangeNeedsReview,
             ),
           );
@@ -1583,6 +1559,7 @@ export class AttendanceComponent implements OnInit {
         this.dateRangePageSize,
         this.dateRangeRoute,
         this.employeeSearchTerm || null,
+        this.selectedLocationId,
         this.dateRangeNeedsReview,
       )
       .subscribe({
@@ -1658,11 +1635,7 @@ export class AttendanceComponent implements OnInit {
     this.dateRangeToDisplay = this.apiDateToDisplay(toApiDate);
 
     this.dateRangePageNumber = 1;
-    if (this.employeeSearchTerm && String(this.employeeSearchTerm).trim() !== '') {
-      this.searchEmployee();
-    } else {
-      this.loadAttendanceByDateRange();
-    }
+    this.loadAttendanceByDateRange();
   }
 
   // ============================================================
@@ -1719,6 +1692,7 @@ export class AttendanceComponent implements OnInit {
             perPage,
             this.dateRangeRoute,
             this.employeeSearchTerm || null,
+            this.selectedLocationId,
             this.dateRangeNeedsReview,
           ),
         );
