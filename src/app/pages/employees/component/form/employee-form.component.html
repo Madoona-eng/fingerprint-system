@@ -1,84 +1,97 @@
-<div class="employee-form-card form-page-card" dir="rtl">
+<ng-template #formContent>
+  <div class="employee-form-card form-page-card">
+    <form [formGroup]="employeeForm" (ngSubmit)="employeeForm.valid && submitForm.emit()">
+      <div class="form-group">
+        <label>كود الموظف <span class="required-mark">*</span></label>
+        <input
+          type="text"
+          formControlName="employeeCode"
+          placeholder="مثال: EMP-001"
+          autocomplete="off"
+          [readonly]="selectedEmployeeId !== null"
+        />
+        <small *ngIf="selectedEmployeeId" class="readonly-note">
+          * لا يمكن تعديل كود الموظف بعد إنشائه.
+        </small>
+      </div>
 
+      <div class="form-group full-width-field">
+        <label>اسم الموظف <span class="required-mark">*</span></label>
+        <input type="text" formControlName="name" placeholder="أدخل اسم الموظف بالكامل" />
+      </div>
 
-  <form [formGroup]="employeeForm" (ngSubmit)="employeeForm.valid && submitForm.emit()">
-    <div class="form-group">
-      <label>كود الموظف <span class="required-mark">*</span></label>
-      <input
-        type="text"
-        formControlName="employeeCode"
-        placeholder="مثال: EMP-001"
-        autocomplete="off"
-        [readonly]="selectedEmployeeId !== null"
-      />
-      <small *ngIf="selectedEmployeeId" class="readonly-note">
-        * لا يمكن تعديل كود الموظف بعد إنشائه.
-      </small>
+      <div class="form-group full-width-field">
+        <label>القسم / الإدارة <span class="required-mark">*</span></label>
+        <select formControlName="departmentId" class="department-select">
+          <option [ngValue]="null">قم بإختيار القسم</option>
+          <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>وقت الحضور</label>
+        <input type="time" formControlName="scheduleIn" />
+      </div>
+
+      <div class="form-group">
+        <label>وقت الانصراف</label>
+        <input type="time" formControlName="scheduleOut" />
+      </div>
+
+      <div class="form-group">
+        <label>وقت السماح</label>
+        <input type="time" formControlName="graceTime" />
+      </div>
+
+      <div *ngIf="selectedEmployeeId === null" class="form-group checkbox-group full-width-field">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isChristian" />
+          الموظف مسيحي
+        </label>
+      </div>
+
+      <div *ngIf="!hideNotes" class="form-group full-width-field">
+        <label>ملاحظات</label>
+        <textarea
+          formControlName="note"
+          rows="3"
+          placeholder="أدخل ملاحظات الموظف إن وجدت"
+        ></textarea>
+      </div>
+
+      <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="save-btn"
+          [disabled]="isSaving || employeeForm.invalid"
+          [style.opacity]="(isSaving || employeeForm.invalid) ? '0.6' : '1'"
+          [style.cursor]="(isSaving || employeeForm.invalid) ? 'not-allowed' : 'pointer'"
+        >
+          {{ isSaving ? 'جاري الحفظ...' : selectedEmployeeId ? 'حفظ التعديل' : 'حفظ الموظف' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</ng-template>
+
+<ng-container *ngIf="showPageShell; else formOnly">
+  <section class="employee-edit-page">
+    <button type="button" class="back-btn page-back-btn" (click)="cancel.emit()">
+      <mat-icon>arrow_forward</mat-icon>
+      <span>رجوع للقائمة</span>
+    </button>
+
+    <div class="employee-edit-shell">
+      <div class="employee-edit-form-wrap">
+        <ng-container *ngTemplateOutlet="formContent"></ng-container>
+      </div>
     </div>
+  </section>
+</ng-container>
 
-    <div class="form-group full-width-field">
-      <label>اسم الموظف <span class="required-mark">*</span></label>
-      <input type="text" formControlName="name" placeholder="أدخل اسم الموظف بالكامل" />
-    </div>
-
-    <div class="form-group full-width-field">
-      <label>القسم / الإدارة <span class="required-mark">*</span></label>
-      <select formControlName="departmentId" class="department-select">
-        <option [ngValue]="null">قم بإختيار القسم</option>
-        <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>وقت الحضور</label>
-      <input type="time" formControlName="scheduleIn" />
-    </div>
-
-    <div class="form-group">
-      <label>وقت الانصراف</label>
-      <input type="time" formControlName="scheduleOut" />
-    </div>
-
-    <div class="form-group">
-      <label>وقت السماح</label>
-      <input type="time" formControlName="graceTime" />
-    </div>
-
-    <!-- يظهر في الإضافة فقط -->
-    <div
-      *ngIf="selectedEmployeeId === null"
-      class="form-group checkbox-group full-width-field"
-    >
-      <label class="checkbox-label">
-        <input type="checkbox" formControlName="isChristian" />
-        الموظف مسيحي
-      </label>
-    </div>
-
-    <div *ngIf="!hideNotes" class="form-group full-width-field">
-      <label>ملاحظات</label>
-      <textarea
-        formControlName="note"
-        rows="3"
-        placeholder="أدخل ملاحظات الموظف إن وجدت"
-      ></textarea>
-    </div>
-
-    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-
-    <div class="form-actions">
-      <button
-        type="submit"
-        class="save-btn"
-        [disabled]="isSaving || employeeForm.invalid"
-        [style.opacity]="(isSaving || employeeForm.invalid) ? '0.6' : '1'"
-        [style.cursor]="(isSaving || employeeForm.invalid) ? 'not-allowed' : 'pointer'"
-      >
-        {{ isSaving ? 'جاري الحفظ...' : selectedEmployeeId ? 'حفظ التعديل' : 'حفظ الموظف' }}
-      </button>
-
-     
-    </div>
-  </form>
-</div>
+<ng-template #formOnly>
+  <ng-container *ngTemplateOutlet="formContent"></ng-container>
+</ng-template>

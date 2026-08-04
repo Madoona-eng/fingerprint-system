@@ -31,21 +31,58 @@
 }
 
 /* ستايل الزرار بتاعك زي ما هو بالضبط مع ضبط المارجن */
+/* تنسيق زر الرجوع للقائمة */
 .back-btn.page-back-btn {
-  margin: 0 0 16px 0; /* مسافة 16px أسفل الزرار فقط بينه وبين الكارد */
-  /* background: transparent; */
-  border: 1px solid rgba(15, 75, 168, 0.08);
-  color: #0f70a8;
+  margin: 0 0 16px 0;
+  border: none !important;
+  color: #ffffff !important;           /* لون النص الأساسي */
+  background-color: #3bcce4 !important; /* لون الخلفية السماوي */
   font-weight: 700;
   font-size: 14px;
-  padding: 8px 12px;
+  padding: 8px 18px;
   border-radius: 10px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: background 150ms ease, transform 80ms ease, box-shadow 150ms ease;
-  background-color: #3bc3e0;
+  box-shadow: 0 4px 10px rgba(59, 204, 228, 0.3);
+  transition: background-color 150ms ease, transform 80ms ease;
+}
+
+/* إجبار النص (span) والأيقونة على اللون الأبيض */
+.back-btn.page-back-btn span,
+.back-btn.page-back-btn mat-icon {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* الضبط الخاص بأيقونة Angular Material */
+.back-btn.page-back-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* تأثير الـ Hover دون تغيير لون النص */
+.back-btn.page-back-btn:hover {
+  background-color: #26b9d1 !important;
+  color: #ffffff !important;
+}
+
+.back-btn.page-back-btn:hover span,
+.back-btn.page-back-btn:hover mat-icon {
+  color: #ffffff !important;
+}
+/* لضمان أن لون أيقونة Angular Material يكون أبيض أيضاً */
+.back-btn.page-back-btn mat-icon {
+  color: #ffffff;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.back-btn.page-back-btn:hover {
+  background-color: #29b6cc; /* درجة أغمق قليلاً عند التمرير */
 }
 
 .back-btn.page-back-btn:hover {
