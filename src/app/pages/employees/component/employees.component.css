@@ -67,10 +67,12 @@
   border: 1px solid rgba(15, 75, 168, 0.12);
   color: #0f70a8;
   box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06); /* شادو أخف وأرقى بدل الـ 45px */
+   background-color: #3bc3e0;
 }
 
 .page-back-btn:hover {
   background: #f8fbff;
+   background-color: #22d3ee;
 }
 
 @media (max-width: 768px) {

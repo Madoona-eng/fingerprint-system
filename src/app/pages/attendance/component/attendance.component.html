@@ -412,11 +412,23 @@
           </table>
         </div>
 
-        <!-- مودال عرض ملاحظات الحضور -->
-        <div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
-          <div class="notes-modal" (click)="$event.stopPropagation()">
-            <div class="notes-modal-header">
-              <button type="button" class="notes-modal-close" (click)="closeNotesModal()">✕</button>
+<div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
+<div class="notes-modal-backdrop"
+     *ngIf="notesModalOpen"
+     (click)="closeNotesModal()">
+
+  <div class="notes-modal"
+       (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="notes-modal-header">
+
+      <button
+        type="button"
+        class="notes-modal-close"
+        (click)="closeNotesModal()">
+        ✕
+      </button>
 
               <h3>{{ notesModalTitle }}</h3>
             </div>
@@ -442,12 +454,18 @@
                 </div>
               </ng-container>
 
-              <ng-template #noNotesModal>
-                <div class="notes-modal-empty">لا توجد ملاحظات</div>
-              </ng-template>
-            </div>
-          </div>
+      <ng-template #noNotesModal>
+        <div class="notes-modal-empty">
+          لا توجد ملاحظات
         </div>
+      </ng-template>
+
+    </div>
+
+  </div>
+
+</div>
+</div>
 
         <div class="pagination-box">
           <button
