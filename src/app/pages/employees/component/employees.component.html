@@ -38,16 +38,7 @@
 
   <ng-container [ngSwitch]="activeEmployeePage">
 
-   <section *ngSwitchCase="'form'" class="employee-edit-page">
-  <div class="employee-edit-shell">
-    
-    <!-- نقلنا الزرار هنا جوه الـ shell مع إضافة أيقونة السهم -->
-    <button type="button" class="back-btn page-back-btn" (click)="openEmployeePage('list')">
-      <span>رجوع للقائمة</span>
-      <mat-icon>arrow_forward</mat-icon>
-    </button>
-
-    <div class="employee-edit-form-wrap">
+   <section *ngSwitchCase="'form'">
       <app-employee-form
         [employeeForm]="employeeForm"
         [selectedEmployeeId]="selectedEmployeeId"
@@ -55,13 +46,11 @@
         [successMessage]="successMessage"
         [errorMessage]="errorMessage"
         [departmentOptions]="departmentOptions"
+        [showPageShell]="true"
         (submitForm)="saveEmployee()"
         (cancel)="openEmployeePage('list')"
       ></app-employee-form>
-    </div>
-
-  </div>
-</section>
+    </section>
 
     <section *ngSwitchCase="'upload'" class="employee-sub-page">
       <section class="excel-upload-card">
