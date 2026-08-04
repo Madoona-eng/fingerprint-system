@@ -18,7 +18,7 @@ export interface ApiResponse<T> {
 
 export interface AttendanceStatusPayload {
   status: string;
-   note: string;
+  note: string;
 }
 
 export interface AttendanceTimePayload {

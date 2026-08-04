@@ -17,6 +17,9 @@ import { AttendanceService } from '../service/attendance.service';
   styleUrls: ['./attendance.component.css'],
 })
 export class AttendanceComponent implements OnInit {
+  // ============================================================
+  // PROPERTIES / STATE
+  // ============================================================
   attendanceRows: AttendancePayload[] = [];
 
   sheetPreviewRows: Array<{ [key: string]: any }> = [];
@@ -98,18 +101,45 @@ export class AttendanceComponent implements OnInit {
 
   private lateSummarySearchTimer: any = null;
 
+  departmentOptions: { id: number; name: string }[] = [];
+
+  private readonly statusApiValues: string[] = [
+    'Present',
+    'Late',
+    'Absent',
+    'EarlyDeparture',
+    'PersonalLeave',
+    'Mission',
+    'DrivingRoute',
+    'OnLeave',
+    'Online'
+  ];
+
+  get statusOptions(): { value: string; label: string }[] {
+    return this.statusApiValues.map((value) => ({
+      value,
+      label: this.getAttendanceStatusLabel(value),
+    }));
+  }
+
   constructor(
     private attendanceService: AttendanceService,
     private authService: AuthService,
     private employeesService: EmployeesService,
   ) {}
 
+  // ============================================================
+  // ngOnInit
+  // ============================================================
   ngOnInit(): void {
     this.checkUserRole();
     this.loadRouteOptions();
     this.initializeDepartments();
   }
 
+  // ============================================================
+  // checkUserRole
+  // ============================================================
   checkUserRole(): void {
     const role = this.authService.getUserRole();
     this.isSuperAdmin = role === 'SuperAdmin';
@@ -119,6 +149,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // loadLocations
+  // ============================================================
   loadLocations(): void {
     this.employeesService.getLocations().subscribe({
       next: (response: any) => {
@@ -130,6 +163,9 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
+  // ============================================================
+  // onLocationChange
+  // ============================================================
   onLocationChange(locationId: number | null): void {
     if (locationId) {
       this.employeesService.getDepartments(locationId).subscribe({
@@ -146,6 +182,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // initializeDepartments
+  // ============================================================
   initializeDepartments(): void {
     if (this.isSuperAdmin) {
       this.departmentOptions = [];
@@ -162,6 +201,9 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
+  // ============================================================
+  // loadRouteOptions
+  // ============================================================
   loadRouteOptions(): void {
     this.attendanceService.getAttendanceRoutes().subscribe({
       next: (response: any) => {
@@ -186,19 +228,9 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
-  departmentOptions: { id: number; name: string }[] = [];
-
-  statusOptions: { value: string; label: string }[] = [
-    { value: 'Present', label: 'حاضر' },
-    { value: 'Late', label: 'متأخر' },
-    { value: 'Absent', label: 'غائب' },
-    { value: 'EarlyDeparture', label: 'انصراف مبكر' },
-    { value: 'PersonalLeave', label: 'إذن شخصي / إجازة عارضة' },
-    { value: 'Mission', label: 'مأمورية' },
-    { value: 'DrivingRoute', label: 'خط سير' },
-    { value: 'OnLeave', label: 'في إجازة' },
-  ];
-
+  // ============================================================
+  // setDateRangeFromDates (private)
+  // ============================================================
   private setDateRangeFromDates(from: Date, to: Date): void {
     this.dateRangeFrom = this.formatDateToApi(from);
     this.dateRangeTo = this.formatDateToApi(to);
@@ -206,6 +238,10 @@ export class AttendanceComponent implements OnInit {
     this.dateRangeFromDisplay = this.formatDateToDisplay(from);
     this.dateRangeToDisplay = this.formatDateToDisplay(to);
   }
+
+  // ============================================================
+  // getApiErrorMessage (private)
+  // ============================================================
   private getApiErrorMessage(err: any): string {
     const errors = err?.error?.errors;
 
@@ -223,6 +259,9 @@ export class AttendanceComponent implements OnInit {
     );
   }
 
+  // ============================================================
+  // translateApiMessage (private)
+  // ============================================================
   private translateApiMessage(message: string | null | undefined, fallback: string = ''): string {
     const raw = String(message || '').trim();
 
@@ -277,6 +316,9 @@ export class AttendanceComponent implements OnInit {
     return translated;
   }
 
+  // ============================================================
+  // onDateRangeInputChange
+  // ============================================================
   onDateRangeInputChange(value: string, field: 'from' | 'to'): void {
     const apiDate = value || '';
 
@@ -289,6 +331,10 @@ export class AttendanceComponent implements OnInit {
     this.dateRangeTo = apiDate;
     this.dateRangeToDisplay = this.apiDateToDisplay(apiDate);
   }
+
+  // ============================================================
+  // openNativeDatePicker
+  // ============================================================
   openNativeDatePicker(input: HTMLInputElement): void {
     if ((input as any).showPicker) {
       (input as any).showPicker();
@@ -297,6 +343,10 @@ export class AttendanceComponent implements OnInit {
 
     input.click();
   }
+
+  // ============================================================
+  // onNativeDatePicked
+  // ============================================================
   onNativeDatePicked(event: Event, field: 'from' | 'to'): void {
     const input = event.target as HTMLInputElement;
     const apiDate = input.value; // YYYY-MM-DD
@@ -314,6 +364,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // onLateSummaryDateInputChange
+  // ============================================================
   onLateSummaryDateInputChange(value: string, field: 'from' | 'to'): void {
     const apiDate = value || '';
 
@@ -327,6 +380,9 @@ export class AttendanceComponent implements OnInit {
     this.lateSummaryToDisplay = this.apiDateToDisplay(apiDate);
   }
 
+  // ============================================================
+  // formatDateDisplayWhileTyping (dateRange version)
+  // ============================================================
   formatDateDisplayWhileTyping(field: 'from' | 'to'): void {
     let value = field === 'from' ? this.dateRangeFromDisplay : this.dateRangeToDisplay;
 
@@ -347,6 +403,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // formatDateToApi (private) [dateRange helper]
+  // ============================================================
   private formatDateToApi(date: Date): string {
     const year = date.getFullYear();
     const month = this.pad(date.getMonth() + 1);
@@ -355,6 +414,9 @@ export class AttendanceComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  // ============================================================
+  // formatDateToDisplay (private) [dateRange helper]
+  // ============================================================
   private formatDateToDisplay(date: Date): string {
     const day = this.pad(date.getDate());
     const month = this.pad(date.getMonth() + 1);
@@ -362,6 +424,10 @@ export class AttendanceComponent implements OnInit {
 
     return `${day}/${month}/${year}`;
   }
+
+  // ============================================================
+  // onLateSummaryNativeDatePicked
+  // ============================================================
   onLateSummaryNativeDatePicked(event: Event, field: 'from' | 'to'): void {
     const input = event.target as HTMLInputElement;
     const apiDate = input.value; // YYYY-MM-DD
@@ -379,10 +445,16 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // displayDateToNative
+  // ============================================================
   displayDateToNative(displayDate: string): string {
     return this.displayDateToApi(displayDate);
   }
 
+  // ============================================================
+  // apiDateToDisplay (private) [dateRange helper]
+  // ============================================================
   private apiDateToDisplay(apiDate: string): string {
     if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
       return '';
@@ -393,6 +465,9 @@ export class AttendanceComponent implements OnInit {
     return `${day}/${month}/${year}`;
   }
 
+  // ============================================================
+  // displayDateToApi (private) [dateRange helper]
+  // ============================================================
   private displayDateToApi(displayDate: string): string {
     const text = String(displayDate || '').trim();
 
@@ -436,6 +511,9 @@ export class AttendanceComponent implements OnInit {
     return `${year}-${this.pad(month)}-${this.pad(day)}`;
   }
 
+  // ============================================================
+  // openAttendancePage
+  // ============================================================
   openAttendancePage(page: 'import' | 'report' | 'lateSummary' | 'edit'): void {
     this.activeAttendancePage = page;
 
@@ -444,6 +522,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // onAttendanceSheetSelected
+  // ============================================================
   onAttendanceSheetSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
 
@@ -456,11 +537,18 @@ export class AttendanceComponent implements OnInit {
 
     input.value = '';
   }
+
+  // ============================================================
+  // setTodayLateSummaryDateRange
+  // ============================================================
   setTodayLateSummaryDateRange(): void {
     const today = new Date();
     this.setLateSummaryDateRangeFromDates(today, today);
   }
 
+  // ============================================================
+  // setYesterdayLateSummaryDateRange
+  // ============================================================
   setYesterdayLateSummaryDateRange(): void {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -468,6 +556,9 @@ export class AttendanceComponent implements OnInit {
     this.setLateSummaryDateRangeFromDates(yesterday, yesterday);
   }
 
+  // ============================================================
+  // setCurrentMonthLateSummaryDateRange
+  // ============================================================
   setCurrentMonthLateSummaryDateRange(): void {
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -475,6 +566,9 @@ export class AttendanceComponent implements OnInit {
     this.setLateSummaryDateRangeFromDates(firstDay, today);
   }
 
+  // ============================================================
+  // setLateSummaryDateRangeFromDates (private)
+  // ============================================================
   private setLateSummaryDateRangeFromDates(from: Date, to: Date): void {
     this.lateSummaryFrom = this.formatLateDateToApi(from);
     this.lateSummaryTo = this.formatLateDateToApi(to);
@@ -483,6 +577,9 @@ export class AttendanceComponent implements OnInit {
     this.lateSummaryToDisplay = this.formatLateDateToDisplay(to);
   }
 
+  // ============================================================
+  // formatLateDateDisplayWhileTyping (lateSummary version)
+  // ============================================================
   formatLateDateDisplayWhileTyping(field: 'from' | 'to'): void {
     let value = field === 'from' ? this.lateSummaryFromDisplay : this.lateSummaryToDisplay;
 
@@ -503,6 +600,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // formatLateDateToApi (private) [lateSummary helper]
+  // ============================================================
   private formatLateDateToApi(date: Date): string {
     const year = date.getFullYear();
     const month = this.pad(date.getMonth() + 1);
@@ -511,6 +611,9 @@ export class AttendanceComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  // ============================================================
+  // formatLateDateToDisplay (private) [lateSummary helper]
+  // ============================================================
   private formatLateDateToDisplay(date: Date): string {
     const day = this.pad(date.getDate());
     const month = this.pad(date.getMonth() + 1);
@@ -519,6 +622,9 @@ export class AttendanceComponent implements OnInit {
     return `${day}/${month}/${year}`;
   }
 
+  // ============================================================
+  // lateDisplayDateToApi (private) [lateSummary helper - UNUSED? check callers]
+  // ============================================================
   private lateDisplayDateToApi(displayDate: string): string {
     const text = String(displayDate || '').trim();
 
@@ -562,6 +668,9 @@ export class AttendanceComponent implements OnInit {
     return `${year}-${this.pad(month)}-${this.pad(day)}`;
   }
 
+  // ============================================================
+  // lateApiDateToDisplay (private) [lateSummary helper - UNUSED? check callers]
+  // ============================================================
   private lateApiDateToDisplay(apiDate: string): string {
     if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
       return '';
@@ -572,11 +681,17 @@ export class AttendanceComponent implements OnInit {
     return `${day}/${month}/${year}`;
   }
 
+  // ============================================================
+  // onDragOver
+  // ============================================================
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
   }
 
+  // ============================================================
+  // setTodayDateRange
+  // ============================================================
   setTodayDateRange(): void {
     const today = new Date();
     const formattedDate = this.formatDateForInput(today);
@@ -585,6 +700,9 @@ export class AttendanceComponent implements OnInit {
     this.dateRangeTo = formattedDate;
   }
 
+  // ============================================================
+  // setYesterdayDateRange
+  // ============================================================
   setYesterdayDateRange(): void {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -595,6 +713,9 @@ export class AttendanceComponent implements OnInit {
     this.dateRangeTo = formattedDate;
   }
 
+  // ============================================================
+  // setCurrentMonthDateRange
+  // ============================================================
   setCurrentMonthDateRange(): void {
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -603,6 +724,9 @@ export class AttendanceComponent implements OnInit {
     this.dateRangeTo = this.formatDateForInput(today);
   }
 
+  // ============================================================
+  // formatDateForInput (private) [THIRD near-duplicate date formatter]
+  // ============================================================
   private formatDateForInput(date: Date): string {
     const year = date.getFullYear();
     const month = this.pad(date.getMonth() + 1);
@@ -611,6 +735,9 @@ export class AttendanceComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  // ============================================================
+  // filteredDateRangeRows (getter) - CLIENT-SIDE filter on top of dateRangeRows
+  // ============================================================
   get filteredDateRangeRows(): any[] {
     const search = this.normalizeArabicText(this.employeeSearchTerm);
 
@@ -639,6 +766,9 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
+  // ============================================================
+  // exportAttendanceReportToExcel  --- USES getAttendanceByDateRange (paginated fetch-all)
+  // ============================================================
   exportAttendanceReportToExcel(): void {
     (async () => {
       if (!this.dateRangeFrom || !this.dateRangeTo) {
@@ -721,6 +851,9 @@ export class AttendanceComponent implements OnInit {
     })();
   }
 
+  // ============================================================
+  // exportLateSummaryToExcel  --- USES getLateSummary (paginated fetch-all)
+  // ============================================================
   exportLateSummaryToExcel(): void {
     (async () => {
       if (!this.lateSummaryFrom || !this.lateSummaryTo) {
@@ -795,6 +928,9 @@ export class AttendanceComponent implements OnInit {
     })();
   }
 
+  // ============================================================
+  // getAttendanceId
+  // ============================================================
   getAttendanceId(row: any): number | null {
     const id = row?.id || row?.attendanceId || row?.attendanceRecordId;
 
@@ -807,6 +943,9 @@ export class AttendanceComponent implements OnInit {
     return Number.isFinite(numberId) && numberId > 0 ? numberId : null;
   }
 
+  // ============================================================
+  // isReviewed
+  // ============================================================
   isReviewed(row: any): boolean {
     const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
 
@@ -825,6 +964,9 @@ export class AttendanceComponent implements OnInit {
     );
   }
 
+  // ============================================================
+  // needsReview
+  // ============================================================
   needsReview(row: any): boolean {
     if (this.isReviewed(row)) {
       return false;
@@ -849,6 +991,9 @@ export class AttendanceComponent implements OnInit {
     );
   }
 
+  // ============================================================
+  // markAttendanceReviewed  --- calls updateAttendanceStatus
+  // ============================================================
   markAttendanceReviewed(row: any): void {
     const attendanceId = this.getAttendanceId(row);
 
@@ -907,11 +1052,17 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
+  // ============================================================
+  // onDragLeave
+  // ============================================================
   onDragLeave(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
   }
 
+  // ============================================================
+  // onFileDrop
+  // ============================================================
   onFileDrop(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
@@ -925,6 +1076,9 @@ export class AttendanceComponent implements OnInit {
     this.readAttendanceFile(file);
   }
 
+  // ============================================================
+  // readAttendanceFile (private) --- Excel/CSV parsing entrypoint
+  // ============================================================
   private async readAttendanceFile(file: File): Promise<void> {
     this.excelFileName = file.name;
     this.attendanceRows = [];
@@ -1065,6 +1219,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // getSheetPreviewHeaders (private)
+  // ============================================================
   private getSheetPreviewHeaders(rows: Array<{ [key: string]: any }>): string[] {
     const headers = new Set<string>();
 
@@ -1079,6 +1236,9 @@ export class AttendanceComponent implements OnInit {
     return Array.from(headers);
   }
 
+  // ============================================================
+  // formatRawTimeValue (private)
+  // ============================================================
   private formatRawTimeValue(value: any): string | null {
     if (value === null || value === undefined || String(value).trim() === '') {
       return null;
@@ -1093,6 +1253,9 @@ export class AttendanceComponent implements OnInit {
     return String(value).trim();
   }
 
+  // ============================================================
+  // mapAttendanceRow (private) --- Excel row -> AttendancePayload
+  // ============================================================
   private mapAttendanceRow(row: any, sheetName: string): AttendancePayload | null {
     const employeeCode = String(
       this.getCellValue(row, [
@@ -1163,6 +1326,9 @@ export class AttendanceComponent implements OnInit {
     };
   }
 
+  // ============================================================
+  // mapFingerprintPunchRow (private) --- Excel row -> FingerprintPunch
+  // ============================================================
   private mapFingerprintPunchRow(row: any, sheetName: string): FingerprintPunch | null {
     const employeeCode = String(
       this.getCellValue(row, [
@@ -1236,6 +1402,9 @@ export class AttendanceComponent implements OnInit {
     };
   }
 
+  // ============================================================
+  // splitDateTime (private)
+  // ============================================================
   private splitDateTime(value: any): { date: string; time: string } {
     if (!value) {
       return { date: '', time: '' };
@@ -1279,6 +1448,9 @@ export class AttendanceComponent implements OnInit {
     return { date: '', time: '' };
   }
 
+  // ============================================================
+  // getMissingFields (private)
+  // ============================================================
   private getMissingFields(row: AttendancePayload): string[] {
     const missing: string[] = [];
 
@@ -1293,6 +1465,9 @@ export class AttendanceComponent implements OnInit {
     return missing;
   }
 
+  // ============================================================
+  // importAttendance --- calls bulkImportAttendance
+  // ============================================================
   importAttendance(): void {
     if (this.attendanceRows.length === 0) {
       this.errorMessage = 'لا توجد بيانات حضور صالحة للاستيراد';
@@ -1385,6 +1560,9 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
+  // ============================================================
+  // loadAttendanceByDateRange  ★★★ getAttendanceByDateRange call #1 (main load, single page)
+  // ============================================================
   loadAttendanceByDateRange(): void {
     if (!this.dateRangeFrom || !this.dateRangeTo) {
       this.dateRangeErrorMessage = 'من فضلك قم بإختيار تاريخ البداية والنهاية';
@@ -1461,6 +1639,9 @@ export class AttendanceComponent implements OnInit {
       });
   }
 
+  // ============================================================
+  // applyDateRangeFilter --- entry point that decides: searchEmployee() OR loadAttendanceByDateRange()
+  // ============================================================
   applyDateRangeFilter(): void {
     const fromApiDate = this.displayDateToApi(this.dateRangeFromDisplay);
     const toApiDate = this.displayDateToApi(this.dateRangeToDisplay);
@@ -1484,6 +1665,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // onEmployeeSearchInputChange
+  // ============================================================
   onEmployeeSearchInputChange(): void {
     const trimmedValue = String(this.employeeSearchTerm || '').trim();
 
@@ -1495,6 +1679,11 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // searchEmployee  ★★★ getAttendanceByDateRange call #2 (paginated fetch-all + CLIENT-SIDE re-filter)
+  // NOTE: server already receives employeeSearchTerm as a filter param below,
+  // then this function ALSO re-filters the results client-side by name/code.
+  // ============================================================
   async searchEmployee(): Promise<void> {
     if (!this.dateRangeFrom || !this.dateRangeTo) {
       this.dateRangeErrorMessage = 'من فضلك قم بإختيار تاريخ البداية والنهاية';
@@ -1597,6 +1786,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // clearDateRangeFilter
+  // ============================================================
   clearDateRangeFilter(): void {
     this.dateRangeFrom = '';
     this.dateRangeTo = '';
@@ -1618,6 +1810,9 @@ export class AttendanceComponent implements OnInit {
     this.dateRangeToDisplay = '';
   }
 
+  // ============================================================
+  // nextDateRangePage
+  // ============================================================
   nextDateRangePage(): void {
     if (this.dateRangePageNumber < this.dateRangeTotalPages) {
       this.dateRangePageNumber++;
@@ -1625,6 +1820,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // previousDateRangePage
+  // ============================================================
   previousDateRangePage(): void {
     if (this.dateRangePageNumber > 1) {
       this.dateRangePageNumber--;
@@ -1632,24 +1830,36 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // prepareDateRangeRows (private) --- currently a no-op passthrough (spreads row only)
+  // ============================================================
   private prepareDateRangeRows(rows: any[]): any[] {
     return rows.map((row: any) => ({
       ...row,
     }));
   }
 
+  // ============================================================
+  // openNotesModal
+  // ============================================================
   openNotesModal(row: any): void {
     this.notesModalTitle = row?.employeeName || row?.name || row?.employee?.name || 'الملاحظات';
     this.notesModalEntries = this.getAttendanceNotes(row?.notes);
     this.notesModalOpen = true;
   }
 
+  // ============================================================
+  // closeNotesModal
+  // ============================================================
   closeNotesModal(): void {
     this.notesModalOpen = false;
     this.notesModalTitle = '';
     this.notesModalEntries = [];
   }
 
+  // ============================================================
+  // openAttendanceEdit
+  // ============================================================
   openAttendanceEdit(row: any): void {
     const attendanceId = row.id || row.attendanceId;
 
@@ -1681,6 +1891,9 @@ export class AttendanceComponent implements OnInit {
     this.activeAttendancePage = 'edit';
   }
 
+  // ============================================================
+  // cancelAttendanceEdit
+  // ============================================================
   cancelAttendanceEdit(): void {
     this.selectedAttendanceForEdit = null;
     this.attendanceEditId = null;
@@ -1700,6 +1913,9 @@ export class AttendanceComponent implements OnInit {
     this.activeAttendancePage = 'report';
   }
 
+  // ============================================================
+  // saveAttendanceEdit --- calls updateAttendanceTime then updateAttendanceStatus
+  // ============================================================
   saveAttendanceEdit(): void {
     if (!this.attendanceEditId) {
       this.attendanceEditErrorMessage = 'رقم سجل الحضور غير موجود';
@@ -1735,7 +1951,7 @@ export class AttendanceComponent implements OnInit {
     }
 
     if (!finalStatus) {
-      this.attendanceEditErrorMessage = 'من فضلك قم بإختيار الحالة أو أدخلي وقت الحضور والانصراف';
+      this.attendanceEditErrorMessage = 'من فضلك قم بإختيار الحالة أو أدخل وقت الحضور والانصراف';
       return;
     }
 
@@ -1840,6 +2056,9 @@ export class AttendanceComponent implements OnInit {
     finishStatusSave();
   }
 
+  // ============================================================
+  // resolveAttendanceStatusAfterTimeEdit --- UNUSED? not called anywhere in this file
+  // ============================================================
   resolveAttendanceStatusAfterTimeEdit(
     currentStatus: string | null | undefined,
     actualIn: string | null,
@@ -1876,6 +2095,9 @@ export class AttendanceComponent implements OnInit {
     return status;
   }
 
+  // ============================================================
+  // onLateSummarySearchInput --- debounced trigger for loadLateSummary
+  // ============================================================
   onLateSummarySearchInput(): void {
     if (this.lateSummarySearchTimer) {
       clearTimeout(this.lateSummarySearchTimer);
@@ -1887,6 +2109,9 @@ export class AttendanceComponent implements OnInit {
     }, 300);
   }
 
+  // ============================================================
+  // previousLateSummaryPage
+  // ============================================================
   previousLateSummaryPage(): void {
     if (this.lateSummaryPageNumber > 1) {
       this.lateSummaryPageNumber--;
@@ -1894,12 +2119,19 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // nextLateSummaryPage
+  // ============================================================
   nextLateSummaryPage(): void {
     if (this.lateSummaryPageNumber < this.lateSummaryTotalPages) {
       this.lateSummaryPageNumber++;
       this.loadLateSummary();
     }
   }
+
+  // ============================================================
+  // loadLateSummary  ★★★ getLateSummary call (main load, single page - NO client-side re-filter, unlike searchEmployee)
+  // ============================================================
   loadLateSummary(): void {
     const fromApiDate = this.displayDateToApi(this.lateSummaryFromDisplay);
     const toApiDate = this.displayDateToApi(this.lateSummaryToDisplay);
@@ -1967,6 +2199,9 @@ export class AttendanceComponent implements OnInit {
       });
   }
 
+  // ============================================================
+  // clearLateSummary
+  // ============================================================
   clearLateSummary(): void {
     this.lateSummaryFrom = '';
     this.lateSummaryTo = '';
@@ -1991,6 +2226,9 @@ export class AttendanceComponent implements OnInit {
     this.lateSummarySuccessMessage = '';
   }
 
+  // ============================================================
+  // clearData --- resets the IMPORT page only
+  // ============================================================
   clearData(): void {
     this.attendanceRows = [];
     this.excelFileName = '';
@@ -2001,6 +2239,9 @@ export class AttendanceComponent implements OnInit {
     this.hasImportedCurrentSheet = false;
   }
 
+  // ============================================================
+  // normalizeTimeForApi
+  // ============================================================
   normalizeTimeForApi(value: string | null | undefined): string | null {
     if (!value || String(value).trim() === '') {
       return null;
@@ -2062,6 +2303,9 @@ export class AttendanceComponent implements OnInit {
     return `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
   }
 
+  // ============================================================
+  // timeForInput
+  // ============================================================
   timeForInput(value: string | null | undefined): string {
     if (!value) {
       return '';
@@ -2082,6 +2326,9 @@ export class AttendanceComponent implements OnInit {
     return '';
   }
 
+  // ============================================================
+  // getCellValue (private) --- Excel helper: find value by any of several possible header names
+  // ============================================================
   private getCellValue(row: any, possibleKeys: string[]): any {
     const rowKeys = Object.keys(row);
 
@@ -2103,6 +2350,9 @@ export class AttendanceComponent implements OnInit {
     return '';
   }
 
+  // ============================================================
+  // normalizeExcelDate (private)
+  // ============================================================
   private normalizeExcelDate(value: any): string {
     if (!value) {
       return '';
@@ -2164,6 +2414,9 @@ export class AttendanceComponent implements OnInit {
     return text;
   }
 
+  // ============================================================
+  // formatDate (private) [FOURTH near-duplicate date formatter - used by Excel import path]
+  // ============================================================
   private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = this.pad(date.getMonth() + 1);
@@ -2172,6 +2425,9 @@ export class AttendanceComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  // ============================================================
+  // normalizeExcelTime (private)
+  // ============================================================
   private normalizeExcelTime(value: any): string | null {
     if (
       value === null ||
@@ -2231,6 +2487,9 @@ export class AttendanceComponent implements OnInit {
     return `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
   }
 
+  // ============================================================
+  // timeToSeconds (private) --- UNUSED? not called anywhere in this file
+  // ============================================================
   private timeToSeconds(value: string): number {
     if (!this.isValidTimeString(value)) {
       return 0;
@@ -2241,10 +2500,16 @@ export class AttendanceComponent implements OnInit {
     return hours * 3600 + minutes * 60 + seconds;
   }
 
+  // ============================================================
+  // isValidAttendanceTimeOrEmpty (private)
+  // ============================================================
   private isValidAttendanceTimeOrEmpty(value: string | null): boolean {
     return value === null || this.isValidTimeString(value);
   }
 
+  // ============================================================
+  // isValidTimeString (private)
+  // ============================================================
   private isValidTimeString(value: string): boolean {
     if (!value) {
       return false;
@@ -2265,10 +2530,16 @@ export class AttendanceComponent implements OnInit {
     );
   }
 
+  // ============================================================
+  // isValidDateString (private)
+  // ============================================================
   private isValidDateString(value: string): boolean {
     return /^\d{4}-\d{2}-\d{2}$/.test(value);
   }
 
+  // ============================================================
+  // secondsToTime (private)
+  // ============================================================
   private secondsToTime(totalSeconds: number): string {
     const normalized = ((totalSeconds % 86400) + 86400) % 86400;
 
@@ -2279,28 +2550,40 @@ export class AttendanceComponent implements OnInit {
     return `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
   }
 
+  // ============================================================
+  // isEmptyRow (private)
+  // ============================================================
   private isEmptyRow(row: any): boolean {
     return Object.values(row).every(
       (value) => value === null || value === undefined || String(value).trim() === '',
     );
   }
 
+  // ============================================================
+  // normalizeArabicText (private) --- Arabic diacritics/letter normalization for fuzzy matching
+  // ============================================================
   private normalizeArabicText(value: string): string {
     return String(value || '')
       .trim()
       .replace(/[أإآ]/g, 'ا')
       .replace(/ى/g, 'ي')
       .replace(/ة/g, 'ه')
-      .replace(/[ًٌٍَُِّْ]/g, '')
+      .replace(/[ًٌٍَُِّْ]/g, '')
       .replace(/[ـ]/g, '')
       .replace(/\s+/g, ' ')
       .toLowerCase();
   }
 
+  // ============================================================
+  // pad (private)
+  // ============================================================
   private pad(value: number): string {
     return value.toString().padStart(2, '0');
   }
 
+  // ============================================================
+  // formatMinutesToHoursLabel
+  // ============================================================
   formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     if (value === null || value === undefined || value === '') {
       return '-';
@@ -2328,9 +2611,16 @@ export class AttendanceComponent implements OnInit {
     return `${wholeHours}:${remainingMinutes.toString().padStart(2, '0')}`;
   }
 
+  // ============================================================
+  // getAttendanceStatusLabel --- delegates to shared util (already unified per your message)
+  // ============================================================
   getAttendanceStatusLabel(status: any): string {
     return getAttendanceStatusLabel(status);
   }
+
+  // ============================================================
+  // getStatusClass
+  // ============================================================
   getStatusClass(status: string | null | undefined): string {
     const value = String(status || '').trim();
 
@@ -2360,6 +2650,9 @@ export class AttendanceComponent implements OnInit {
     }
   }
 
+  // ============================================================
+  // getNotesList --- NOTES TRANSLATION AREA #1
+  // ============================================================
   getNotesList(notes: unknown): string[] {
     const normalized = this.normalizeNotesValue(notes);
     return normalized
@@ -2370,6 +2663,9 @@ export class AttendanceComponent implements OnInit {
       : [];
   }
 
+  // ============================================================
+  // getAttendanceNotes --- NOTES TRANSLATION AREA #2 (structured entries for modal)
+  // ============================================================
   getAttendanceNotes(
     notes: unknown,
   ): Array<{ content: string; displayName?: string; createdAt?: string }> {
@@ -2446,6 +2742,9 @@ export class AttendanceComponent implements OnInit {
     return [];
   }
 
+  // ============================================================
+  // parseNotesString (private) --- NOTES TRANSLATION AREA #3 (isReviewMarker check)
+  // ============================================================
   private parseNotesString(
     notes: string,
   ): Array<{ content: string; displayName?: string; createdAt?: string }> {
@@ -2476,6 +2775,9 @@ export class AttendanceComponent implements OnInit {
     return entries.length > 0 ? entries : [];
   }
 
+  // ============================================================
+  // attachReviewMetadata (private)
+  // ============================================================
   private attachReviewMetadata(
     entries: Array<{ content: string; displayName?: string; createdAt?: string }>,
   ) {
@@ -2491,14 +2793,23 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
+  // ============================================================
+  // getReviewNoteAuthor (private)
+  // ============================================================
   private getReviewNoteAuthor(): string {
     return this.authService.getUserName() || 'المستخدم';
   }
 
+  // ============================================================
+  // isReviewMarker (private)
+  // ============================================================
   private isReviewMarker(text: string): boolean {
     return /^(تمت المراجعة|reviewed)$/i.test(text.trim());
   }
 
+  // ============================================================
+  // getNotesLabel --- NOTES TRANSLATION AREA #4 (biggest one: reuses translateApiMessage + its OWN notesMap + its OWN includes() checks)
+  // ============================================================
   getNotesLabel(notes: unknown): string {
     const value = this.normalizeNotesValue(notes);
 
@@ -2560,10 +2871,16 @@ export class AttendanceComponent implements OnInit {
     return translated || notesMap[value] || value;
   }
 
+  // ============================================================
+  // normalizeNotesForEditor (private) --- UNUSED? not called anywhere in this file
+  // ============================================================
   private normalizeNotesForEditor(notes: unknown): string {
     return this.normalizeNotesValue(notes) || '';
   }
 
+  // ============================================================
+  // appendReviewNoteToNotes (private) --- adds "تمت المراجعة" marker; handles array/object/string shapes
+  // ============================================================
   private appendReviewNoteToNotes(notes: unknown): unknown {
     const reviewNoteContent = 'تمت المراجعة';
     const normalized = this.normalizeNotesValue(notes);
@@ -2664,6 +2981,9 @@ export class AttendanceComponent implements OnInit {
     return `${normalized}، ${reviewNoteContent}`;
   }
 
+  // ============================================================
+  // normalizeNoteText (private)
+  // ============================================================
   private normalizeNoteText(value: unknown): string {
     if (typeof value !== 'string') {
       return '';
@@ -2673,6 +2993,9 @@ export class AttendanceComponent implements OnInit {
     return text && !this.isFrameworkTypeValue(text) ? text : '';
   }
 
+  // ============================================================
+  // normalizeNotesValue (private)
+  // ============================================================
   private normalizeNotesValue(notes: unknown): string {
     if (Array.isArray(notes)) {
       return notes
@@ -2698,6 +3021,9 @@ export class AttendanceComponent implements OnInit {
     return '';
   }
 
+  // ============================================================
+  // extractNoteContent (private)
+  // ============================================================
   private extractNoteContent(note: unknown): string {
     if (typeof note === 'string') {
       const value = note.trim();
@@ -2729,6 +3055,9 @@ export class AttendanceComponent implements OnInit {
     return '';
   }
 
+  // ============================================================
+  // isFrameworkTypeValue (private) --- guards against leaked .NET type strings (e.g. "System.Collections.Generic.HashSet`1[...]")
+  // ============================================================
   private isFrameworkTypeValue(value: string): boolean {
     return /(System\.Collections\.Generic\.(HashSet|List)|HashSet`|ICollection|IEnumerable)/i.test(
       value,

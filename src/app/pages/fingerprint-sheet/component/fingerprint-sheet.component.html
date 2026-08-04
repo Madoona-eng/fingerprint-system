@@ -1,13 +1,8 @@
 <section class="fingerprint-sheet-page" dir="rtl">
-  <div class="page-header">
-    <div>
-      <h2>شيت البصمة</h2>
-      <p>عرض مفصل للحضور والانصراف اليومي</p>
-    </div>
-    <a routerLink="/dashboard" class="back-link">العودة للوحة التحكم</a>
-  </div>
-
   <div class="sheet-card filter-card">
+    <div>
+      <a routerLink="/dashboard" class="back-link">العودة للوحة التحكم</a>
+    </div>
     <div class="filter-field date-field">
       <label>من تاريخ</label>
 
@@ -23,7 +18,9 @@
           (input)="formatDateDisplayWhileTyping('from')"
         />
 
-        <button type="button" class="calendar-btn" (click)="openNativeDatePicker(fromDatePicker)">📅</button>
+        <button type="button" class="calendar-btn" (click)="openNativeDatePicker(fromDatePicker)">
+          📅
+        </button>
 
         <input
           #fromDatePicker
@@ -50,7 +47,9 @@
           (input)="formatDateDisplayWhileTyping('to')"
         />
 
-        <button type="button" class="calendar-btn" (click)="openNativeDatePicker(toDatePicker)">📅</button>
+        <button type="button" class="calendar-btn" (click)="openNativeDatePicker(toDatePicker)">
+          📅
+        </button>
 
         <input
           #toDatePicker
@@ -84,8 +83,14 @@
 
     <div class="filter-field action-field">
       <label class="sr-only">إجراءات</label>
-      <button type="button" class="load-btn" (click)="loadData()">تحميل البيانات</button>
-      <button type="button" class="export-btn" (click)="exportToExcel()" [disabled]="isExporting">
+
+      <button type="button" class="apply-search-btn" (click)="loadData()">تطبيق الفلتره</button>
+
+      <!-- <button type="button" class="clear-search-btn" (click)="clearDateRangeFilter()">
+        مسح الفلتر
+      </button> -->
+
+      <button type="button" class="export-excel-btn" (click)="exportToExcel()" [disabled]="isExporting">
         {{ isExporting ? 'جاري التصدير...' : 'تصدير Excel' }}
       </button>
     </div>
@@ -118,21 +123,30 @@
         </thead>
         <tbody>
           <tr *ngFor="let item of records">
-  <td>{{ item.employeeName || 'غير محدد' }}</td>
-  <td>{{ item.employeeCode || '-' }}</td>
-  <td>{{ item['departmentRaw'] || '-' }}</td>
-  <td>{{ item['punchDate'] || '-' }}</td>
-  <td>{{ item['inRaw'] || '-' }}</td>
-  <td>{{ item['outRaw'] || '-' }}</td>
-  <td>{{ item['importedAt'] | date:'dd/MM/yyyy HH:mm:ss' }}</td>
-</tr>
+            <td>{{ item.employeeName || 'غير محدد' }}</td>
+            <td>{{ item.employeeCode || '-' }}</td>
+            <td>{{ item['departmentRaw'] || '-' }}</td>
+            <td>{{ item['punchDate'] || '-' }}</td>
+            <td>{{ item['inRaw'] || '-' }}</td>
+            <td>{{ item['outRaw'] || '-' }}</td>
+            <td>{{ item['importedAt'] | date: 'dd/MM/yyyy HH:mm:ss' }}</td>
+          </tr>
         </tbody>
       </table>
     </div>
 
     <div class="pagination">
-      <button type="button" class="page-btn" (click)="previousPage()" [disabled]="pageNumber === 1">السابق</button>
-      <button type="button" class="page-btn" (click)="nextPage()" [disabled]="pageNumber === totalPages">التالي</button>
+      <button type="button" class="page-btn" (click)="previousPage()" [disabled]="pageNumber === 1">
+        السابق
+      </button>
+      <button
+        type="button"
+        class="page-btn"
+        (click)="nextPage()"
+        [disabled]="pageNumber === totalPages"
+      >
+        التالي
+      </button>
     </div>
   </div>
 </section>
