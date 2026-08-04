@@ -42,724 +42,125 @@
   </section>
 
   <ng-container [ngSwitch]="activeAttendancePage">
-    <!-- ==========================================
-         الصفحة 1: رفع شيت الحضور (Import)
-    ========================================== -->
     <section *ngSwitchCase="'import'" class="attendance-sub-page">
-      <section class="attendance-card">
-        <div class="upload-info">
-          <h1>استيراد الحضور والانصراف</h1>
-          <p>
-            قم برفع شيت الحضور، وسيتم استخراج كود الموظف، التاريخ، وقت الحضور، ووقت الانصراف ثم
-            حفظهم في السيستم.
-          </p>
-        </div>
-
-        <label
-          class="upload-box"
-          (dragover)="onDragOver($event)"
-          (dragleave)="onDragLeave($event)"
-          (drop)="onFileDrop($event)"
-        >
-          <input
-            type="file"
-            accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-            (change)="onAttendanceSheetSelected($event)"
-          />
-
-          <span>📁 قم بإختيار ملف Excel أو اسحبه هنا</span>
-        </label>
-
-        <div *ngIf="excelFileName" class="file-name">الملف المختار: {{ excelFileName }}</div>
-
-        <div *ngIf="successMessage" class="success-message">
-          {{ successMessage }}
-        </div>
-
-        <div *ngIf="errorMessage" class="error-message">
-          {{ errorMessage }}
-        </div>
-
-        <ul *ngIf="rowErrors.length > 0" class="row-errors">
-          <li *ngFor="let rowError of rowErrors | slice: 0 : 6">
-            {{ rowError }}
-          </li>
-
-          <li *ngIf="rowErrors.length > 6">ويوجد {{ rowErrors.length - 6 }} أخطاء أخرى...</li>
-        </ul>
-
-        <div class="actions" *ngIf="attendanceRows.length > 0">
-          <button
-            type="button"
-            class="import-btn"
-            [disabled]="isImporting || hasImportedCurrentSheet"
-            (click)="importAttendance()"
-          >
-            {{
-              isImporting
-                ? 'جاري الحفظ...'
-                : hasImportedCurrentSheet
-                  ? 'تم الحفظ في السيستم'
-                  : 'استيراد الحضور للسيستم'
-            }}
-          </button>
-        </div>
-      </section>
-
-      <section *ngIf="sheetPreviewRows.length > 0" class="json-preview-card">
-        <div class="table-header">
-          <h3>عرض الملف المرفوع</h3>
-          <span>{{ sheetPreviewRows.length }} صف</span>
-        </div>
-
-        <div class="table-wrapper">
-          <table class="preview-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>الورقة</th>
-                <th *ngFor="let header of sheetPreviewHeaders">{{ header }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of sheetPreviewRows; let i = index">
-                <td>{{ i + 1 }}</td>
-                <td>{{ row['__sheetName'] }}</td>
-                <td *ngFor="let header of sheetPreviewHeaders">{{ row[header] }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <app-attendance-import
+        [excelFileName]="excelFileName"
+        [successMessage]="successMessage"
+        [errorMessage]="errorMessage"
+        [rowErrors]="rowErrors"
+        [sheetPreviewRows]="sheetPreviewRows"
+        [sheetPreviewHeaders]="sheetPreviewHeaders"
+        [attendanceRowsLength]="attendanceRows.length"
+        [isImporting]="isImporting"
+        [hasImportedCurrentSheet]="hasImportedCurrentSheet"
+        (fileSelected)="onAttendanceSheetSelected($event)"
+        (importAttendance)="importAttendance()"
+        (clearData)="clearData()"
+      ></app-attendance-import>
     </section>
 
-    <!-- ==========================================
-         الصفحة 2: عرض سجلات الحضور (Report)
-    ========================================== -->
     <section *ngSwitchCase="'report'" class="attendance-sub-page">
-      <section class="attendance-card">
-        <div class="upload-info">
-          <h1>عرض سجلات الحضور والانصراف</h1>
-        </div>
-
-        <div class="attendance-filter-box">
-          <div class="filter-field date-field">
-            <label>من تاريخ</label>
-
-            <div class="date-input-wrap">
-              <input
-                class="date-text-input"
-                type="text"
-                inputmode="numeric"
-                maxlength="10"
-                placeholder="31/03/2026"
-                [(ngModel)]="dateRangeFromDisplay"
-                [ngModelOptions]="{ standalone: true }"
-                (input)="formatDateDisplayWhileTyping('from')"
-              />
-
-              <button
-                type="button"
-                class="calendar-btn"
-                (click)="openNativeDatePicker(fromDatePicker)"
-              >
-                📅
-              </button>
-
-              <input
-                #fromDatePicker
-                class="native-date-picker"
-                type="date"
-                [value]="dateRangeFrom"
-                (change)="onNativeDatePicked($event, 'from')"
-              />
-            </div>
-          </div>
-
-          <div class="filter-field date-field">
-            <label>إلى تاريخ</label>
-
-            <div class="date-input-wrap">
-              <input
-                class="date-text-input"
-                type="text"
-                inputmode="numeric"
-                maxlength="10"
-                placeholder="31/03/2026"
-                [(ngModel)]="dateRangeToDisplay"
-                [ngModelOptions]="{ standalone: true }"
-                (input)="formatDateDisplayWhileTyping('to')"
-              />
-
-              <button
-                type="button"
-                class="calendar-btn"
-                (click)="openNativeDatePicker(toDatePicker)"
-              >
-                📅
-              </button>
-
-              <input
-                #toDatePicker
-                class="native-date-picker"
-                type="date"
-                [value]="dateRangeTo"
-                (change)="onNativeDatePicked($event, 'to')"
-              />
-            </div>
-          </div>
-
-          <div class="filter-field search-field">
-            <label>بحث عن موظف</label>
-            <input
-              type="text"
-              placeholder="اكتب اسم الموظف أو الكود"
-              [(ngModel)]="employeeSearchTerm"
-              [ngModelOptions]="{ standalone: true }"
-              (ngModelChange)="onEmployeeSearchInputChange()"
-            />
-          </div>
-
-          <div class="filter-field" *ngIf="isSuperAdmin">
-            <label>المكان</label>
-            <select
-              [(ngModel)]="selectedLocationId"
-              [ngModelOptions]="{ standalone: true }"
-              (change)="onLocationChange(selectedLocationId)"
-            >
-              <option *ngFor="let loc of locations" [ngValue]="loc.id">
-                {{ loc.name }}
-              </option>
-            </select>
-          </div>
-
-          <div class="filter-field">
-            <label>القسم</label>
-            <select [(ngModel)]="dateRangeDepartmentId" [ngModelOptions]="{ standalone: true }">
-              <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">
-                {{ dep.name }}
-              </option>
-            </select>
-          </div>
-
-          <div class="filter-field">
-            <label>الحالة</label>
-            <select [(ngModel)]="dateRangeStatus" [ngModelOptions]="{ standalone: true }">
-              <option *ngFor="let status of statusOptions" [ngValue]="status.value">
-                {{ status.label }}
-              </option>
-            </select>
-          </div>
-
-          <div class="filter-field">
-            <label>يحتاج مراجعة</label>
-            <select [(ngModel)]="dateRangeNeedsReview" [ngModelOptions]="{ standalone: true }">
-              <option [ngValue]="null">الكل</option>
-              <option [ngValue]="true">يحتاج مراجعة</option>
-              <option [ngValue]="false">لا يحتاج مراجعة</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="filter-btns">
-          <button type="button" class="apply-search-btn" (click)="applyDateRangeFilter()">
-            تطبيق الفلتر
-          </button>
-
-          <button type="button" class="clear-search-btn" (click)="clearDateRangeFilter()">
-            مسح الفلتر
-          </button>
-
-          <button type="button" class="export-excel-btn" (click)="exportAttendanceReportToExcel()">
-            تصدير لملف اكسل
-          </button>
-        </div>
-        <!--  -->
-        <div *ngIf="dateRangeErrorMessage" class="error-message">
-          {{ dateRangeErrorMessage }}
-        </div>
-      </section>
-
-      <section *ngIf="dateRangeRows.length > 0" class="json-preview-card">
-        <div class="table-header">
-          <h3>نتائج الحضور والانصراف</h3>
-          <span>{{ dateRangeTotalCount || dateRangeRows.length }} سجل</span>
-        </div>
-
-        <div class="table-wrapper" *ngIf="dateRangeRows.length > 0">
-          <table>
-            <thead>
-              <tr>
-                <th>اسم الموظف</th>
-                <th>القسم</th>
-                <th>التاريخ</th>
-                <th>الحالة</th>
-                <th>معاد الحضور</th>
-                <th>معاد الانصراف</th>
-                <th>وقت الحضور</th>
-                <th>وقت الانصراف</th>
-                <th>التأخير (د)</th>
-                <th>العمل (س)</th>
-                <th>ملاحظات</th>
-                <th>المراجعة</th>
-                <th>تعديل</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr *ngFor="let row of filteredDateRangeRows">
-                <td>
-                  {{
-                    row.employeeName ||
-                      row.name ||
-                      row.employee?.name ||
-                      row.employee?.employeeName ||
-                      '-'
-                  }}
-                </td>
-
-                <td>
-                  {{
-                    row.departmentName ||
-                      row.employee?.departmentName ||
-                      row.department?.name ||
-                      '-'
-                  }}
-                </td>
-
-                <td>
-                  {{ row.date || row.attendanceDate || '-' }}
-                </td>
-
-                <td>
-                  <span class="status-badge" [ngClass]="getStatusClass(row.status)">
-                    {{ getAttendanceStatusLabel(row.status) }}
-                  </span>
-                </td>
-
-                <td>
-                  {{ row.scheduleIn || row.shift?.scheduleIn || '-' }}
-                </td>
-
-                <td>
-                  {{ row.scheduleOut || row.shift?.scheduleOut || '-' }}
-                </td>
-
-                <td>
-                  {{ row.actualIn || '-' }}
-                </td>
-
-                <td>
-                  {{ row.actualOut || '-' }}
-                </td>
-
-                <td>
-                  {{ row.lateMinutes ?? '-' }}
-                </td>
-
-                <td>
-                  {{ formatMinutesToHoursLabel(row.workedMinutes) }}
-                </td>
-
-                <td>
-                  <div class="attendance-notes-cell">
-                    <button type="button" class="notes-view-btn" (click)="openNotesModal(row)">
-                      {{
-                        getAttendanceNotes(row.notes).length > 0
-                          ? 'عرض الملاحظات'
-                          : 'لا توجد ملاحظات'
-                      }}
-                    </button>
-                  </div>
-                </td>
-
-                <td>
-                  <button
-                    *ngIf="needsReview(row)"
-                    type="button"
-                    class="review-btn"
-                    [disabled]="reviewingAttendanceId === getAttendanceId(row)"
-                    (click)="markAttendanceReviewed(row)"
-                  >
-                    {{
-                      reviewingAttendanceId === getAttendanceId(row)
-                        ? 'جاري...'
-                        : 'يحتاج الي المراجعة'
-                    }}
-                  </button>
-
-                  <span *ngIf="isReviewed(row)" class="reviewed-badge"> تمت المراجعة </span>
-
-                  <span *ngIf="!needsReview(row) && !isReviewed(row)" class="no-review-needed">
-                    -
-                  </span>
-                </td>
-
-                <td>
-                  <button
-                    type="button"
-                    class="edit-attendance-btn"
-                    (click)="openAttendanceEdit(row)"
-                  >
-                    تعديل
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
-          <div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
-            <div class="notes-modal" (click)="$event.stopPropagation()">
-              <!-- Header -->
-              <div class="notes-modal-header">
-                <button type="button" class="notes-modal-close" (click)="closeNotesModal()">
-                  ✕
-                </button>
-
-                <h3>{{ notesModalTitle }}</h3>
-              </div>
-
-              <!-- Body -->
-              <div class="notes-modal-body">
-                <ng-container *ngIf="notesModalEntries.length > 0; else noNotesModal">
-                  <div class="notes-modal-list">
-                    <div *ngFor="let note of notesModalEntries" class="notes-modal-item">
-                      <div class="notes-modal-meta" *ngIf="note.displayName || note.createdAt">
-                        <span class="notes-modal-user" *ngIf="note.displayName">
-                          {{ note.displayName }}
-                        </span>
-                        <span class="notes-modal-time" *ngIf="note.createdAt">
-                          {{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}
-                        </span>
-                      </div>
-
-                      <div class="notes-modal-text">
-                        {{ note.content }}
-                      </div>
-                    </div>
-                  </div>
-                </ng-container>
-
-                <ng-template #noNotesModal>
-                  <div class="notes-modal-empty">لا توجد ملاحظات</div>
-                </ng-template>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="pagination-box">
-          <button
-            type="button"
-            (click)="previousDateRangePage()"
-            [disabled]="dateRangePageNumber === 1"
-          >
-            السابق
-          </button>
-
-          <span> صفحة {{ dateRangePageNumber }} من {{ dateRangeTotalPages }} </span>
-
-          <button
-            type="button"
-            (click)="nextDateRangePage()"
-            [disabled]="dateRangePageNumber === dateRangeTotalPages"
-          >
-            التالي
-          </button>
-        </div>
-      </section>
-
-      <div
-        *ngIf="
-          !isLoadingDateRange &&
-          dateRangeFrom &&
-          dateRangeTo &&
-          dateRangeRows.length === 0 &&
-          !dateRangeErrorMessage
-        "
-        class="empty-message"
-      >
-        لا توجد سجلات حضور مطابقة للفلتر المحدد.
-      </div>
+      <app-attendance-report
+        [dateRangeFrom]="dateRangeFrom"
+        [dateRangeTo]="dateRangeTo"
+        [dateRangeFromDisplay]="dateRangeFromDisplay"
+        [dateRangeToDisplay]="dateRangeToDisplay"
+        [employeeSearchTerm]="employeeSearchTerm"
+        [selectedLocationId]="selectedLocationId"
+        [dateRangeDepartmentId]="dateRangeDepartmentId"
+        [dateRangeStatus]="dateRangeStatus"
+        [dateRangeNeedsReview]="dateRangeNeedsReview"
+        [statusOptions]="statusOptions"
+        [dateRangeRoute]="dateRangeRoute"
+        [routeOptions]="routeOptions"
+        [filteredDateRangeRows]="filteredDateRangeRows"
+        [dateRangePageNumber]="dateRangePageNumber"
+        [dateRangeTotalPages]="dateRangeTotalPages"
+        [dateRangeTotalCount]="dateRangeTotalCount"
+        [isLoadingDateRange]="isLoadingDateRange"
+        [dateRangeErrorMessage]="dateRangeErrorMessage"
+        [dateRangeSuccessMessage]="dateRangeSuccessMessage"
+        [notesModalOpen]="notesModalOpen"
+        [notesModalTitle]="notesModalTitle"
+        [notesModalEntries]="notesModalEntries"
+        [reviewingAttendanceId]="reviewingAttendanceId"
+        [isSuperAdmin]="isSuperAdmin"
+        [locations]="locations"
+        [departmentOptions]="departmentOptions"
+        (dateRangeInputChange)="onDateRangeInputChange($event.value, $event.field)"
+        (openNativeDatePicker)="openNativeDatePicker($event)"
+        (nativeDatePicked)="onNativeDatePicked($event.event, $event.field)"
+        (applyDateRangeFilter)="applyDateRangeFilter()"
+        (clearDateRangeFilter)="clearDateRangeFilter()"
+        (exportAttendanceReportToExcel)="exportAttendanceReportToExcel()"
+        (previousDateRangePage)="previousDateRangePage()"
+        (nextDateRangePage)="nextDateRangePage()"
+        (onEmployeeSearchInputChange)="onEmployeeSearchInputChange()"
+        (employeeSearchTermChange)="employeeSearchTerm = $event"
+        (dateRangeNeedsReviewChange)="dateRangeNeedsReview = $event"
+        (markAttendanceReviewed)="markAttendanceReviewed($event)"
+        (openAttendanceEdit)="openAttendanceEdit($event)"
+        (openNotesModal)="openNotesModal($event)"
+        (closeNotesModal)="closeNotesModal()"
+        (onLocationChange)="onLocationChange($event)"
+        (dateRangeDepartmentIdChange)="dateRangeDepartmentId = $event"
+        (dateRangeStatusChange)="dateRangeStatus = $event"
+        (dateRangeRouteChange)="dateRangeRoute = $event"
+      ></app-attendance-report>
     </section>
 
-    <!-- ==========================================
-         الصفحة 3: ملخص التأخير (Late Summary)
-    ========================================== -->
     <section *ngSwitchCase="'lateSummary'" class="attendance-sub-page">
-      <section class="attendance-card">
-        <div class="upload-info">
-          <h1>ملخص التأخير</h1>
-        </div>
-
-        <div class="attendance-filter-box late-summary-filter">
-          <div class="filter-field date-field">
-            <label>من تاريخ</label>
-
-            <div class="date-input-wrap">
-              <input
-                class="date-text-input"
-                type="text"
-                inputmode="numeric"
-                maxlength="10"
-                placeholder="31/03/2026"
-                [(ngModel)]="lateSummaryFromDisplay"
-                [ngModelOptions]="{ standalone: true }"
-                (input)="formatLateDateDisplayWhileTyping('from')"
-              />
-
-              <button
-                type="button"
-                class="calendar-btn"
-                (click)="openNativeDatePicker(lateFromDatePicker)"
-              >
-                📅
-              </button>
-
-              <input
-                #lateFromDatePicker
-                class="native-date-picker"
-                type="date"
-                [value]="lateSummaryFrom"
-                (change)="onLateSummaryNativeDatePicked($event, 'from')"
-              />
-            </div>
-          </div>
-
-          <div class="filter-field date-field">
-            <label>إلى تاريخ</label>
-
-            <div class="date-input-wrap">
-              <input
-                class="date-text-input"
-                type="text"
-                inputmode="numeric"
-                maxlength="10"
-                placeholder="31/03/2026"
-                [(ngModel)]="lateSummaryToDisplay"
-                [ngModelOptions]="{ standalone: true }"
-                (input)="formatLateDateDisplayWhileTyping('to')"
-              />
-
-              <button
-                type="button"
-                class="calendar-btn"
-                (click)="openNativeDatePicker(lateToDatePicker)"
-              >
-                📅
-              </button>
-
-              <input
-                #lateToDatePicker
-                class="native-date-picker"
-                type="date"
-                [value]="lateSummaryTo"
-                (change)="onLateSummaryNativeDatePicked($event, 'to')"
-              />
-            </div>
-          </div>
-
-          <div class="filter-field">
-            <label>اسم الموظف</label>
-            <input
-              type="text"
-              placeholder="مثال: أحمد"
-              [(ngModel)]="lateSummaryEmployeeSearch"
-              [ngModelOptions]="{ standalone: true }"
-            />
-          </div>
-
-          <div class="filter-field" *ngIf="isSuperAdmin">
-            <label>المكان</label>
-            <select
-              [(ngModel)]="lateSummaryLocationId"
-              [ngModelOptions]="{ standalone: true }"
-              (change)="onLocationChange(lateSummaryLocationId)"
-            >
-              <option *ngFor="let loc of locations" [ngValue]="loc.id">
-                {{ loc.name }}
-              </option>
-            </select>
-          </div>
-
-          <div class="filter-field">
-            <label>القسم</label>
-            <select [(ngModel)]="lateSummaryDepartmentId" [ngModelOptions]="{ standalone: true }">
-              <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">
-                {{ dep.name }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <div class="filter-btns">
-          <button
-            type="button"
-            class="apply-search-btn"
-            [disabled]="isLoadingLateSummary"
-            (click)="loadLateSummary()"
-          >
-            {{ isLoadingLateSummary ? 'جاري التحميل...' : ' تطبيق الفلتر' }}
-          </button>
-
-          <button type="button" class="clear-search-btn" (click)="clearLateSummary()">
-            مسح الفلتر
-          </button>
-
-          <button type="button" class="export-excel-btn" (click)="exportLateSummaryToExcel()">
-            تصدير لملف اكسل
-          </button>
-        </div>
-
-        <div *ngIf="lateSummaryErrorMessage" class="error-message">
-          {{ lateSummaryErrorMessage }}
-        </div>
-      </section>
-
-      <section *ngIf="lateSummaryData" class="json-preview-card">
-        <div class="table-header">
-          <h3>نتيجة ملخص التأخير</h3>
-        </div>
-
-        <div *ngIf="lateSummaryData && lateSummaryData.length === 0" class="empty-message">
-          لا توجد سجلات حضور مطابقة للفلتر المحدد.
-        </div>
-
-        <section *ngIf="lateSummaryRows.length > 0" class="json-preview-card late-summary-result">
-          <div class="table-header">
-            <h3>نتيجة ملخص التأخير</h3>
-          </div>
-
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>كود الموظف</th>
-                  <th>اسم الموظف</th>
-                  <th>القسم</th>
-                  <th>من تاريخ</th>
-                  <th>إلى تاريخ</th>
-                  <th>إجمالي دقائق التأخير</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr *ngFor="let row of lateSummaryRows">
-                  <td>{{ row.employeeCode || '-' }}</td>
-                  <td>{{ row.employeeName || '-' }}</td>
-                  <td>{{ row.departmentName }}</td>
-                  <td>{{ row.from || '-' }}</td>
-                  <td>{{ row.to || '-' }}</td>
-
-                  <td>
-                    <span class="late-minutes-badge"> {{ row.totalLateMinutes || 0 }} دقيقة </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="pagination-box" *ngIf="lateSummaryTotalPages > 1">
-            <button
-              type="button"
-              (click)="previousLateSummaryPage()"
-              [disabled]="lateSummaryPageNumber === 1"
-            >
-              السابق
-            </button>
-
-            <span>صفحة {{ lateSummaryPageNumber }} من {{ lateSummaryTotalPages }}</span>
-
-            <button
-              type="button"
-              (click)="nextLateSummaryPage()"
-              [disabled]="lateSummaryPageNumber === lateSummaryTotalPages"
-            >
-              التالي
-            </button>
-          </div>
-        </section>
-      </section>
+      <app-attendance-late-summary
+        [lateSummaryFrom]="lateSummaryFrom"
+        [lateSummaryTo]="lateSummaryTo"
+        [lateSummaryFromDisplay]="lateSummaryFromDisplay"
+        [lateSummaryToDisplay]="lateSummaryToDisplay"
+        [lateSummaryEmployeeSearch]="lateSummaryEmployeeSearch"
+        [lateSummaryLocationId]="lateSummaryLocationId"
+        [lateSummaryDepartmentId]="lateSummaryDepartmentId"
+        [lateSummaryRows]="lateSummaryRows"
+        [lateSummaryData]="lateSummaryData"
+        [lateSummaryPageNumber]="lateSummaryPageNumber"
+        [lateSummaryTotalPages]="lateSummaryTotalPages"
+        [lateSummaryErrorMessage]="lateSummaryErrorMessage"
+        [lateSummarySuccessMessage]="lateSummarySuccessMessage"
+        [isLoadingLateSummary]="isLoadingLateSummary"
+        [isSuperAdmin]="isSuperAdmin"
+        [locations]="locations"
+        [departmentOptions]="departmentOptions"
+        (lateSummaryFromDisplayChange)="onLateSummaryDateInputChange($event, 'from')"
+        (lateSummaryToDisplayChange)="onLateSummaryDateInputChange($event, 'to')"
+        (lateSummaryEmployeeSearchChange)="lateSummaryEmployeeSearch = $event"
+        (lateSummaryLocationIdChange)="lateSummaryLocationId = $event"
+        (lateSummaryDepartmentIdChange)="lateSummaryDepartmentId = $event"
+        (loadLateSummary)="loadLateSummary()"
+        (clearLateSummary)="clearLateSummary()"
+        (exportLateSummaryToExcel)="exportLateSummaryToExcel()"
+        (onLocationChange)="onLocationChange($event)"
+        (openNativeDatePicker)="openNativeDatePicker($event)"
+        (nativeDatePicked)="onLateSummaryNativeDatePicked($event.event, $event.field)"
+        (previousLateSummaryPage)="previousLateSummaryPage()"
+        (nextLateSummaryPage)="nextLateSummaryPage()"
+      ></app-attendance-late-summary>
     </section>
 
-    <!-- ==========================================
-         الصفحة 4: تعديل سجل حضور واحد (Edit)
-         غير مستخدم حاليا 
-    ========================================== -->
     <section *ngSwitchCase="'edit'" class="attendance-sub-page">
-      <section class="attendance-card edit-attendance-card">
-        <div class="upload-info">
-          <span class="small-title">تعديل الحضور</span>
-          <h1>تعديل سجل الحضور والانصراف</h1>
-          <p>قم بتعديل وقت الحضور أو الانصراف أو الحالة ثم اضغطي حفظ.</p>
-        </div>
-
-        <div class="edit-attendance-summary">
-          <div>
-            <span>كود الموظف</span>
-            <strong>{{ attendanceEditEmployeeCode || '-' }}</strong>
-          </div>
-
-          <div>
-            <span>اسم الموظف</span>
-            <strong>{{ attendanceEditEmployeeName || '-' }}</strong>
-          </div>
-
-          <div>
-            <span>القسم</span>
-            <strong>{{ attendanceEditDepartmentName || '-' }}</strong>
-          </div>
-
-          <div>
-            <span>التاريخ</span>
-            <strong>{{ attendanceEditDate || '-' }}</strong>
-          </div>
-        </div>
-
-        <div class="attendance-edit-form">
-          <div class="filter-field">
-            <label>الحالة</label>
-            <select [(ngModel)]="attendanceEditStatus" [ngModelOptions]="{ standalone: true }">
-              <option *ngFor="let status of statusOptions" [ngValue]="status.value">
-                {{ status.label }}
-              </option>
-            </select>
-          </div>
-
-          <div class="filter-field full-field">
-            <label>ملاحظات</label>
-            <input
-              type="text"
-              placeholder="اكتب ملاحظة"
-              [(ngModel)]="attendanceEditNotes"
-              [ngModelOptions]="{ standalone: true }"
-            />
-          </div>
-        </div>
-
-        <div *ngIf="attendanceEditSuccessMessage" class="success-message">
-          {{ attendanceEditSuccessMessage }}
-        </div>
-
-        <div *ngIf="attendanceEditErrorMessage" class="error-message">
-          {{ attendanceEditErrorMessage }}
-        </div>
-
-        <div class="actions">
-          <button
-            type="button"
-            class="import-btn"
-            [disabled]="isSavingAttendanceEdit"
-            (click)="saveAttendanceEdit()"
-          >
-            {{ isSavingAttendanceEdit ? 'جاري الحفظ...' : 'حفظ التعديل' }}
-          </button>
-
-          <button type="button" class="ghost-btn" (click)="cancelAttendanceEdit()">رجوع</button>
-        </div>
-      </section>
+      <app-attendance-edit
+        [attendanceEditEmployeeCode]="attendanceEditEmployeeCode"
+        [attendanceEditEmployeeName]="attendanceEditEmployeeName"
+        [attendanceEditDepartmentName]="attendanceEditDepartmentName"
+        [attendanceEditDate]="attendanceEditDate"
+        [attendanceEditStatus]="attendanceEditStatus"
+        [attendanceEditNotes]="attendanceEditNotes"
+        [attendanceEditErrorMessage]="attendanceEditErrorMessage"
+        [attendanceEditSuccessMessage]="attendanceEditSuccessMessage"
+        [isSavingAttendanceEdit]="isSavingAttendanceEdit"
+        [statusOptions]="statusOptions"
+        (attendanceEditStatusChange)="attendanceEditStatus = $event"
+        (attendanceEditNotesChange)="attendanceEditNotes = $event"
+        (saveAttendanceEdit)="saveAttendanceEdit()"
+        (cancelAttendanceEdit)="cancelAttendanceEdit()"
+      ></app-attendance-edit>
     </section>
   </ng-container>
 </div>

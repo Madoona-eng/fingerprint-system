@@ -302,7 +302,7 @@ export class FingerprintSheetComponent implements OnInit {
     const workbook = utils.book_new();
     utils.book_append_sheet(workbook, worksheet, 'شيت البصمة');
 
-    const fileName = `shiet-basma-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const fileName = `شيت البصمة.xlsx`;
     writeFile(workbook, fileName);
 
     this.isExporting = false;

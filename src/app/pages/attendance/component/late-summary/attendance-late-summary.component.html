@@ -1,0 +1,137 @@
+<section class="attendance-card">
+  <div class="upload-info">
+    <h1>ملخص التأخير</h1>
+  </div>
+
+  <div class="attendance-filter-box late-summary-filter">
+    <div class="filter-field date-field">
+      <label>من تاريخ</label>
+      <div class="date-input-wrap">
+        <input
+          class="date-text-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="10"
+          placeholder="31/03/2026"
+          [ngModel]="lateSummaryFromDisplay"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="lateSummaryFromDisplayChange.emit($any($event.target).value)"
+        />
+        <button type="button" class="calendar-btn" (click)="openNativeDatePicker.emit(lateFromDatePicker)">📅</button>
+        <input
+          #lateFromDatePicker
+          class="native-date-picker"
+          type="date"
+          [value]="lateSummaryFrom"
+          (change)="nativeDatePicked.emit({ event: $event, field: 'from' })"
+        />
+      </div>
+    </div>
+
+    <div class="filter-field date-field">
+      <label>إلى تاريخ</label>
+      <div class="date-input-wrap">
+        <input
+          class="date-text-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="10"
+          placeholder="31/03/2026"
+          [ngModel]="lateSummaryToDisplay"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="lateSummaryToDisplayChange.emit($any($event.target).value)"
+        />
+        <button type="button" class="calendar-btn" (click)="openNativeDatePicker.emit(lateToDatePicker)">📅</button>
+        <input
+          #lateToDatePicker
+          class="native-date-picker"
+          type="date"
+          [value]="lateSummaryTo"
+          (change)="nativeDatePicked.emit({ event: $event, field: 'to' })"
+        />
+      </div>
+    </div>
+
+    <div class="filter-field">
+      <label>اسم الموظف</label>
+      <input
+        type="text"
+        placeholder="مثال: أحمد"
+        [ngModel]="lateSummaryEmployeeSearch"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="lateSummaryEmployeeSearchChange.emit($event)"
+      />
+    </div>
+
+    <div class="filter-field" *ngIf="isSuperAdmin">
+      <label>المكان</label>
+      <select
+        [ngModel]="lateSummaryLocationId"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="onLocationChange.emit($event)"
+      >
+        <option *ngFor="let loc of locations" [ngValue]="loc.id">{{ loc.name }}</option>
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label>القسم</label>
+      <select
+        [ngModel]="lateSummaryDepartmentId"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="lateSummaryDepartmentIdChange.emit($event)"
+      >
+        <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filter-btns">
+    <button type="button" class="apply-search-btn" [disabled]="isLoadingLateSummary" (click)="loadLateSummary.emit()">
+      {{ isLoadingLateSummary ? 'جاري التحميل...' : 'تطبيق الفلتر' }}
+    </button>
+
+    <button type="button" class="clear-search-btn" (click)="clearLateSummary.emit()">مسح الفلتر</button>
+
+    <button type="button" class="export-excel-btn" (click)="exportLateSummaryToExcel.emit()">تصدير لملف اكسل</button>
+  </div>
+
+  <div *ngIf="lateSummaryErrorMessage" class="error-message">{{ lateSummaryErrorMessage }}</div>
+</section>
+
+<section *ngIf="lateSummaryData && lateSummaryRows.length > 0" class="json-preview-card late-summary-result">
+  <div class="table-header">
+    <h3>نتيجة ملخص التأخير</h3>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>كود الموظف</th>
+          <th>اسم الموظف</th>
+          <th>القسم</th>
+          <th>من تاريخ</th>
+          <th>إلى تاريخ</th>
+          <th>إجمالي دقائق التأخير</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of lateSummaryRows">
+          <td>{{ row.employeeCode || '-' }}</td>
+          <td>{{ row.employeeName || '-' }}</td>
+          <td>{{ row.departmentName || '-' }}</td>
+          <td>{{ row.from || '-' }}</td>
+          <td>{{ row.to || '-' }}</td>
+          <td><span class="late-minutes-badge">{{ row.totalLateMinutes || 0 }} دقيقة</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination-box" *ngIf="lateSummaryTotalPages > 1">
+    <button type="button" (click)="previousLateSummaryPage.emit()" [disabled]="lateSummaryPageNumber === 1">السابق</button>
+    <span>صفحة {{ lateSummaryPageNumber }} من {{ lateSummaryTotalPages }}</span>
+    <button type="button" (click)="nextLateSummaryPage.emit()" [disabled]="lateSummaryPageNumber === lateSummaryTotalPages">التالي</button>
+  </div>
+</section>

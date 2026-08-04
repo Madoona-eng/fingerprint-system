@@ -50,6 +50,7 @@ export class AttendanceService {
     pageSize: number = 10,
     route: string = '',
     employeeName: string | null = null,
+    locationId: number | null = null,
     needsReview: boolean | null = null,
   ): Observable<any> {
     let params = new HttpParams()
@@ -72,6 +73,10 @@ export class AttendanceService {
 
     if (employeeName !== null && employeeName !== undefined && String(employeeName).trim() !== '') {
       params = params.set('employeeName', String(employeeName).trim());
+    }
+
+    if (locationId !== null && locationId !== undefined && locationId > 0) {
+      params = params.set('locationId', String(locationId));
     }
 
     if (needsReview !== null && needsReview !== undefined) {

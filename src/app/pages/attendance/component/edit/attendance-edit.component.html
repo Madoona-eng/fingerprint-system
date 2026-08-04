@@ -1,0 +1,70 @@
+<section class="page-container" dir="rtl">
+  
+  <!-- 👈 زر الرجوع العلوي خارج الكارد وعلى اليمين -->
+  <button type="button" class="back-btn page-back-btn" (click)="cancelAttendanceEdit.emit()">
+    <mat-icon>arrow_forward</mat-icon>
+    <span>رجوع للقائمة</span>
+  </button>
+
+  <!-- الكارد الرئيسي لنموذج التعديل -->
+  <div class="attendance-card edit-attendance-card">
+    <div class="upload-info">
+      <span class="small-title">تعديل الحضور</span>
+      <h1>تعديل سجل الحضور والانصراف</h1>
+      <p>قم بتعديل وقت الحضور أو الانصراف أو الحالة ثم اضغط حفظ.</p>
+    </div>
+
+    <div class="edit-attendance-summary">
+      <div>
+        <span>كود الموظف</span>
+        <strong>{{ attendanceEditEmployeeCode || '-' }}</strong>
+      </div>
+      <div>
+        <span>اسم الموظف</span>
+        <strong>{{ attendanceEditEmployeeName || '-' }}</strong>
+      </div>
+      <div>
+        <span>القسم</span>
+        <strong>{{ attendanceEditDepartmentName || '-' }}</strong>
+      </div>
+      <div>
+        <span>التاريخ</span>
+        <strong>{{ attendanceEditDate || '-' }}</strong>
+      </div>
+    </div>
+
+    <div class="attendance-edit-form">
+      <div class="filter-field">
+        <label>الحالة</label>
+        <select
+          [ngModel]="attendanceEditStatus"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="attendanceEditStatusChange.emit($event)"
+        >
+          <option *ngFor="let status of statusOptions" [ngValue]="status.value">{{ status.label }}</option>
+        </select>
+      </div>
+
+      <div class="filter-field full-field">
+        <label>ملاحظات</label>
+        <input
+          type="text"
+          placeholder="اكتب ملاحظة"
+          [ngModel]="attendanceEditNotes"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="attendanceEditNotesChange.emit($event)"
+        />
+      </div>
+    </div>
+
+    <div *ngIf="attendanceEditSuccessMessage" class="success-message">{{ attendanceEditSuccessMessage }}</div>
+    <div *ngIf="attendanceEditErrorMessage" class="error-message">{{ attendanceEditErrorMessage }}</div>
+
+    <div class="actions">
+      <button type="button" class="import-btn" [disabled]="isSavingAttendanceEdit" (click)="saveAttendanceEdit.emit()">
+        {{ isSavingAttendanceEdit ? 'جاري الحفظ...' : 'حفظ التعديل' }}
+      </button>
+    </div>
+  </div>
+
+</section>
