@@ -42,7 +42,6 @@
   </section>
 
   <ng-container [ngSwitch]="activeAttendancePage">
-    
     <!-- ==========================================
          الصفحة 1: رفع شيت الحضور (Import)
     ========================================== -->
@@ -104,7 +103,6 @@
                   : 'استيراد الحضور للسيستم'
             }}
           </button>
-
         </div>
       </section>
 
@@ -411,60 +409,46 @@
           </table>
         </div>
 
-<div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
-<div class="notes-modal-backdrop"
-     *ngIf="notesModalOpen"
-     (click)="closeNotesModal()">
+        <div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
+          <div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
+            <div class="notes-modal" (click)="$event.stopPropagation()">
+              <!-- Header -->
+              <div class="notes-modal-header">
+                <button type="button" class="notes-modal-close" (click)="closeNotesModal()">
+                  ✕
+                </button>
 
-  <div class="notes-modal"
-       (click)="$event.stopPropagation()">
+                <h3>{{ notesModalTitle }}</h3>
+              </div>
 
-    <!-- Header -->
-    <div class="notes-modal-header">
+              <!-- Body -->
+              <div class="notes-modal-body">
+                <ng-container *ngIf="notesModalEntries.length > 0; else noNotesModal">
+                  <div class="notes-modal-list">
+                    <div *ngFor="let note of notesModalEntries" class="notes-modal-item">
+                      <div class="notes-modal-meta" *ngIf="note.displayName || note.createdAt">
+                        <span class="notes-modal-user" *ngIf="note.displayName">
+                          {{ note.displayName }}
+                        </span>
+                        <span class="notes-modal-time" *ngIf="note.createdAt">
+                          {{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+                        </span>
+                      </div>
 
-      <button
-        type="button"
-        class="notes-modal-close"
-        (click)="closeNotesModal()">
-        ✕
-      </button>
-
-              <h3>{{ notesModalTitle }}</h3>
-            </div>
-
-            <!-- Body -->
-            <div class="notes-modal-body">
-              <ng-container *ngIf="notesModalEntries.length > 0; else noNotesModal">
-                <div class="notes-modal-list">
-                  <div *ngFor="let note of notesModalEntries" class="notes-modal-item">
-                    <div class="notes-modal-meta" *ngIf="note.displayName || note.createdAt">
-                      <span class="notes-modal-user" *ngIf="note.displayName">
-                        {{ note.displayName }}
-                      </span>
-                      <span class="notes-modal-time" *ngIf="note.createdAt">
-                        {{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}
-                      </span>
-                    </div>
-
-                    <div class="notes-modal-text">
-                      {{ note.content }}
+                      <div class="notes-modal-text">
+                        {{ note.content }}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </ng-container>
+                </ng-container>
 
-      <ng-template #noNotesModal>
-        <div class="notes-modal-empty">
-          لا توجد ملاحظات
+                <ng-template #noNotesModal>
+                  <div class="notes-modal-empty">لا توجد ملاحظات</div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
         </div>
-      </ng-template>
-
-    </div>
-
-  </div>
-
-</div>
-</div>
 
         <div class="pagination-box">
           <button
@@ -640,7 +624,7 @@
         </div>
 
         <div *ngIf="lateSummaryData && lateSummaryData.length === 0" class="empty-message">
-          لا توجد أي بيانات
+          لا توجد سجلات حضور مطابقة للفلتر المحدد.
         </div>
 
         <section *ngIf="lateSummaryRows.length > 0" class="json-preview-card late-summary-result">

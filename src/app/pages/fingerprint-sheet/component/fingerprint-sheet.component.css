@@ -39,6 +39,9 @@
 }
 
 .sheet-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3em;
   background: rgba(255, 255, 255, 0.96);
   border-radius: 24px;
   padding: 20px;
@@ -47,17 +50,21 @@
 }
 
 .filter-card {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 14px;
   align-items: end;
-  margin-bottom: 10px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
 }
 
 .filter-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.5em;
+  min-width: 140px;
+  flex: 1 1 200px;
 }
 
 .filter-field label {
@@ -67,7 +74,7 @@
 
 .filter-field input,
 .date-text-input {
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(15, 23, 42, 0.15);
   border-radius: 12px;
   padding: 10px 12px;
   background: #f8fafc;
@@ -142,36 +149,74 @@
   font-weight: 900;
   cursor: pointer;
 }
+/* Actions */
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
-.load-btn,
-.export-btn {
+.apply-search-btn {
+  background-color: var(--filter-apply-color);
+  color: #ffffff;
   border: none;
-  border-radius: 12px;
-  padding: 10px 14px;
-  color: #fff;
-  font-weight: 800;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.25s ease;
-  min-height: 52px;
+  transition: all 0.3s;
+  height: 46px;
 }
 
-.load-btn {
-  background: linear-gradient(135deg, #28a8db, #159aa3);
-}
-
-.export-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.load-btn:hover,
-.export-btn:hover {
+.apply-search-btn:hover:not(:disabled) {
+  background-color: var(--filter-apply-hover);
   transform: translateY(-1px);
-  box-shadow: 0 12px 20px rgba(15, 23, 42, 0.16);
 }
 
-.export-btn:disabled {
+.apply-search-btn:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.clear-search-btn {
+  background-color: var(--filter-clear-color);
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  height: 46px;
+}
+
+.clear-search-btn:hover {
+  background-color: var(--filter-clear-hover);
+}
+
+.export-excel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--excel-color);
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  height: 46px;
+}
+
+.export-excel-btn:hover {
+  background-color: var(--excel-color-hover);
+}
+
+.export-excel-btn:disabled {
   opacity: 0.7;
-  cursor: wait;
+  cursor: not-allowed;
 }
 
 .sr-only {
@@ -234,9 +279,14 @@
   color: #7f1d1d;
 }
 
-.empty-state {
-  padding: 12px 0;
-  color: rgba(15, 23, 42, 0.65);
+.empty-message {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 16px;
+  text-align: center;
+  color: rgba(15, 23, 42, 0.78);
+  background: rgba(248, 250, 252, 0.95);
+  font-weight: 800;
 }
 
 .table-wrapper {
@@ -303,19 +353,19 @@
   }
 }
 
-.date-field .mat-mdc-text-field-wrapper{
-  background:#f8fafc;
-  border-radius:12px;
+.date-field .mat-mdc-text-field-wrapper {
+  background: #f8fafc;
+  border-radius: 12px;
 }
 
-.date-field .mat-mdc-form-field-focus-overlay{
-  display:none;
+.date-field .mat-mdc-form-field-focus-overlay {
+  display: none;
 }
 
-.date-field .mat-mdc-form-field-infix{
-  min-height:48px;
+.date-field .mat-mdc-form-field-infix {
+  min-height: 48px;
 }
 
-.date-field input{
-  direction:rtl;
+.date-field input {
+  direction: rtl;
 }

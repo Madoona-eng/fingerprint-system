@@ -1,88 +1,74 @@
 <section class="fingerprint-sheet-page" dir="rtl">
-  <div class="sheet-card filter-card">
-    <div>
-      <a routerLink="/dashboard" class="back-link">العودة للوحة التحكم</a>
-    </div>
+  <div class="sheet-card">
+    <div class="filter-card">
+      <div class="filter-field date-field">
+        <label>التاريخ</label>
 
-    <div class="filter-field date-field">
-      <label>التاريخ</label>
+        <div class="date-input-wrap">
+          <input
+            class="date-text-input"
+            type="text"
+            inputmode="numeric"
+            maxlength="10"
+            placeholder="31/03/2026"
+            [(ngModel)]="dateDisplay"
+            [ngModelOptions]="{ standalone: true }"
+            (input)="formatDateDisplayWhileTyping()"
+          />
 
-      <div class="date-input-wrap">
+          <button type="button" class="calendar-btn" (click)="openNativeDatePicker(datePicker)">
+            📅
+          </button>
+
+          <input
+            #datePicker
+            class="native-date-picker"
+            type="date"
+            [value]="date"
+            (change)="onNativeDatePicked($event)"
+          />
+        </div>
+      </div>
+
+      <div class="filter-field search-field">
+        <label>بحث بالاسم أو الكود</label>
         <input
-          class="date-text-input"
           type="text"
-          inputmode="numeric"
-          maxlength="10"
-          placeholder="31/03/2026"
-          [(ngModel)]="dateDisplay"
+          [(ngModel)]="searchTerm"
+          placeholder="ادخل اسم الموظف أو الكود"
           [ngModelOptions]="{ standalone: true }"
-          (input)="formatDateDisplayWhileTyping()"
-        />
-
-        <button type="button" class="calendar-btn" (click)="openNativeDatePicker(datePicker)">
-          📅
-        </button>
-
-        <input
-          #datePicker
-          class="native-date-picker"
-          type="date"
-          [value]="date"
-          (change)="onNativeDatePicked($event)"
         />
       </div>
     </div>
 
-    <div class="filter-field search-field">
-      <label>كود الموظف</label>
-      <input
-        type="text"
-        [(ngModel)]="employeeCode"
-        placeholder="أدخل الكود"
-        [ngModelOptions]="{ standalone: true }"
-      />
+    <div class="actions">
+      <button type="button" class="apply-search-btn" (click)="loadData()">تطبيق الفلتره</button>
+
+      <button type="button" class="clear-search-btn" (click)="clearFilters()">مسح الفلتر</button>
+
+      <button
+        type="button"
+        class="export-excel-btn"
+        (click)="exportToExcel()"
+        [disabled]="isExporting"
+      >
+        {{ isExporting ? 'جاري التصدير...' : 'تصدير Excel' }}
+      </button>
     </div>
-
-    <div class="filter-field search-field">
-      <label>اسم الموظف</label>
-      <input
-        type="text"
-        [(ngModel)]="employeeName"
-        placeholder="أدخل اسم الموظف"
-        [ngModelOptions]="{ standalone: true }"
-      />
-    </div>
-  </div>
-
-  <div class="filter-field action-field">
-    <button type="button" class="apply-search-btn" (click)="loadData()">تطبيق الفلتره</button>
-
-    <button type="button" class="clear-search-btn" (click)="clearFilters()">
-      مسح الفلتر
-    </button>
-
-    <button type="button" class="export-excel-btn" (click)="exportToExcel()" [disabled]="isExporting">
-      {{ isExporting ? 'جاري التصدير...' : 'تصدير Excel' }}
-    </button>
-  </div>
-
-  <div class="date-shortcuts">
-    <button type="button" (click)="setTodayDate()">اليوم</button>
-    <button type="button" (click)="setYesterdayDate()">أمس</button>
   </div>
 
   <div *ngIf="isLoading" class="status-box">جاري تحميل شيت البصمة...</div>
   <div *ngIf="errorMessage" class="status-box error">{{ errorMessage }}</div>
 
   <div *ngIf="!isLoading && !errorMessage" class="sheet-card">
-    <div *ngIf="records.length === 0" class="empty-state">لا توجد بيانات لعرضها</div>
+    <div *ngIf="records.length === 0" class="empty-message">لا توجد سجلات حضور مطابقة للفلتر المحدد.</div>
 
     <div *ngIf="records.length > 0" class="table-wrapper">
       <table class="data-table">
         <thead>
           <tr>
-            <th>الموظف</th>
             <th>الكود</th>
+            <th>الموظف</th>
             <th>القسم</th>
             <th>التاريخ</th>
             <th>الدخول</th>
@@ -92,8 +78,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let item of records">
-            <td>{{ item.employeeName || 'غير محدد' }}</td>
             <td>{{ item.employeeCode || '-' }}</td>
+            <td>{{ item.employeeName || '-' }}</td>
             <td>{{ item['departmentRaw'] || '-' }}</td>
             <td>{{ item['punchDate'] || '-' }}</td>
             <td>{{ item['inRaw'] || '-' }}</td>

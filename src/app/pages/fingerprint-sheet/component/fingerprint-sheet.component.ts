@@ -17,8 +17,7 @@ export class FingerprintSheetComponent implements OnInit {
   date = '';
   dateDisplay = '';
 
-  employeeCode = '';
-  employeeName = '';
+  searchTerm = '';
 
   pageNumber = 1;
   pageSize = 10;
@@ -197,14 +196,34 @@ export class FingerprintSheetComponent implements OnInit {
     return raw;
   }
 
+  // ============================================================
+  // بيفصل قيمة البحث الواحدة لـ كود أو اسم حسب المحتوى:
+  // أرقام فقط -> كود الموظف، غير كده -> اسم الموظف
+  // ============================================================
+  private splitSearchTerm(): { employeeCode: string; employeeName: string } {
+    const term = this.searchTerm.trim();
+
+    if (!term) {
+      return { employeeCode: '', employeeName: '' };
+    }
+
+    const isCodeOnly = /^\d+$/.test(term);
+
+    return isCodeOnly
+      ? { employeeCode: term, employeeName: '' }
+      : { employeeCode: '', employeeName: term };
+  }
+
   loadData(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
+    const { employeeCode, employeeName } = this.splitSearchTerm();
+
     this.fingerprintSheetService.getRawPunches(
       this.date,
-      this.employeeCode.trim(),
-      this.employeeName.trim(),
+      employeeCode,
+      employeeName,
       this.pageNumber,
       this.pageSize
     ).subscribe({
@@ -227,8 +246,7 @@ export class FingerprintSheetComponent implements OnInit {
   clearFilters(): void {
     this.date = '';
     this.dateDisplay = '';
-    this.employeeCode = '';
-    this.employeeName = '';
+    this.searchTerm = '';
     this.pageNumber = 1;
     this.errorMessage = '';
     this.records = [];
@@ -245,11 +263,13 @@ export class FingerprintSheetComponent implements OnInit {
     this.isExporting = true;
     this.errorMessage = '';
 
+    const { employeeCode, employeeName } = this.splitSearchTerm();
+
     try {
       const allRecords = await this.fingerprintSheetService.fetchAllRawPunches(
         this.date,
-        this.employeeCode.trim(),
-        this.employeeName.trim(),
+        employeeCode,
+        employeeName,
         1000
       );
 
