@@ -1,19 +1,18 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
-  AttendancePayload,
   ApiResponse,
+  AttendancePayload,
   AttendanceStatusPayload,
-  AttendanceTimePayload
+  AttendanceTimePayload,
 } from '../model/models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AttendanceService {
-  private readonly apiUrl =
-    'https://civil-protect.minya.gov.eg:1089/api/Attendance';
+  private readonly apiUrl = 'https://civil-protect.minya.gov.eg:1089/api/Attendance';
 
   constructor(private http: HttpClient) {}
 
@@ -26,7 +25,7 @@ export class AttendanceService {
 
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
-      Accept: 'application/json'
+      Accept: 'application/json',
     });
 
     if (token) {
@@ -36,19 +35,13 @@ export class AttendanceService {
     return headers;
   }
 
-  bulkImportAttendance(
-    attendance: AttendancePayload[]
-  ): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(
-      `${this.apiUrl}/bulk-import`,
-      attendance,
-      {
-        headers: this.getHeaders()
-      }
-    );
+  bulkImportAttendance(attendance: AttendancePayload[]): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/bulk-import`, attendance, {
+      headers: this.getHeaders(),
+    });
   }
 
-getAttendanceByDateRange(
+  getAttendanceByDateRange(
     from: string,
     to: string,
     departmentId: number | null = null,
@@ -57,7 +50,7 @@ getAttendanceByDateRange(
     pageSize: number = 10,
     route: string = '',
     employeeName: string | null = null,
-    needsReview: boolean | null = null
+    needsReview: boolean | null = null,
   ): Observable<any> {
     let params = new HttpParams()
       .set('from', from)
@@ -87,13 +80,13 @@ getAttendanceByDateRange(
 
     return this.http.get<any>(`${this.apiUrl}/date-range`, {
       headers: this.getHeaders(),
-      params
+      params,
     });
   }
-  
+
   getAttendanceRoutes(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/routes`, {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
   }
 
@@ -102,7 +95,7 @@ getAttendanceByDateRange(
 
     return this.http.get<any>(`${this.apiUrl}/summary`, {
       headers: this.getHeaders(),
-      params
+      params,
     });
   }
 
@@ -112,7 +105,7 @@ getAttendanceByDateRange(
     employeeCode: string = '',
     employeeName: string = '',
     pageNumber: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
   ): Observable<any> {
     let params = new HttpParams()
       .set('fromDate', fromDate)
@@ -130,7 +123,7 @@ getAttendanceByDateRange(
 
     return this.http.get<any>(`${this.apiUrl}/raw-punches`, {
       headers: this.getHeaders(),
-      params
+      params,
     });
   }
 
@@ -140,7 +133,8 @@ getAttendanceByDateRange(
     employeeName?: string | null,
     deptId?: number | null,
     pageNumber: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
+    locationId?: number | null,
   ): Observable<any> {
     let params = new HttpParams()
       .set('from', from)
@@ -153,36 +147,34 @@ getAttendanceByDateRange(
     }
 
     if (deptId !== null && deptId !== undefined && deptId > 0) {
-      params = params.set('deptId', String(deptId));
+      params = params.set('departmentId', String(deptId));
+    }
+
+    if (locationId !== null && locationId !== undefined && locationId > 0) {
+      params = params.set('locationId', String(locationId));
     }
 
     return this.http.get<any>(`${this.apiUrl}/late-summary`, {
       headers: this.getHeaders(),
-      params
+      params,
     });
   }
 
-  updateAttendanceTime(
-    id: number,
-    payload: AttendanceTimePayload
-  ): Observable<any> {
+  updateAttendanceTime(id: number, payload: AttendanceTimePayload): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}/time`, payload, {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
   }
 
-  updateAttendanceStatus(
-    id: number,
-    payload: AttendanceStatusPayload
-  ): Observable<any> {
+  updateAttendanceStatus(id: number, payload: AttendanceStatusPayload): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}/status`, payload, {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
   }
 
   reviewAttendance(id: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}/review`, null, {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
   }
 }

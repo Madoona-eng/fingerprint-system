@@ -42,7 +42,7 @@
   </section>
 
   <ng-container [ngSwitch]="activeAttendancePage">
-
+    
     <!-- ==========================================
          الصفحة 1: رفع شيت الحضور (Import)
     ========================================== -->
@@ -146,7 +146,6 @@
         </div>
 
         <div class="attendance-filter-box">
-          
           <div class="filter-field date-field">
             <label>من تاريخ</label>
 
@@ -263,11 +262,10 @@
               <option [ngValue]="false">لا يحتاج مراجعة</option>
             </select>
           </div>
-                  
-       </div>
+        </div>
 
-       <div class="filter-btns">
-           <button type="button" class="apply-search-btn" (click)="applyDateRangeFilter()">
+        <div class="filter-btns">
+          <button type="button" class="apply-search-btn" (click)="applyDateRangeFilter()">
             تطبيق الفلتر
           </button>
 
@@ -278,8 +276,8 @@
           <button type="button" class="export-excel-btn" (click)="exportAttendanceReportToExcel()">
             تصدير لملف اكسل
           </button>
-       </div>
-<!--  -->
+        </div>
+        <!--  -->
         <div *ngIf="dateRangeErrorMessage" class="error-message">
           {{ dateRangeErrorMessage }}
         </div>
@@ -338,7 +336,7 @@
 
                 <td>
                   <span class="status-badge" [ngClass]="getStatusClass(row.status)">
-                    {{ getStatusLabel(row.status) }}
+                    {{ getAttendanceStatusLabel(row.status) }}
                   </span>
                 </td>
 
@@ -418,53 +416,38 @@
         <div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal()">
           <div class="notes-modal" (click)="$event.stopPropagation()">
             <div class="notes-modal-header">
-              <button type="button" class="notes-modal-close" (click)="closeNotesModal()">
-                ✕
-              </button>
+              <button type="button" class="notes-modal-close" (click)="closeNotesModal()">✕</button>
 
               <h3>{{ notesModalTitle }}</h3>
             </div>
 
-    <!-- Body -->
-    <div class="notes-modal-body">
+            <!-- Body -->
+            <div class="notes-modal-body">
+              <ng-container *ngIf="notesModalEntries.length > 0; else noNotesModal">
+                <div class="notes-modal-list">
+                  <div *ngFor="let note of notesModalEntries" class="notes-modal-item">
+                    <div class="notes-modal-meta" *ngIf="note.displayName || note.createdAt">
+                      <span class="notes-modal-user" *ngIf="note.displayName">
+                        {{ note.displayName }}
+                      </span>
+                      <span class="notes-modal-time" *ngIf="note.createdAt">
+                        {{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+                      </span>
+                    </div>
 
-      <ng-container *ngIf="notesModalEntries.length > 0; else noNotesModal">
+                    <div class="notes-modal-text">
+                      {{ note.content }}
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
 
-        <div class="notes-modal-list">
-
-          <div
-            *ngFor="let note of notesModalEntries"
-            class="notes-modal-item">
-
-            <div class="notes-modal-meta" *ngIf="note.displayName || note.createdAt">
-              <span class="notes-modal-user" *ngIf="note.displayName">
-                {{ note.displayName }}
-              </span>
-              <span class="notes-modal-time" *ngIf="note.createdAt">
-                {{ note.createdAt | date:'dd/MM/yyyy HH:mm' }}
-              </span>
+              <ng-template #noNotesModal>
+                <div class="notes-modal-empty">لا توجد ملاحظات</div>
+              </ng-template>
             </div>
-
-            <div class="notes-modal-text">
-              {{ note.content }}
-            </div>
-
           </div>
-
         </div>
-
-      </ng-container>
-
-      <ng-template #noNotesModal>
-        <div class="notes-modal-empty">
-          لا توجد ملاحظات
-        </div>
-      </ng-template>
-
-    </div>
-
-  </div>
-</div>
 
         <div class="pagination-box">
           <button
@@ -508,7 +491,6 @@
       <section class="attendance-card">
         <div class="upload-info">
           <h1>ملخص التأخير</h1>
-          <p>قم بإختيار الفترة ورقم الموظف الداخلي لعرض ملخص التأخير الخاص به.</p>
         </div>
 
         <div class="attendance-filter-box late-summary-filter">
@@ -585,7 +567,6 @@
               placeholder="مثال: أحمد"
               [(ngModel)]="lateSummaryEmployeeSearch"
               [ngModelOptions]="{ standalone: true }"
-              (input)="onLateSummarySearchInput()"
             />
           </div>
 
@@ -604,35 +585,31 @@
 
           <div class="filter-field">
             <label>القسم</label>
-            <select
-              [(ngModel)]="lateSummaryDepartmentId"
-              [ngModelOptions]="{ standalone: true }"
-              (change)="onLateSummarySearchInput()"
-            >
+            <select [(ngModel)]="lateSummaryDepartmentId" [ngModelOptions]="{ standalone: true }">
               <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">
                 {{ dep.name }}
               </option>
             </select>
           </div>
+        </div>
 
+        <div class="filter-btns">
           <button
             type="button"
-            class="import-btn"
+            class="apply-search-btn"
             [disabled]="isLoadingLateSummary"
             (click)="loadLateSummary()"
           >
-            {{ isLoadingLateSummary ? 'جاري التحميل...' : 'عرض الملخص' }}
+            {{ isLoadingLateSummary ? 'جاري التحميل...' : ' تطبيق الفلتر' }}
           </button>
 
-          <button type="button" class="ghost-btn" (click)="exportLateSummaryToExcel()">
-            تصدير Excel
+          <button type="button" class="clear-search-btn" (click)="clearLateSummary()">
+            مسح الفلتر
           </button>
 
-          <button type="button" class="ghost" (click)="clearLateSummary()">مسح</button>
-        </div>
-
-        <div *ngIf="lateSummarySuccessMessage" class="success-message">
-          {{ lateSummarySuccessMessage }}
+          <button type="button" class="export-excel-btn" (click)="exportLateSummaryToExcel()">
+            تصدير لملف اكسل
+          </button>
         </div>
 
         <div *ngIf="lateSummaryErrorMessage" class="error-message">
@@ -646,7 +623,7 @@
         </div>
 
         <div *ngIf="lateSummaryData && lateSummaryData.length === 0" class="empty-message">
-          لا توجد بيانات تأخير لهذا الموظف في الفترة المحددة
+          لا توجد أي بيانات
         </div>
 
         <section *ngIf="lateSummaryRows.length > 0" class="json-preview-card late-summary-result">
@@ -660,10 +637,10 @@
                 <tr>
                   <th>كود الموظف</th>
                   <th>اسم الموظف</th>
+                  <th>القسم</th>
                   <th>من تاريخ</th>
                   <th>إلى تاريخ</th>
                   <th>إجمالي دقائق التأخير</th>
-                  <th>الحالة</th>
                 </tr>
               </thead>
 
@@ -671,20 +648,12 @@
                 <tr *ngFor="let row of lateSummaryRows">
                   <td>{{ row.employeeCode || '-' }}</td>
                   <td>{{ row.employeeName || '-' }}</td>
+                  <td>{{ row.departmentName }}</td>
                   <td>{{ row.from || '-' }}</td>
                   <td>{{ row.to || '-' }}</td>
 
                   <td>
                     <span class="late-minutes-badge"> {{ row.totalLateMinutes || 0 }} دقيقة </span>
-                  </td>
-
-                  <td>
-                    <span
-                      class="status-badge"
-                      [ngClass]="(row.totalLateMinutes || 0) > 0 ? 'status-late' : 'status-present'"
-                    >
-                      {{ (row.totalLateMinutes || 0) > 0 ? 'يوجد تأخير' : 'لا يوجد تأخير' }}
-                    </span>
                   </td>
                 </tr>
               </tbody>
@@ -711,10 +680,6 @@
             </button>
           </div>
         </section>
-
-        <div *ngIf="lateSummaryData && lateSummaryRows.length === 0" class="empty-message">
-          لا يوجد ملخص تأخير لهذا الموظف في الفترة المحددة.
-        </div>
       </section>
     </section>
 

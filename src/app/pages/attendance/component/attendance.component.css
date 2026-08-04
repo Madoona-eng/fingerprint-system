@@ -122,15 +122,15 @@
 }
 
 .success-message {
-  color: #b8fff1;
-  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
-  border: 1px solid rgba(45, 212, 191, 0.28);
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
 .error-message {
-  color: #ffd2d2;
-  background: rgba(255, 68, 68, 0.14);
-  border: 1px solid rgba(255, 100, 100, 0.28);
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
 .row-errors {

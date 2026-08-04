@@ -1,19 +1,20 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { read, utils, writeFile, WorkBook, WorkSheet } from 'xlsx';
 import { firstValueFrom } from 'rxjs';
-import { AttendanceService } from '../service/attendance.service';
-import { AttendancePayload, FingerprintPunch } from '../model/models';
+import { WorkBook, WorkSheet, read, utils, writeFile } from 'xlsx';
 import { AuthService } from '../../../auth/Services/auth.service';
+import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
 import { EmployeesService } from '../../employees/service/employees.service';
+import { AttendancePayload, FingerprintPunch } from '../model/models';
+import { AttendanceService } from '../service/attendance.service';
 
 @Component({
   selector: 'app-attendance',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './attendance.component.html',
-  styleUrls: ['./attendance.component.css']
+  styleUrls: ['./attendance.component.css'],
 })
 export class AttendanceComponent implements OnInit {
   attendanceRows: AttendancePayload[] = [];
@@ -42,13 +43,13 @@ export class AttendanceComponent implements OnInit {
   dateRangeRoute = '';
   routeOptions: string[] = [];
   reviewingAttendanceId: number | null = null;
-employeeSearchTerm = '';
+  employeeSearchTerm = '';
   dateRangePageNumber = 1;
   dateRangePageSize = 10;
   dateRangeTotalCount = 0;
   dateRangeTotalPages = 0;
-dateRangeFromDisplay = '';
-dateRangeToDisplay = '';
+  dateRangeFromDisplay = '';
+  dateRangeToDisplay = '';
   isLoadingDateRange = false;
   dateRangeErrorMessage = '';
   dateRangeSuccessMessage = '';
@@ -86,7 +87,7 @@ dateRangeToDisplay = '';
   lateSummaryPageSize = 10;
   lateSummaryTotalCount = 0;
   lateSummaryTotalPages = 0;
-    isLoadingLateSummary = false;
+  isLoadingLateSummary = false;
   lateSummaryErrorMessage = '';
   lateSummarySuccessMessage = '';
 
@@ -100,7 +101,7 @@ dateRangeToDisplay = '';
   constructor(
     private attendanceService: AttendanceService,
     private authService: AuthService,
-    private employeesService: EmployeesService
+    private employeesService: EmployeesService,
   ) {}
 
   ngOnInit(): void {
@@ -125,7 +126,7 @@ dateRangeToDisplay = '';
       },
       error: (err) => {
         console.error('Failed to load locations:', err);
-      }
+      },
     });
   }
 
@@ -138,7 +139,7 @@ dateRangeToDisplay = '';
         error: (err) => {
           console.error('Failed to load departments for location:', err);
           this.departmentOptions = [];
-        }
+        },
       });
     } else {
       this.initializeDepartments();
@@ -147,22 +148,21 @@ dateRangeToDisplay = '';
 
   initializeDepartments(): void {
     if (this.isSuperAdmin) {
-       this.departmentOptions = [];
-       return;
+      this.departmentOptions = [];
+      return;
     }
 
     this.employeesService.getDepartments().subscribe({
-        next: (response: any) => {
-          this.departmentOptions = response?.data || [];
-        },
-        error: (err) => {
-           console.error('Failed to load initial departments:', err);
-        }
+      next: (response: any) => {
+        this.departmentOptions = response?.data || [];
+      },
+      error: (err) => {
+        console.error('Failed to load initial departments:', err);
+      },
     });
   }
 
   loadRouteOptions(): void {
-
     this.attendanceService.getAttendanceRoutes().subscribe({
       next: (response: any) => {
         const data = response?.data || response;
@@ -173,9 +173,7 @@ dateRangeToDisplay = '';
               return item;
             }
 
-            return (
-              item?.name || item?.route || item?.value || String(item)
-            );
+            return item?.name || item?.route || item?.value || String(item);
           });
         } else {
           this.routeOptions = [];
@@ -184,281 +182,267 @@ dateRangeToDisplay = '';
       error: (err) => {
         console.log('Failed to load route options:', err);
         this.routeOptions = [];
-      }
+      },
     });
   }
 
-      departmentOptions: { id: number; name: string }[] = [];
+  departmentOptions: { id: number; name: string }[] = [];
 
-
-statusOptions: { value: string; label: string }[] = [
-  { value: 'Present', label: 'حاضر' },
-  { value: 'Late', label: 'متأخر' },
-  { value: 'Absent', label: 'غائب' },
-  { value: 'EarlyDeparture', label: 'انصراف مبكر' },
-  { value: 'PersonalLeave', label: 'إذن شخصي / إجازة عارضة' },
-  { value: 'Mission', label: 'مأمورية' },
-  { value: 'DrivingRoute', label: 'خط سير' },
-  { value: 'OnLeave', label: 'في إجازة' }
-];
-
-private setDateRangeFromDates(from: Date, to: Date): void {
-  this.dateRangeFrom = this.formatDateToApi(from);
-  this.dateRangeTo = this.formatDateToApi(to);
-
-  this.dateRangeFromDisplay = this.formatDateToDisplay(from);
-  this.dateRangeToDisplay = this.formatDateToDisplay(to);
-}
-private getApiErrorMessage(err: any): string {
-  const errors = err?.error?.errors;
-
-  if (errors && typeof errors === 'object') {
-    const messages = Object.keys(errors)
-      .map((key) => `${key}: ${errors[key].join(' - ')}`)
-      .join(' | ');
-
-    return this.translateApiMessage(messages, 'حدث خطأ في التحقق من البيانات');
-  }
-
-  return this.translateApiMessage(
-    err?.error?.message ||
-    err?.error?.title ||
-    err?.message ||
-    'حدث خطأ أثناء الحفظ',
-    'حدث خطأ أثناء الحفظ'
-  );
-}
-
-private translateApiMessage(message: string | null | undefined, fallback: string = ''): string {
-  const raw = String(message || '').trim();
-
-  if (!raw) {
-    return fallback;
-  }
-
-  const replacements: Array<[string, string]> = [
-    [
-      'checkout completed from next day import - please verify',
-      'تم إكمال الخروج من استيراد اليوم التالي - يرجى التحقق'
-    ],
-    [
-      'checkout completed from next day import',
-      'تم إكمال الخروج من استيراد اليوم التالي'
-    ],
-    ['please verify', 'يرجى التحقق'],
-    ['verify', 'تحقق'],
-    ['completed', 'اكتمل'],
-    ['import', 'استيراد'],
-    ['next day', 'اليوم التالي'],
-    ['checkout', 'الخروج'],
-    ['check out', 'الخروج'],
-    ['checkin', 'الدخول'],
-    ['check in', 'الدخول'],
-    ['missing', 'مفقود'],
-    ['review', 'مراجعة'],
-    ['reviewed', 'تمت المراجعة'],
-    ['success', 'نجاح'],
-    ['failed', 'فشل'],
-    ['error', 'خطأ'],
-    ['warning', 'تحذير'],
-    ['not found', 'غير موجود'],
-    ['invalid', 'غير صالح'],
-    ['required', 'مطلوب'],
-    ['already', 'موجود بالفعل'],
-    ['unable to', 'غير قادر على'],
-    ['cannot', 'لا يمكن'],
-    ['needs review', 'يحتاج مراجعة'],
-    ['needs revision', 'يحتاج مراجعة'],
-    ['needs', 'يحتاج'],
-    ['without', 'بدون'],
-    ['check in without check out', 'دخول بدون خروج'],
-    ['check out without check in', 'خروج بدون دخول'],
-    ['checkout without checkin', 'خروج بدون دخول'],
-    ['checkin without checkout', 'دخول بدون خروج']
+  statusOptions: { value: string; label: string }[] = [
+    { value: 'Present', label: 'حاضر' },
+    { value: 'Late', label: 'متأخر' },
+    { value: 'Absent', label: 'غائب' },
+    { value: 'EarlyDeparture', label: 'انصراف مبكر' },
+    { value: 'PersonalLeave', label: 'إذن شخصي / إجازة عارضة' },
+    { value: 'Mission', label: 'مأمورية' },
+    { value: 'DrivingRoute', label: 'خط سير' },
+    { value: 'OnLeave', label: 'في إجازة' },
   ];
 
-  let translated = raw;
+  private setDateRangeFromDates(from: Date, to: Date): void {
+    this.dateRangeFrom = this.formatDateToApi(from);
+    this.dateRangeTo = this.formatDateToApi(to);
 
-  replacements.forEach(([source, target]) => {
-    translated = translated.replace(new RegExp(source, 'gi'), target);
-  });
+    this.dateRangeFromDisplay = this.formatDateToDisplay(from);
+    this.dateRangeToDisplay = this.formatDateToDisplay(to);
+  }
+  private getApiErrorMessage(err: any): string {
+    const errors = err?.error?.errors;
 
-  return translated;
-}
+    if (errors && typeof errors === 'object') {
+      const messages = Object.keys(errors)
+        .map((key) => `${key}: ${errors[key].join(' - ')}`)
+        .join(' | ');
 
-onDateRangeInputChange(value: string, field: 'from' | 'to'): void {
-  const apiDate = value || '';
+      return this.translateApiMessage(messages, 'حدث خطأ في التحقق من البيانات');
+    }
 
-  if (field === 'from') {
-    this.dateRangeFrom = apiDate;
-    this.dateRangeFromDisplay = this.apiDateToDisplay(apiDate);
-    return;
+    return this.translateApiMessage(
+      err?.error?.message || err?.error?.title || err?.message || 'حدث خطأ أثناء الحفظ',
+      'حدث خطأ أثناء الحفظ',
+    );
   }
 
-  this.dateRangeTo = apiDate;
-  this.dateRangeToDisplay = this.apiDateToDisplay(apiDate);
-}
-openNativeDatePicker(input: HTMLInputElement): void {
-  if ((input as any).showPicker) {
-    (input as any).showPicker();
-    return;
+  private translateApiMessage(message: string | null | undefined, fallback: string = ''): string {
+    const raw = String(message || '').trim();
+
+    if (!raw) {
+      return fallback;
+    }
+
+    const replacements: Array<[string, string]> = [
+      [
+        'checkout completed from next day import - please verify',
+        'تم إكمال الخروج من استيراد اليوم التالي - يرجى التحقق',
+      ],
+      ['checkout completed from next day import', 'تم إكمال الخروج من استيراد اليوم التالي'],
+      ['please verify', 'يرجى التحقق'],
+      ['verify', 'تحقق'],
+      ['completed', 'اكتمل'],
+      ['import', 'استيراد'],
+      ['next day', 'اليوم التالي'],
+      ['checkout', 'الخروج'],
+      ['check out', 'الخروج'],
+      ['checkin', 'الدخول'],
+      ['check in', 'الدخول'],
+      ['missing', 'مفقود'],
+      ['review', 'مراجعة'],
+      ['reviewed', 'تمت المراجعة'],
+      ['success', 'نجاح'],
+      ['failed', 'فشل'],
+      ['error', 'خطأ'],
+      ['warning', 'تحذير'],
+      ['not found', 'غير موجود'],
+      ['invalid', 'غير صالح'],
+      ['required', 'مطلوب'],
+      ['already', 'موجود بالفعل'],
+      ['unable to', 'غير قادر على'],
+      ['cannot', 'لا يمكن'],
+      ['needs review', 'يحتاج مراجعة'],
+      ['needs revision', 'يحتاج مراجعة'],
+      ['needs', 'يحتاج'],
+      ['without', 'بدون'],
+      ['check in without check out', 'دخول بدون خروج'],
+      ['check out without check in', 'خروج بدون دخول'],
+      ['checkout without checkin', 'خروج بدون دخول'],
+      ['checkin without checkout', 'دخول بدون خروج'],
+    ];
+
+    let translated = raw;
+
+    replacements.forEach(([source, target]) => {
+      translated = translated.replace(new RegExp(source, 'gi'), target);
+    });
+
+    return translated;
   }
 
-  input.click();
-}
-onNativeDatePicked(event: Event, field: 'from' | 'to'): void {
-  const input = event.target as HTMLInputElement;
-  const apiDate = input.value; // YYYY-MM-DD
+  onDateRangeInputChange(value: string, field: 'from' | 'to'): void {
+    const apiDate = value || '';
 
-  if (!apiDate) {
-    return;
-  }
+    if (field === 'from') {
+      this.dateRangeFrom = apiDate;
+      this.dateRangeFromDisplay = this.apiDateToDisplay(apiDate);
+      return;
+    }
 
-  if (field === 'from') {
-    this.dateRangeFrom = apiDate;
-    this.dateRangeFromDisplay = this.apiDateToDisplay(apiDate);
-  } else {
     this.dateRangeTo = apiDate;
     this.dateRangeToDisplay = this.apiDateToDisplay(apiDate);
   }
-}
+  openNativeDatePicker(input: HTMLInputElement): void {
+    if ((input as any).showPicker) {
+      (input as any).showPicker();
+      return;
+    }
 
-onLateSummaryDateInputChange(value: string, field: 'from' | 'to'): void {
-  const apiDate = value || '';
+    input.click();
+  }
+  onNativeDatePicked(event: Event, field: 'from' | 'to'): void {
+    const input = event.target as HTMLInputElement;
+    const apiDate = input.value; // YYYY-MM-DD
 
-  if (field === 'from') {
-    this.lateSummaryFrom = apiDate;
-    this.lateSummaryFromDisplay = this.apiDateToDisplay(apiDate);
-    return;
+    if (!apiDate) {
+      return;
+    }
+
+    if (field === 'from') {
+      this.dateRangeFrom = apiDate;
+      this.dateRangeFromDisplay = this.apiDateToDisplay(apiDate);
+    } else {
+      this.dateRangeTo = apiDate;
+      this.dateRangeToDisplay = this.apiDateToDisplay(apiDate);
+    }
   }
 
-  this.lateSummaryTo = apiDate;
-  this.lateSummaryToDisplay = this.apiDateToDisplay(apiDate);
-}
+  onLateSummaryDateInputChange(value: string, field: 'from' | 'to'): void {
+    const apiDate = value || '';
 
-formatDateDisplayWhileTyping(field: 'from' | 'to'): void {
-  let value =
-    field === 'from'
-      ? this.dateRangeFromDisplay
-      : this.dateRangeToDisplay;
+    if (field === 'from') {
+      this.lateSummaryFrom = apiDate;
+      this.lateSummaryFromDisplay = this.apiDateToDisplay(apiDate);
+      return;
+    }
 
-  value = String(value || '').replace(/\D/g, '').slice(0, 8);
-
-  if (value.length > 4) {
-    value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
-  } else if (value.length > 2) {
-    value = `${value.slice(0, 2)}/${value.slice(2)}`;
-  }
-
-  if (field === 'from') {
-    this.dateRangeFromDisplay = value;
-  } else {
-    this.dateRangeToDisplay = value;
-  }
-}
-
-private formatDateToApi(date: Date): string {
-  const year = date.getFullYear();
-  const month = this.pad(date.getMonth() + 1);
-  const day = this.pad(date.getDate());
-
-  return `${year}-${month}-${day}`;
-}
-
-private formatDateToDisplay(date: Date): string {
-  const day = this.pad(date.getDate());
-  const month = this.pad(date.getMonth() + 1);
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`;
-}
-onLateSummaryNativeDatePicked(event: Event, field: 'from' | 'to'): void {
-  const input = event.target as HTMLInputElement;
-  const apiDate = input.value; // YYYY-MM-DD
-
-  if (!apiDate) {
-    return;
-  }
-
-  if (field === 'from') {
-    this.lateSummaryFrom = apiDate;
-    this.lateSummaryFromDisplay = this.apiDateToDisplay(apiDate);
-  } else {
     this.lateSummaryTo = apiDate;
     this.lateSummaryToDisplay = this.apiDateToDisplay(apiDate);
   }
-}
 
-displayDateToNative(displayDate: string): string {
-  return this.displayDateToApi(displayDate);
-}
+  formatDateDisplayWhileTyping(field: 'from' | 'to'): void {
+    let value = field === 'from' ? this.dateRangeFromDisplay : this.dateRangeToDisplay;
 
-private apiDateToDisplay(apiDate: string): string {
-  if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
-    return '';
+    value = String(value || '')
+      .replace(/\D/g, '')
+      .slice(0, 8);
+
+    if (value.length > 4) {
+      value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
+    } else if (value.length > 2) {
+      value = `${value.slice(0, 2)}/${value.slice(2)}`;
+    }
+
+    if (field === 'from') {
+      this.dateRangeFromDisplay = value;
+    } else {
+      this.dateRangeToDisplay = value;
+    }
   }
 
-  const [year, month, day] = apiDate.split('-');
+  private formatDateToApi(date: Date): string {
+    const year = date.getFullYear();
+    const month = this.pad(date.getMonth() + 1);
+    const day = this.pad(date.getDate());
 
-  return `${day}/${month}/${year}`;
-}
-
-private displayDateToApi(displayDate: string): string {
-  const text = String(displayDate || '').trim();
-
-  if (!text) {
-    return '';
+    return `${year}-${month}-${day}`;
   }
 
-  const normalizedText = text.replace(/[.\-]/g, '/');
+  private formatDateToDisplay(date: Date): string {
+    const day = this.pad(date.getDate());
+    const month = this.pad(date.getMonth() + 1);
+    const year = date.getFullYear();
 
-  let day = 0;
-  let month = 0;
-  let year = 0;
+    return `${day}/${month}/${year}`;
+  }
+  onLateSummaryNativeDatePicked(event: Event, field: 'from' | 'to'): void {
+    const input = event.target as HTMLInputElement;
+    const apiDate = input.value; // YYYY-MM-DD
 
-  const slashMatch = normalizedText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!apiDate) {
+      return;
+    }
 
-  if (slashMatch) {
-    day = Number(slashMatch[1]);
-    month = Number(slashMatch[2]);
-    year = Number(slashMatch[3]);
-  } else {
-    const digits = normalizedText.replace(/\D/g, '');
+    if (field === 'from') {
+      this.lateSummaryFrom = apiDate;
+      this.lateSummaryFromDisplay = this.apiDateToDisplay(apiDate);
+    } else {
+      this.lateSummaryTo = apiDate;
+      this.lateSummaryToDisplay = this.apiDateToDisplay(apiDate);
+    }
+  }
 
-    if (!/^\d{8}$/.test(digits)) {
+  displayDateToNative(displayDate: string): string {
+    return this.displayDateToApi(displayDate);
+  }
+
+  private apiDateToDisplay(apiDate: string): string {
+    if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
       return '';
     }
 
-    day = Number(digits.slice(0, 2));
-    month = Number(digits.slice(2, 4));
-    year = Number(digits.slice(4, 8));
+    const [year, month, day] = apiDate.split('-');
+
+    return `${day}/${month}/${year}`;
   }
 
-  const date = new Date(year, month - 1, day);
+  private displayDateToApi(displayDate: string): string {
+    const text = String(displayDate || '').trim();
 
-  const isValidDate =
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day;
+    if (!text) {
+      return '';
+    }
 
-  if (!isValidDate) {
-    return '';
+    const normalizedText = text.replace(/[.\-]/g, '/');
+
+    let day = 0;
+    let month = 0;
+    let year = 0;
+
+    const slashMatch = normalizedText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+    if (slashMatch) {
+      day = Number(slashMatch[1]);
+      month = Number(slashMatch[2]);
+      year = Number(slashMatch[3]);
+    } else {
+      const digits = normalizedText.replace(/\D/g, '');
+
+      if (!/^\d{8}$/.test(digits)) {
+        return '';
+      }
+
+      day = Number(digits.slice(0, 2));
+      month = Number(digits.slice(2, 4));
+      year = Number(digits.slice(4, 8));
+    }
+
+    const date = new Date(year, month - 1, day);
+
+    const isValidDate =
+      date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+
+    if (!isValidDate) {
+      return '';
+    }
+
+    return `${year}-${this.pad(month)}-${this.pad(day)}`;
   }
 
-  return `${year}-${this.pad(month)}-${this.pad(day)}`;
-}
+  openAttendancePage(page: 'import' | 'report' | 'lateSummary' | 'edit'): void {
+    this.activeAttendancePage = page;
 
- openAttendancePage(page: 'import' | 'report' | 'lateSummary' | 'edit'): void {
-  this.activeAttendancePage = page;
-
-  if (
-    page === 'lateSummary' &&
-    !this.lateSummaryFromDisplay &&
-    !this.lateSummaryToDisplay
-  ) {
-    this.setTodayLateSummaryDateRange();
+    if (page === 'lateSummary' && !this.lateSummaryFromDisplay && !this.lateSummaryToDisplay) {
+      this.setTodayLateSummaryDateRange();
+    }
   }
-}
 
   onAttendanceSheetSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -473,201 +457,187 @@ private displayDateToApi(displayDate: string): string {
     input.value = '';
   }
   setTodayLateSummaryDateRange(): void {
-  const today = new Date();
-  this.setLateSummaryDateRangeFromDates(today, today);
-}
-
-setYesterdayLateSummaryDateRange(): void {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  this.setLateSummaryDateRangeFromDates(yesterday, yesterday);
-}
-
-setCurrentMonthLateSummaryDateRange(): void {
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-
-  this.setLateSummaryDateRangeFromDates(firstDay, today);
-}
-
-private setLateSummaryDateRangeFromDates(from: Date, to: Date): void {
-  this.lateSummaryFrom = this.formatLateDateToApi(from);
-  this.lateSummaryTo = this.formatLateDateToApi(to);
-
-  this.lateSummaryFromDisplay = this.formatLateDateToDisplay(from);
-  this.lateSummaryToDisplay = this.formatLateDateToDisplay(to);
-}
-
-formatLateDateDisplayWhileTyping(field: 'from' | 'to'): void {
-  let value =
-    field === 'from'
-      ? this.lateSummaryFromDisplay
-      : this.lateSummaryToDisplay;
-
-  value = String(value || '').replace(/\D/g, '').slice(0, 8);
-
-  if (value.length > 4) {
-    value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
-  } else if (value.length > 2) {
-    value = `${value.slice(0, 2)}/${value.slice(2)}`;
+    const today = new Date();
+    this.setLateSummaryDateRangeFromDates(today, today);
   }
 
-  if (field === 'from') {
-    this.lateSummaryFromDisplay = value;
-  } else {
-    this.lateSummaryToDisplay = value;
-  }
-}
+  setYesterdayLateSummaryDateRange(): void {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
 
-private formatLateDateToApi(date: Date): string {
-  const year = date.getFullYear();
-  const month = this.pad(date.getMonth() + 1);
-  const day = this.pad(date.getDate());
-
-  return `${year}-${month}-${day}`;
-}
-
-private formatLateDateToDisplay(date: Date): string {
-  const day = this.pad(date.getDate());
-  const month = this.pad(date.getMonth() + 1);
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`;
-}
-
-private lateDisplayDateToApi(displayDate: string): string {
-  const text = String(displayDate || '').trim();
-
-  if (!text) {
-    return '';
+    this.setLateSummaryDateRangeFromDates(yesterday, yesterday);
   }
 
-  const normalizedText = text.replace(/[.\-]/g, '/');
+  setCurrentMonthLateSummaryDateRange(): void {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 
-  let day = 0;
-  let month = 0;
-  let year = 0;
+    this.setLateSummaryDateRangeFromDates(firstDay, today);
+  }
 
-  const slashMatch = normalizedText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  private setLateSummaryDateRangeFromDates(from: Date, to: Date): void {
+    this.lateSummaryFrom = this.formatLateDateToApi(from);
+    this.lateSummaryTo = this.formatLateDateToApi(to);
 
-  if (slashMatch) {
-    day = Number(slashMatch[1]);
-    month = Number(slashMatch[2]);
-    year = Number(slashMatch[3]);
-  } else {
-    const digits = normalizedText.replace(/\D/g, '');
+    this.lateSummaryFromDisplay = this.formatLateDateToDisplay(from);
+    this.lateSummaryToDisplay = this.formatLateDateToDisplay(to);
+  }
 
-    if (!/^\d{8}$/.test(digits)) {
+  formatLateDateDisplayWhileTyping(field: 'from' | 'to'): void {
+    let value = field === 'from' ? this.lateSummaryFromDisplay : this.lateSummaryToDisplay;
+
+    value = String(value || '')
+      .replace(/\D/g, '')
+      .slice(0, 8);
+
+    if (value.length > 4) {
+      value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
+    } else if (value.length > 2) {
+      value = `${value.slice(0, 2)}/${value.slice(2)}`;
+    }
+
+    if (field === 'from') {
+      this.lateSummaryFromDisplay = value;
+    } else {
+      this.lateSummaryToDisplay = value;
+    }
+  }
+
+  private formatLateDateToApi(date: Date): string {
+    const year = date.getFullYear();
+    const month = this.pad(date.getMonth() + 1);
+    const day = this.pad(date.getDate());
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatLateDateToDisplay(date: Date): string {
+    const day = this.pad(date.getDate());
+    const month = this.pad(date.getMonth() + 1);
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  }
+
+  private lateDisplayDateToApi(displayDate: string): string {
+    const text = String(displayDate || '').trim();
+
+    if (!text) {
       return '';
     }
 
-    day = Number(digits.slice(0, 2));
-    month = Number(digits.slice(2, 4));
-    year = Number(digits.slice(4, 8));
+    const normalizedText = text.replace(/[.\-]/g, '/');
+
+    let day = 0;
+    let month = 0;
+    let year = 0;
+
+    const slashMatch = normalizedText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+    if (slashMatch) {
+      day = Number(slashMatch[1]);
+      month = Number(slashMatch[2]);
+      year = Number(slashMatch[3]);
+    } else {
+      const digits = normalizedText.replace(/\D/g, '');
+
+      if (!/^\d{8}$/.test(digits)) {
+        return '';
+      }
+
+      day = Number(digits.slice(0, 2));
+      month = Number(digits.slice(2, 4));
+      year = Number(digits.slice(4, 8));
+    }
+
+    const date = new Date(year, month - 1, day);
+
+    const isValidDate =
+      date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+
+    if (!isValidDate) {
+      return '';
+    }
+
+    return `${year}-${this.pad(month)}-${this.pad(day)}`;
   }
 
-  const date = new Date(year, month - 1, day);
+  private lateApiDateToDisplay(apiDate: string): string {
+    if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
+      return '';
+    }
 
-  const isValidDate =
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day;
+    const [year, month, day] = apiDate.split('-');
 
-  if (!isValidDate) {
-    return '';
+    return `${day}/${month}/${year}`;
   }
-
-  return `${year}-${this.pad(month)}-${this.pad(day)}`;
-}
-
-private lateApiDateToDisplay(apiDate: string): string {
-  if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
-    return '';
-  }
-
-  const [year, month, day] = apiDate.split('-');
-
-  return `${day}/${month}/${year}`;
-}
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
   }
 
-setTodayDateRange(): void {
-  const today = new Date();
-  const formattedDate = this.formatDateForInput(today);
+  setTodayDateRange(): void {
+    const today = new Date();
+    const formattedDate = this.formatDateForInput(today);
 
-  this.dateRangeFrom = formattedDate;
-  this.dateRangeTo = formattedDate;
-}
-
-setYesterdayDateRange(): void {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  const formattedDate = this.formatDateForInput(yesterday);
-
-  this.dateRangeFrom = formattedDate;
-  this.dateRangeTo = formattedDate;
-}
-
-
-setCurrentMonthDateRange(): void {
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-
-  this.dateRangeFrom = this.formatDateForInput(firstDay);
-  this.dateRangeTo = this.formatDateForInput(today);
-}
-
-private formatDateForInput(date: Date): string {
-  const year = date.getFullYear();
-  const month = this.pad(date.getMonth() + 1);
-  const day = this.pad(date.getDate());
-
-  return `${year}-${month}-${day}`;
-}
-
-get filteredDateRangeRows(): any[] {
-  const search = this.normalizeArabicText(this.employeeSearchTerm);
-
-  if (!search) {
-    return this.dateRangeRows;
+    this.dateRangeFrom = formattedDate;
+    this.dateRangeTo = formattedDate;
   }
 
-  return this.dateRangeRows.filter((row: any) => {
-    const employeeCode = this.normalizeArabicText(
-      row.employeeCode ||
-      row.employee?.employeeCode ||
-      row.employee?.code ||
-      ''
-    );
+  setYesterdayDateRange(): void {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
 
-    const employeeName = this.normalizeArabicText(
-      row.employeeName ||
-      row.name ||
-      row.employee?.name ||
-      row.employee?.employeeName ||
-      ''
-    );
+    const formattedDate = this.formatDateForInput(yesterday);
 
-    const departmentName = this.normalizeArabicText(
-      row.departmentName ||
-      row.employee?.departmentName ||
-      row.department?.name ||
-      ''
-    );
+    this.dateRangeFrom = formattedDate;
+    this.dateRangeTo = formattedDate;
+  }
 
-    return (
-      employeeCode.includes(search) ||
-      employeeName.includes(search) ||
-      departmentName.includes(search)
-    );
-  });
-}
+  setCurrentMonthDateRange(): void {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    this.dateRangeFrom = this.formatDateForInput(firstDay);
+    this.dateRangeTo = this.formatDateForInput(today);
+  }
+
+  private formatDateForInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = this.pad(date.getMonth() + 1);
+    const day = this.pad(date.getDate());
+
+    return `${year}-${month}-${day}`;
+  }
+
+  get filteredDateRangeRows(): any[] {
+    const search = this.normalizeArabicText(this.employeeSearchTerm);
+
+    if (!search) {
+      return this.dateRangeRows;
+    }
+
+    return this.dateRangeRows.filter((row: any) => {
+      const employeeCode = this.normalizeArabicText(
+        row.employeeCode || row.employee?.employeeCode || row.employee?.code || '',
+      );
+
+      const employeeName = this.normalizeArabicText(
+        row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '',
+      );
+
+      const departmentName = this.normalizeArabicText(
+        row.departmentName || row.employee?.departmentName || row.department?.name || '',
+      );
+
+      return (
+        employeeCode.includes(search) ||
+        employeeName.includes(search) ||
+        departmentName.includes(search)
+      );
+    });
+  }
 
   exportAttendanceReportToExcel(): void {
     (async () => {
@@ -696,8 +666,8 @@ get filteredDateRangeRows(): any[] {
               perPage,
               this.dateRangeRoute,
               this.employeeSearchTerm || null,
-              this.dateRangeNeedsReview
-            )
+              this.dateRangeNeedsReview,
+            ),
           );
 
           const data = resp?.data || resp;
@@ -726,7 +696,8 @@ get filteredDateRangeRows(): any[] {
 
         const exportData = allRows.map((row: any) => ({
           الكود: row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-',
-          اسم_الموظف: row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
+          اسم_الموظف:
+            row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
           القسم: row.departmentName || row.employee?.departmentName || row.department?.name || '-',
           التاريخ: row.date || row.attendanceDate || '-',
           الحضور: row.actualIn || '-',
@@ -734,7 +705,7 @@ get filteredDateRangeRows(): any[] {
           الحالة: row.status || '-',
           'التأخير (د)': row.lateMinutes ?? '-',
           'العمل (س)': row.workedMinutes ?? '-',
-          الملاحظات: row.notes || '-'
+          الملاحظات: row.notes || '-',
         }));
 
         const worksheet = utils.json_to_sheet(exportData);
@@ -774,8 +745,9 @@ get filteredDateRangeRows(): any[] {
               this.lateSummaryEmployeeSearch || null,
               this.lateSummaryDepartmentId || null,
               page,
-              perPage
-            )
+              perPage,
+              this.lateSummaryLocationId || null,
+            ),
           );
 
           const data = resp?.data || resp;
@@ -808,7 +780,6 @@ get filteredDateRangeRows(): any[] {
           'من تاريخ': row.from || '-',
           'إلى تاريخ': row.to || '-',
           'إجمالي دقائق التأخير': row.totalLateMinutes || 0,
-          الحالة: row.totalLateMinutes > 0 ? 'يوجد تأخير' : 'لا يوجد تأخير'
         }));
 
         const worksheet = utils.json_to_sheet(exportData);
@@ -825,118 +796,116 @@ get filteredDateRangeRows(): any[] {
   }
 
   getAttendanceId(row: any): number | null {
-  const id = row?.id || row?.attendanceId || row?.attendanceRecordId;
+    const id = row?.id || row?.attendanceId || row?.attendanceRecordId;
 
-  if (!id) {
-    return null;
-  }
-
-  const numberId = Number(id);
-
-  return Number.isFinite(numberId) && numberId > 0 ? numberId : null;
-}
-
-isReviewed(row: any): boolean {
-  const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
-
-  const reviewFlag = [
-    row?.isReviewed,
-    row?.reviewed,
-    row?.isReviewCompleted,
-    row?.hasBeenReviewed
-  ].some((value) => value === true);
-
-  return (
-    reviewFlag ||
-    normalizedNotes.includes('تمت المراجعة') ||
-    normalizedNotes.includes('تمت مراجعه') ||
-    normalizedNotes.includes('reviewed')
-  );
-}
-
-needsReview(row: any): boolean {
-  if (this.isReviewed(row)) {
-    return false;
-  }
-
-  const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
-  const status = String(row?.status || '').trim();
-  const explicitReviewFlag = [
-    row?.needsReview,
-    row?.requiresReview,
-    row?.reviewRequired
-  ].some((value) => value === true);
-
-  return (
-    explicitReviewFlag ||
-    normalizedNotes.includes('needs review') ||
-    normalizedNotes.includes('يحتاج مراجعة') ||
-    normalizedNotes.includes('يحتاج مراجعه') ||
-    normalizedNotes.includes('checkin without checkout') ||
-    normalizedNotes.includes('checkout without checkin') ||
-    status === 'Incomplete' ||
-    status === 'MissingIn' ||
-    status === 'MissingOut'
-  );
-}
-
-markAttendanceReviewed(row: any): void {
-  const attendanceId = this.getAttendanceId(row);
-
-  if (!attendanceId) {
-    this.dateRangeErrorMessage = 'لا يمكن اعتماد المراجعة لأن رقم سجل الحضور غير موجود';
-    return;
-  }
-
-  if (!row.status) {
-    this.dateRangeErrorMessage = 'لا يمكن اعتماد المراجعة لأن حالة السجل غير موجودة';
-    return;
-  }
-
-  this.reviewingAttendanceId = attendanceId;
-  this.dateRangeErrorMessage = '';
-  this.dateRangeSuccessMessage = '';
-
-  const payload = {
-    status: row.status,
-    note: 'تمت المراجعة'
-  };
-
-  this.attendanceService.updateAttendanceStatus(attendanceId, payload).subscribe({
-    next: (response: any) => {
-      console.log('Mark Attendance Reviewed Response:', response);
-
-      if (response?.isSuccess === false) {
-        this.dateRangeErrorMessage = this.translateApiMessage(
-          response?.message,
-          'فشل اعتماد مراجعة سجل الحضور'
-        );
-        this.reviewingAttendanceId = null;
-        return;
-      }
-
-      row.notes = this.appendReviewNoteToNotes(row.notes);
-      row.isReviewed = true;
-
-      if (this.notesModalOpen) {
-        this.notesModalEntries = this.getAttendanceNotes(row.notes);
-      }
-
-      this.dateRangeSuccessMessage = 'تم اعتماد مراجعة السجل بنجاح';
-      this.reviewingAttendanceId = null;
-    },
-    error: (err) => {
-      console.log('Mark attendance reviewed error:', err);
-
-      this.dateRangeErrorMessage = this.translateApiMessage(
-          err?.error?.message || err?.message || 'حدث خطأ أثناء اعتماد مراجعة سجل الحضور',
-          'حدث خطأ أثناء اعتماد مراجعة سجل الحضور'
-        );
-
-      this.reviewingAttendanceId = null;
+    if (!id) {
+      return null;
     }
-  });
-}
+
+    const numberId = Number(id);
+
+    return Number.isFinite(numberId) && numberId > 0 ? numberId : null;
+  }
+
+  isReviewed(row: any): boolean {
+    const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
+
+    const reviewFlag = [
+      row?.isReviewed,
+      row?.reviewed,
+      row?.isReviewCompleted,
+      row?.hasBeenReviewed,
+    ].some((value) => value === true);
+
+    return (
+      reviewFlag ||
+      normalizedNotes.includes('تمت المراجعة') ||
+      normalizedNotes.includes('تمت مراجعه') ||
+      normalizedNotes.includes('reviewed')
+    );
+  }
+
+  needsReview(row: any): boolean {
+    if (this.isReviewed(row)) {
+      return false;
+    }
+
+    const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
+    const status = String(row?.status || '').trim();
+    const explicitReviewFlag = [row?.needsReview, row?.requiresReview, row?.reviewRequired].some(
+      (value) => value === true,
+    );
+
+    return (
+      explicitReviewFlag ||
+      normalizedNotes.includes('needs review') ||
+      normalizedNotes.includes('يحتاج مراجعة') ||
+      normalizedNotes.includes('يحتاج مراجعه') ||
+      normalizedNotes.includes('checkin without checkout') ||
+      normalizedNotes.includes('checkout without checkin') ||
+      status === 'Incomplete' ||
+      status === 'MissingIn' ||
+      status === 'MissingOut'
+    );
+  }
+
+  markAttendanceReviewed(row: any): void {
+    const attendanceId = this.getAttendanceId(row);
+
+    if (!attendanceId) {
+      this.dateRangeErrorMessage = 'لا يمكن اعتماد المراجعة لأن رقم سجل الحضور غير موجود';
+      return;
+    }
+
+    if (!row.status) {
+      this.dateRangeErrorMessage = 'لا يمكن اعتماد المراجعة لأن حالة السجل غير موجودة';
+      return;
+    }
+
+    this.reviewingAttendanceId = attendanceId;
+    this.dateRangeErrorMessage = '';
+    this.dateRangeSuccessMessage = '';
+
+    const payload = {
+      status: row.status,
+      note: 'تمت المراجعة',
+    };
+
+    this.attendanceService.updateAttendanceStatus(attendanceId, payload).subscribe({
+      next: (response: any) => {
+        console.log('Mark Attendance Reviewed Response:', response);
+
+        if (response?.isSuccess === false) {
+          this.dateRangeErrorMessage = this.translateApiMessage(
+            response?.message,
+            'فشل اعتماد مراجعة سجل الحضور',
+          );
+          this.reviewingAttendanceId = null;
+          return;
+        }
+
+        row.notes = this.appendReviewNoteToNotes(row.notes);
+        row.isReviewed = true;
+
+        if (this.notesModalOpen) {
+          this.notesModalEntries = this.getAttendanceNotes(row.notes);
+        }
+
+        this.dateRangeSuccessMessage = 'تم اعتماد مراجعة السجل بنجاح';
+        this.reviewingAttendanceId = null;
+      },
+      error: (err) => {
+        console.log('Mark attendance reviewed error:', err);
+
+        this.dateRangeErrorMessage = this.translateApiMessage(
+          err?.error?.message || err?.message || 'حدث خطأ أثناء اعتماد مراجعة سجل الحضور',
+          'حدث خطأ أثناء اعتماد مراجعة سجل الحضور',
+        );
+
+        this.reviewingAttendanceId = null;
+      },
+    });
+  }
 
   onDragLeave(event: DragEvent): void {
     event.preventDefault();
@@ -970,8 +939,7 @@ markAttendanceReviewed(row: any): void {
     const extension = file.name.split('.').pop()?.toLowerCase();
 
     if (extension !== 'xlsx' && extension !== 'xls' && extension !== 'csv') {
-      this.errorMessage =
-        'من فضلك قم برفع ملف Excel أو CSV بصيغة xlsx أو xls أو csv فقط';
+      this.errorMessage = 'من فضلك قم برفع ملف Excel أو CSV بصيغة xlsx أو xls أو csv فقط';
       return;
     }
 
@@ -983,14 +951,14 @@ markAttendanceReviewed(row: any): void {
 
         workbook = read(csvText, {
           type: 'string',
-          cellDates: true
+          cellDates: true,
         });
       } else {
         const arrayBuffer = await file.arrayBuffer();
 
         workbook = read(arrayBuffer, {
           type: 'array',
-          cellDates: true
+          cellDates: true,
         });
       }
 
@@ -1007,7 +975,7 @@ markAttendanceReviewed(row: any): void {
 
         const rows = utils.sheet_to_json(worksheet, {
           defval: '',
-          raw: true
+          raw: true,
         }) as any[];
 
         rows.forEach((row, index) => {
@@ -1015,7 +983,7 @@ markAttendanceReviewed(row: any): void {
             const previewRow: { [key: string]: any } = {
               ...row,
               __sheetName: sheetName,
-              __rowNumber: index + 2
+              __rowNumber: index + 2,
             };
 
             this.sheetPreviewRows.push(previewRow);
@@ -1041,7 +1009,7 @@ markAttendanceReviewed(row: any): void {
             }
 
             this.rowErrors.push(
-              `Sheet ${sheetName} - صف رقم ${index + 2}: بيانات ناقصة أو غير صحيحة: ${missing.join(' - ')} - ${JSON.stringify(row)}`
+              `Sheet ${sheetName} - صف رقم ${index + 2}: بيانات ناقصة أو غير صحيحة: ${missing.join(' - ')} - ${JSON.stringify(row)}`,
             );
 
             return;
@@ -1055,7 +1023,7 @@ markAttendanceReviewed(row: any): void {
           }
 
           this.rowErrors.push(
-            `Sheet ${sheetName} - صف رقم ${index + 2}: لا يمكن قراءة الصف - ${JSON.stringify(row)}`
+            `Sheet ${sheetName} - صف رقم ${index + 2}: لا يمكن قراءة الصف - ${JSON.stringify(row)}`,
           );
         });
       });
@@ -1065,7 +1033,7 @@ markAttendanceReviewed(row: any): void {
           employeeCode: punch.employeeCode,
           date: punch.date,
           actualIn: punch.time,
-          actualOut: null
+          actualOut: null,
         } as AttendancePayload;
 
         const key = `${attendance.employeeCode}_${attendance.date}`;
@@ -1084,8 +1052,7 @@ markAttendanceReviewed(row: any): void {
 
       this.sheetPreviewHeaders = this.getSheetPreviewHeaders(this.sheetPreviewRows);
 
-      this.successMessage =
-        `تم استخراج ${this.attendanceRows.length} سجل حضور من الملف`;
+      this.successMessage = `تم استخراج ${this.attendanceRows.length} سجل حضور من الملف`;
 
       console.log('Attendance JSON:', this.attendanceRows);
       console.log('Attendance Row Errors:', this.rowErrors);
@@ -1097,7 +1064,6 @@ markAttendanceReviewed(row: any): void {
       this.errorMessage = 'حدث خطأ أثناء قراءة ملف الحضور';
     }
   }
-
 
   private getSheetPreviewHeaders(rows: Array<{ [key: string]: any }>): string[] {
     const headers = new Set<string>();
@@ -1114,18 +1080,18 @@ markAttendanceReviewed(row: any): void {
   }
 
   private formatRawTimeValue(value: any): string | null {
-  if (value === null || value === undefined || String(value).trim() === '') {
-    return null;
-  }
+    if (value === null || value === undefined || String(value).trim() === '') {
+      return null;
+    }
 
-  if (value instanceof Date) {
-    // Date object جاية من تحويل تلقائي للمكتبة - رجّعها بصيغة وقت نضيفة
-    // مطابقة تمامًا للأصل في الشيت (اتأكدنا إن getHours/getMinutes/getSeconds صح)
-    return `${this.pad(value.getHours())}:${this.pad(value.getMinutes())}:${this.pad(value.getSeconds())}`;
+    if (value instanceof Date) {
+      // Date object جاية من تحويل تلقائي للمكتبة - رجّعها بصيغة وقت نضيفة
+      // مطابقة تمامًا للأصل في الشيت (اتأكدنا إن getHours/getMinutes/getSeconds صح)
+      return `${this.pad(value.getHours())}:${this.pad(value.getMinutes())}:${this.pad(value.getSeconds())}`;
+    }
+    // string خام أصلاً (زي "00:01:53 (+1)" أو "-") - رجّعه زي ما هو بالظبط
+    return String(value).trim();
   }
-  // string خام أصلاً (زي "00:01:53 (+1)" أو "-") - رجّعه زي ما هو بالظبط
-  return String(value).trim();
-}
 
   private mapAttendanceRow(row: any, sheetName: string): AttendancePayload | null {
     const employeeCode = String(
@@ -1140,40 +1106,21 @@ markAttendanceReviewed(row: any): void {
         'UserID',
         'PIN',
         'ID',
-        'No.'
-      ])
+        'No.',
+      ]),
     ).trim();
-    
-   const employeeName = String(
-    this.getCellValue(row, [
-      'اسم الموظف',
-      'Name',
-      'name',
-      'Employee Name',
-      'EmployeeName'
-    ])
-  ).trim();
 
+    const employeeName = String(
+      this.getCellValue(row, ['اسم الموظف', 'Name', 'name', 'Employee Name', 'EmployeeName']),
+    ).trim();
 
-   const departmentRaw = String(
-    this.getCellValue(row, [
-      'القسم',
-      'Department',
-      'department',
-      'Dept',
-      'DepartmentName'
-    ])
-  ).trim();
-
+    const departmentRaw = String(
+      this.getCellValue(row, ['القسم', 'Department', 'department', 'Dept', 'DepartmentName']),
+    ).trim();
 
     const dateRaw =
-      this.getCellValue(row, [
-        'التاريخ',
-        'date',
-        'Date',
-        'attendanceDate',
-        'Attendance Date'
-      ]) || sheetName;
+      this.getCellValue(row, ['التاريخ', 'date', 'Date', 'attendanceDate', 'Attendance Date']) ||
+      sheetName;
 
     const actualInRaw = this.getCellValue(row, [
       'وقت الحضور',
@@ -1183,7 +1130,7 @@ markAttendanceReviewed(row: any): void {
       'Actual In',
       'Check In',
       'In',
-      'Clock In'
+      'Clock In',
     ]);
 
     const actualOutRaw = this.getCellValue(row, [
@@ -1194,13 +1141,12 @@ markAttendanceReviewed(row: any): void {
       'Actual Out',
       'Check Out',
       'Out',
-      'Clock Out'
+      'Clock Out',
     ]);
 
     if (!employeeCode) {
       return null;
     }
-
 
     const actualInRawStr = this.formatRawTimeValue(actualInRaw);
     const actualOutRawStr = this.formatRawTimeValue(actualOutRaw);
@@ -1213,7 +1159,7 @@ markAttendanceReviewed(row: any): void {
       actualIn: this.normalizeExcelTime(actualInRaw),
       actualOut: this.normalizeExcelTime(actualOutRaw),
       actualInRaw: actualInRawStr,
-      actualOutRaw: actualOutRawStr
+      actualOutRaw: actualOutRawStr,
     };
   }
 
@@ -1230,18 +1176,13 @@ markAttendanceReviewed(row: any): void {
         'UserID',
         'PIN',
         'ID',
-        'No.'
-      ])
+        'No.',
+      ]),
     ).trim();
 
     const dateRaw =
-      this.getCellValue(row, [
-        'التاريخ',
-        'date',
-        'Date',
-        'attendanceDate',
-        'Attendance Date'
-      ]) || sheetName;
+      this.getCellValue(row, ['التاريخ', 'date', 'Date', 'attendanceDate', 'Attendance Date']) ||
+      sheetName;
 
     const timeRaw = this.getCellValue(row, [
       'وقت البصمة',
@@ -1252,7 +1193,7 @@ markAttendanceReviewed(row: any): void {
       'PunchTime',
       'Verify Time',
       'VerifyTime',
-      'Transaction Time'
+      'Transaction Time',
     ]);
 
     const dateTimeRaw = this.getCellValue(row, [
@@ -1262,7 +1203,7 @@ markAttendanceReviewed(row: any): void {
       'Verify Time',
       'Transaction Time',
       'التاريخ والوقت',
-      'تاريخ ووقت'
+      'تاريخ ووقت',
     ]);
 
     if (!employeeCode) {
@@ -1276,7 +1217,7 @@ markAttendanceReviewed(row: any): void {
         return {
           employeeCode,
           date: parsed.date,
-          time: parsed.time
+          time: parsed.time,
         };
       }
     }
@@ -1284,19 +1225,14 @@ markAttendanceReviewed(row: any): void {
     const date = this.normalizeExcelDate(dateRaw);
     const time = this.normalizeExcelTime(timeRaw);
 
-    if (
-      !date ||
-      !time ||
-      !this.isValidDateString(date) ||
-      !this.isValidTimeString(time)
-    ) {
+    if (!date || !time || !this.isValidDateString(date) || !this.isValidTimeString(time)) {
       return null;
     }
 
     return {
       employeeCode,
       date,
-      time
+      time,
     };
   }
 
@@ -1308,14 +1244,14 @@ markAttendanceReviewed(row: any): void {
     if (value instanceof Date) {
       return {
         date: this.formatDate(value),
-        time: `${this.pad(value.getHours())}:${this.pad(value.getMinutes())}:${this.pad(value.getSeconds())}`
+        time: `${this.pad(value.getHours())}:${this.pad(value.getMinutes())}:${this.pad(value.getSeconds())}`,
       };
     }
 
     const text = String(value).trim();
 
     const isoMatch = text.match(
-      /^(\d{4}[-/]\d{1,2}[-/]\d{1,2})[ T]+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?)$/i
+      /^(\d{4}[-/]\d{1,2}[-/]\d{1,2})[ T]+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?)$/i,
     );
 
     if (isoMatch) {
@@ -1323,12 +1259,12 @@ markAttendanceReviewed(row: any): void {
 
       return {
         date: this.normalizeExcelDate(isoMatch[1]),
-        time: normalizedTime || ''
+        time: normalizedTime || '',
       };
     }
 
     const normalMatch = text.match(
-      /^(\d{1,2}[-/]\d{1,2}[-/]\d{4})\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?)$/i
+      /^(\d{1,2}[-/]\d{1,2}[-/]\d{4})\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?)$/i,
     );
 
     if (normalMatch) {
@@ -1336,7 +1272,7 @@ markAttendanceReviewed(row: any): void {
 
       return {
         date: this.normalizeExcelDate(normalMatch[1]),
-        time: normalizedTime || ''
+        time: normalizedTime || '',
       };
     }
 
@@ -1371,7 +1307,7 @@ markAttendanceReviewed(row: any): void {
       (row) =>
         !this.isValidDateString(row.date) ||
         !this.isValidAttendanceTimeOrEmpty(row.actualIn) ||
-        !this.isValidAttendanceTimeOrEmpty(row.actualOut)
+        !this.isValidAttendanceTimeOrEmpty(row.actualOut),
     );
 
     if (invalidRows.length > 0) {
@@ -1410,16 +1346,16 @@ markAttendanceReviewed(row: any): void {
         console.log('Attendance import results:');
         console.table(importResults);
 
-        const successRows = importResults.filter((item: any) =>
-          String(item?.status || '').toLowerCase() === 'success'
+        const successRows = importResults.filter(
+          (item: any) => String(item?.status || '').toLowerCase() === 'success',
         );
 
-        const skippedRows = importResults.filter((item: any) =>
-          String(item?.status || '').toLowerCase() === 'skipped'
+        const skippedRows = importResults.filter(
+          (item: any) => String(item?.status || '').toLowerCase() === 'skipped',
         );
 
-        const failedRows = importResults.filter((item: any) =>
-          String(item?.status || '').toLowerCase() === 'failed'
+        const failedRows = importResults.filter(
+          (item: any) => String(item?.status || '').toLowerCase() === 'failed',
         );
 
         console.log('Success rows:', successRows.length);
@@ -1431,12 +1367,10 @@ markAttendanceReviewed(row: any): void {
         console.log('Failed rows:', failedRows.length);
         console.table(failedRows);
 
-        this.successMessage =
-          `تم الاستيراد: ${successCount} سجل اتحفظ، ${skippedCount} تم تخطيه، ${failedCount} فشل.`;
+        this.successMessage = `تم الاستيراد: ${successCount} سجل اتحفظ، ${skippedCount} تم تخطيه، ${failedCount} فشل.`;
 
         if (failedCount > 0) {
-          this.errorMessage =
-            `فشل حفظ ${failedCount} سجل حضور. راجعي Failed rows في Console لمعرفة السبب.`;
+          this.errorMessage = `فشل حفظ ${failedCount} سجل حضور. راجعي Failed rows في Console لمعرفة السبب.`;
         }
       },
       error: (err) => {
@@ -1445,9 +1379,9 @@ markAttendanceReviewed(row: any): void {
         this.isImporting = false;
         this.errorMessage = this.translateApiMessage(
           err?.error?.message || err?.message || 'حدث خطأ أثناء حفظ بيانات الحضور في السيستم',
-          'حدث خطأ أثناء حفظ بيانات الحضور في السيستم'
+          'حدث خطأ أثناء حفظ بيانات الحضور في السيستم',
         );
-      }
+      },
     });
   }
 
@@ -1461,7 +1395,7 @@ markAttendanceReviewed(row: any): void {
     this.dateRangeErrorMessage = '';
     this.dateRangeSuccessMessage = '';
 
- this.attendanceService
+    this.attendanceService
       .getAttendanceByDateRange(
         this.dateRangeFrom,
         this.dateRangeTo,
@@ -1471,7 +1405,7 @@ markAttendanceReviewed(row: any): void {
         this.dateRangePageSize,
         this.dateRangeRoute,
         this.employeeSearchTerm || null,
-        this.dateRangeNeedsReview
+        this.dateRangeNeedsReview,
       )
       .subscribe({
         next: (response: any) => {
@@ -1487,7 +1421,10 @@ markAttendanceReviewed(row: any): void {
             const incomingTotalCount = Number(data.totalCount) || 0;
             const incomingTotalPages = Number(data.totalPages) || 0;
 
-            this.dateRangePageNumber = Math.min(Math.max(incomingPageNumber, 1), incomingTotalPages || incomingPageNumber || 1);
+            this.dateRangePageNumber = Math.min(
+              Math.max(incomingPageNumber, 1),
+              incomingTotalPages || incomingPageNumber || 1,
+            );
             this.dateRangePageSize = incomingPageSize || this.dateRangePageSize;
             this.dateRangeTotalCount = incomingTotalCount;
             this.dateRangeTotalPages = incomingTotalPages;
@@ -1503,8 +1440,7 @@ markAttendanceReviewed(row: any): void {
             this.dateRangeTotalPages = 0;
           }
 
-          this.dateRangeSuccessMessage =
-            `تم تحميل ${this.dateRangeTotalCount || this.dateRangeRows.length} سجل حضور`;
+          this.dateRangeSuccessMessage = `تم تحميل ${this.dateRangeTotalCount || this.dateRangeRows.length} سجل حضور`;
 
           this.isLoadingDateRange = false;
         },
@@ -1514,40 +1450,39 @@ markAttendanceReviewed(row: any): void {
           this.dateRangeRows = [];
           this.dateRangeErrorMessage = this.translateApiMessage(
             err?.error?.message ||
-            err?.error?.title ||
-            err?.message ||
+              err?.error?.title ||
+              err?.message ||
+              'حدث خطأ أثناء تحميل سجلات الحضور',
             'حدث خطأ أثناء تحميل سجلات الحضور',
-            'حدث خطأ أثناء تحميل سجلات الحضور'
           );
 
           this.isLoadingDateRange = false;
-        }
+        },
       });
   }
 
   applyDateRangeFilter(): void {
-  const fromApiDate = this.displayDateToApi(this.dateRangeFromDisplay);
-  const toApiDate = this.displayDateToApi(this.dateRangeToDisplay);
+    const fromApiDate = this.displayDateToApi(this.dateRangeFromDisplay);
+    const toApiDate = this.displayDateToApi(this.dateRangeToDisplay);
 
-  if (!fromApiDate || !toApiDate) {
-    this.dateRangeErrorMessage =
-      'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
-    return;
+    if (!fromApiDate || !toApiDate) {
+      this.dateRangeErrorMessage = 'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
+      return;
+    }
+
+    this.dateRangeFrom = fromApiDate;
+    this.dateRangeTo = toApiDate;
+
+    this.dateRangeFromDisplay = this.apiDateToDisplay(fromApiDate);
+    this.dateRangeToDisplay = this.apiDateToDisplay(toApiDate);
+
+    this.dateRangePageNumber = 1;
+    if (this.employeeSearchTerm && String(this.employeeSearchTerm).trim() !== '') {
+      this.searchEmployee();
+    } else {
+      this.loadAttendanceByDateRange();
+    }
   }
-
-  this.dateRangeFrom = fromApiDate;
-  this.dateRangeTo = toApiDate;
-
-  this.dateRangeFromDisplay = this.apiDateToDisplay(fromApiDate);
-  this.dateRangeToDisplay = this.apiDateToDisplay(toApiDate);
-
-  this.dateRangePageNumber = 1;
-  if (this.employeeSearchTerm && String(this.employeeSearchTerm).trim() !== '') {
-    this.searchEmployee();
-  } else {
-    this.loadAttendanceByDateRange();
-  }
-}
 
   onEmployeeSearchInputChange(): void {
     const trimmedValue = String(this.employeeSearchTerm || '').trim();
@@ -1585,7 +1520,7 @@ markAttendanceReviewed(row: any): void {
       const allMatches: any[] = [];
 
       while (page <= totalPages) {
-       const resp: any = await firstValueFrom(
+        const resp: any = await firstValueFrom(
           this.attendanceService.getAttendanceByDateRange(
             this.dateRangeFrom,
             this.dateRangeTo,
@@ -1595,8 +1530,8 @@ markAttendanceReviewed(row: any): void {
             perPage,
             this.dateRangeRoute,
             this.employeeSearchTerm || null,
-            this.dateRangeNeedsReview
-          )
+            this.dateRangeNeedsReview,
+          ),
         );
 
         const data = resp?.data || resp;
@@ -1619,16 +1554,14 @@ markAttendanceReviewed(row: any): void {
 
         const matches = prepared.filter((row: any) => {
           const employeeName = this.normalizeArabicText(
-            row.employeeName || row.name || row.employee?.name || ''
+            row.employeeName || row.name || row.employee?.name || '',
           );
 
           const employeeCode = this.normalizeArabicText(
-            row.employeeCode || row.employee?.employeeCode || ''
+            row.employeeCode || row.employee?.employeeCode || '',
           );
 
-          return (
-            employeeName.includes(searchNorm) || employeeCode.includes(searchNorm)
-          );
+          return employeeName.includes(searchNorm) || employeeCode.includes(searchNorm);
         });
 
         if (matches.length > 0) {
@@ -1701,7 +1634,7 @@ markAttendanceReviewed(row: any): void {
 
   private prepareDateRangeRows(rows: any[]): any[] {
     return rows.map((row: any) => ({
-      ...row
+      ...row,
     }));
   }
 
@@ -1721,25 +1654,20 @@ markAttendanceReviewed(row: any): void {
     const attendanceId = row.id || row.attendanceId;
 
     if (!attendanceId) {
-      this.dateRangeErrorMessage =
-        'لا يمكن تعديل هذا السجل لأن رقم سجل الحضور غير موجود';
+      this.dateRangeErrorMessage = 'لا يمكن تعديل هذا السجل لأن رقم سجل الحضور غير موجود';
       return;
     }
 
     this.selectedAttendanceForEdit = row;
 
     this.attendanceEditId = attendanceId;
-    this.attendanceEditEmployeeCode =
-      row.employeeCode || row.employee?.employeeCode || '';
+    this.attendanceEditEmployeeCode = row.employeeCode || row.employee?.employeeCode || '';
 
-    this.attendanceEditEmployeeName =
-      row.employeeName || row.name || row.employee?.name || '';
+    this.attendanceEditEmployeeName = row.employeeName || row.name || row.employee?.name || '';
 
-    this.attendanceEditDepartmentName =
-      row.departmentName || row.employee?.departmentName || '';
+    this.attendanceEditDepartmentName = row.departmentName || row.employee?.departmentName || '';
 
-    this.attendanceEditDate =
-      row.date || row.attendanceDate || '';
+    this.attendanceEditDate = row.date || row.attendanceDate || '';
 
     this.attendanceEditActualIn = this.timeForInput(row.actualIn);
     this.attendanceEditActualOut = this.timeForInput(row.actualOut);
@@ -1772,306 +1700,296 @@ markAttendanceReviewed(row: any): void {
     this.activeAttendancePage = 'report';
   }
 
-saveAttendanceEdit(): void {
-  if (!this.attendanceEditId) {
-    this.attendanceEditErrorMessage = 'رقم سجل الحضور غير موجود';
-    return;
-  }
+  saveAttendanceEdit(): void {
+    if (!this.attendanceEditId) {
+      this.attendanceEditErrorMessage = 'رقم سجل الحضور غير موجود';
+      return;
+    }
 
-  const originalActualIn = this.normalizeTimeForApi(
-    this.selectedAttendanceForEdit?.actualIn
-  );
-  const originalActualOut = this.normalizeTimeForApi(
-    this.selectedAttendanceForEdit?.actualOut
-  );
+    const originalActualIn = this.normalizeTimeForApi(this.selectedAttendanceForEdit?.actualIn);
+    const originalActualOut = this.normalizeTimeForApi(this.selectedAttendanceForEdit?.actualOut);
 
-  const sourceActualIn = this.normalizeTimeForApi(
-    this.attendanceEditActualIn || this.selectedAttendanceForEdit?.actualIn
-  );
-  const sourceActualOut = this.normalizeTimeForApi(
-    this.attendanceEditActualOut || this.selectedAttendanceForEdit?.actualOut
-  );
-  const notes = String(this.attendanceEditNotes || '').trim();
+    const sourceActualIn = this.normalizeTimeForApi(
+      this.attendanceEditActualIn || this.selectedAttendanceForEdit?.actualIn,
+    );
+    const sourceActualOut = this.normalizeTimeForApi(
+      this.attendanceEditActualOut || this.selectedAttendanceForEdit?.actualOut,
+    );
+    const notes = String(this.attendanceEditNotes || '').trim();
 
-  let finalStatus = String(this.attendanceEditStatus || '').trim();
+    let finalStatus = String(this.attendanceEditStatus || '').trim();
 
-  const explicitAbsentStatuses = ['Absent', 'غائب'];
-  const shouldPreserveExplicitAbsentStatus = explicitAbsentStatuses.includes(finalStatus);
+    const explicitAbsentStatuses = ['Absent', 'غائب'];
+    const shouldPreserveExplicitAbsentStatus = explicitAbsentStatuses.includes(finalStatus);
 
-  if (
-    !shouldPreserveExplicitAbsentStatus &&
-    sourceActualIn &&
-    sourceActualOut &&
-    (
-      finalStatus === '' ||
-      finalStatus === 'MissingIn' ||
-      finalStatus === 'MissingOut' ||
-      finalStatus === 'Incomplete'
-    )
-  ) {
-    finalStatus = 'Present';
-  }
+    if (
+      !shouldPreserveExplicitAbsentStatus &&
+      sourceActualIn &&
+      sourceActualOut &&
+      (finalStatus === '' ||
+        finalStatus === 'MissingIn' ||
+        finalStatus === 'MissingOut' ||
+        finalStatus === 'Incomplete')
+    ) {
+      finalStatus = 'Present';
+    }
 
-  if (!finalStatus) {
-    this.attendanceEditErrorMessage =
-      'من فضلك قم بإختيار الحالة أو أدخلي وقت الحضور والانصراف';
-    return;
-  }
+    if (!finalStatus) {
+      this.attendanceEditErrorMessage = 'من فضلك قم بإختيار الحالة أو أدخلي وقت الحضور والانصراف';
+      return;
+    }
 
-  const timePayload = {
-    actualIn: sourceActualIn,
-    actualOut: sourceActualOut,
-    note: ''
-  };
+    const timePayload = {
+      actualIn: sourceActualIn,
+      actualOut: sourceActualOut,
+      note: '',
+    };
 
-  const statusPayload = {
-    status: finalStatus,
-    note: notes
-  };
+    const statusPayload = {
+      status: finalStatus,
+      note: notes,
+    };
 
-  console.log('Attendance Edit ID:', this.attendanceEditId);
-  console.log('Time Payload:', timePayload);
-  console.log('Status Payload:', statusPayload);
+    console.log('Attendance Edit ID:', this.attendanceEditId);
+    console.log('Time Payload:', timePayload);
+    console.log('Status Payload:', statusPayload);
 
-  this.isSavingAttendanceEdit = true;
-  this.attendanceEditErrorMessage = '';
-  this.attendanceEditSuccessMessage = '';
+    this.isSavingAttendanceEdit = true;
+    this.attendanceEditErrorMessage = '';
+    this.attendanceEditSuccessMessage = '';
 
-  const finishStatusSave = () => {
-    this.attendanceService.updateAttendanceStatus(this.attendanceEditId!, statusPayload).subscribe({
-      next: (statusResponse: any) => {
-        console.log('Update Attendance Status Response:', statusResponse);
+    const finishStatusSave = () => {
+      this.attendanceService
+        .updateAttendanceStatus(this.attendanceEditId!, statusPayload)
+        .subscribe({
+          next: (statusResponse: any) => {
+            console.log('Update Attendance Status Response:', statusResponse);
 
-        if (statusResponse?.isSuccess === false) {
-          this.attendanceEditErrorMessage =
-            statusResponse?.message || 'تم تعديل الوقت ولكن فشل تعديل الحالة';
-          this.isSavingAttendanceEdit = false;
-          return;
-        }
+            if (statusResponse?.isSuccess === false) {
+              this.attendanceEditErrorMessage =
+                statusResponse?.message || 'تم تعديل الوقت ولكن فشل تعديل الحالة';
+              this.isSavingAttendanceEdit = false;
+              return;
+            }
 
-        this.attendanceEditStatus = finalStatus;
-        this.attendanceEditSuccessMessage =
-          'تم تعديل سجل الحضور بنجاح';
+            this.attendanceEditStatus = finalStatus;
+            this.attendanceEditSuccessMessage = 'تم تعديل سجل الحضور بنجاح';
 
-        this.selectedAttendanceForEdit = {
-          ...this.selectedAttendanceForEdit,
-          status: finalStatus,
-          notes: notes || this.selectedAttendanceForEdit?.notes
-        };
-
-        this.dateRangeRows = this.dateRangeRows.map((row: any) => {
-          const rowId = row.id || row.attendanceId;
-          if (rowId === this.attendanceEditId) {
-            return {
-              ...row,
+            this.selectedAttendanceForEdit = {
+              ...this.selectedAttendanceForEdit,
               status: finalStatus,
-              notes: notes || row.notes || this.selectedAttendanceForEdit?.notes
+              notes: notes || this.selectedAttendanceForEdit?.notes,
             };
+
+            this.dateRangeRows = this.dateRangeRows.map((row: any) => {
+              const rowId = row.id || row.attendanceId;
+              if (rowId === this.attendanceEditId) {
+                return {
+                  ...row,
+                  status: finalStatus,
+                  notes: notes || row.notes || this.selectedAttendanceForEdit?.notes,
+                };
+              }
+
+              return row;
+            });
+
+            this.isSavingAttendanceEdit = false;
+
+            this.activeAttendancePage = 'report';
+            this.loadAttendanceByDateRange();
+          },
+          error: (err: any) => {
+            console.log('Update attendance status error:', err);
+
+            this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
+            this.isSavingAttendanceEdit = false;
+          },
+        });
+    };
+
+    const hasTimeChange =
+      sourceActualIn !== originalActualIn || sourceActualOut !== originalActualOut;
+
+    const shouldUpdateTime = hasTimeChange;
+
+    if (shouldUpdateTime) {
+      this.attendanceService.updateAttendanceTime(this.attendanceEditId, timePayload).subscribe({
+        next: (timeResponse: any) => {
+          console.log('Update Attendance Time Response:', timeResponse);
+
+          if (timeResponse?.isSuccess === false) {
+            this.attendanceEditErrorMessage =
+              timeResponse?.message || 'فشل تعديل وقت الحضور والانصراف';
+            this.isSavingAttendanceEdit = false;
+            return;
           }
 
-          return row;
-        });
+          finishStatusSave();
+        },
+        error: (err: any) => {
+          console.log('Update attendance time error:', err);
 
-        this.isSavingAttendanceEdit = false;
-
-        this.activeAttendancePage = 'report';
-        this.loadAttendanceByDateRange();
-      },
-      error: (err: any) => {
-        console.log('Update attendance status error:', err);
-
-        this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
-        this.isSavingAttendanceEdit = false;
-      }
-    });
-  };
-
-  const hasTimeChange =
-    sourceActualIn !== originalActualIn ||
-    sourceActualOut !== originalActualOut;
-
-  const shouldUpdateTime = hasTimeChange;
-
-  if (shouldUpdateTime) {
-    this.attendanceService.updateAttendanceTime(this.attendanceEditId, timePayload).subscribe({
-      next: (timeResponse: any) => {
-        console.log('Update Attendance Time Response:', timeResponse);
-
-        if (timeResponse?.isSuccess === false) {
-          this.attendanceEditErrorMessage =
-            timeResponse?.message || 'فشل تعديل وقت الحضور والانصراف';
+          this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
           this.isSavingAttendanceEdit = false;
-          return;
-        }
+        },
+      });
+      return;
+    }
 
-        finishStatusSave();
-      },
-      error: (err: any) => {
-        console.log('Update attendance time error:', err);
-
-        this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
-        this.isSavingAttendanceEdit = false;
-      }
-    });
-    return;
+    finishStatusSave();
   }
 
-  finishStatusSave();
-}
-  
+  resolveAttendanceStatusAfterTimeEdit(
+    currentStatus: string | null | undefined,
+    actualIn: string | null,
+    actualOut: string | null,
+  ): string {
+    const status = String(currentStatus || '').trim();
 
- resolveAttendanceStatusAfterTimeEdit(
-  currentStatus: string | null | undefined,
-  actualIn: string | null,
-  actualOut: string | null
-): string {
-  const status = String(currentStatus || '').trim();
+    const hasActualIn = !!String(actualIn || '').trim();
+    const hasActualOut = !!String(actualOut || '').trim();
 
-  const hasActualIn = !!String(actualIn || '').trim();
-  const hasActualOut = !!String(actualOut || '').trim();
+    // لو مفيش حضور وانصراف مع بعض، سيبي الحالة زي ما هي
+    if (!hasActualIn || !hasActualOut) {
+      return status;
+    }
 
-  // لو مفيش حضور وانصراف مع بعض، سيبي الحالة زي ما هي
-  if (!hasActualIn || !hasActualOut) {
+    // الحالات اللي لو اتضاف لها حضور وانصراف تتحول لحاضر
+    const absentStatuses = [
+      '',
+      'Absent',
+      'غائب',
+      'MissingIn',
+      'MissingOut',
+      'Incomplete',
+      'حضور ناقص',
+      'انصراف ناقص',
+      'بيانات ناقصة',
+    ];
+
+    if (absentStatuses.includes(status)) {
+      return 'Present';
+    }
+
+    // لو المستخدم مختار Late أو EarlyDeparture سيبيها زي ما هي
     return status;
   }
 
-  // الحالات اللي لو اتضاف لها حضور وانصراف تتحول لحاضر
-  const absentStatuses = [
-    '',
-    'Absent',
-    'غائب',
-    'MissingIn',
-    'MissingOut',
-    'Incomplete',
-    'حضور ناقص',
-    'انصراف ناقص',
-    'بيانات ناقصة'
-  ];
+  onLateSummarySearchInput(): void {
+    if (this.lateSummarySearchTimer) {
+      clearTimeout(this.lateSummarySearchTimer);
+    }
 
-  if (absentStatuses.includes(status)) {
-    return 'Present';
+    this.lateSummaryPageNumber = 1;
+    this.lateSummarySearchTimer = setTimeout(() => {
+      this.loadLateSummary();
+    }, 300);
   }
 
-  // لو المستخدم مختار Late أو EarlyDeparture سيبيها زي ما هي
-  return status;
-}
-
-onLateSummarySearchInput(): void {
-  if (this.lateSummarySearchTimer) {
-    clearTimeout(this.lateSummarySearchTimer);
+  previousLateSummaryPage(): void {
+    if (this.lateSummaryPageNumber > 1) {
+      this.lateSummaryPageNumber--;
+      this.loadLateSummary();
+    }
   }
 
-  this.lateSummaryPageNumber = 1;
-  this.lateSummarySearchTimer = setTimeout(() => {
-    this.loadLateSummary();
-  }, 300);
-}
-
-previousLateSummaryPage(): void {
-  if (this.lateSummaryPageNumber > 1) {
-    this.lateSummaryPageNumber--;
-    this.loadLateSummary();
+  nextLateSummaryPage(): void {
+    if (this.lateSummaryPageNumber < this.lateSummaryTotalPages) {
+      this.lateSummaryPageNumber++;
+      this.loadLateSummary();
+    }
   }
-}
+  loadLateSummary(): void {
+    const fromApiDate = this.displayDateToApi(this.lateSummaryFromDisplay);
+    const toApiDate = this.displayDateToApi(this.lateSummaryToDisplay);
 
-nextLateSummaryPage(): void {
-  if (this.lateSummaryPageNumber < this.lateSummaryTotalPages) {
-    this.lateSummaryPageNumber++;
-    this.loadLateSummary();
-  }
-}
+    if (!fromApiDate || !toApiDate) {
+      this.lateSummaryErrorMessage = 'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
+      return;
+    }
 
-loadLateSummary(): void {
-  const fromApiDate = this.displayDateToApi(this.lateSummaryFromDisplay);
-  const toApiDate = this.displayDateToApi(this.lateSummaryToDisplay);
+    this.isLoadingLateSummary = true;
+    this.lateSummaryErrorMessage = '';
+    this.lateSummarySuccessMessage = '';
 
-  if (!fromApiDate || !toApiDate) {
-    this.lateSummaryErrorMessage =
-      'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
-    return;
-  }
+    this.lateSummaryFrom = fromApiDate;
+    this.lateSummaryTo = toApiDate;
+    this.lateSummaryFromDisplay = this.apiDateToDisplay(fromApiDate);
+    this.lateSummaryToDisplay = this.apiDateToDisplay(toApiDate);
 
-  this.isLoadingLateSummary = true;
-  this.lateSummaryErrorMessage = '';
-  this.lateSummarySuccessMessage = '';
+    this.attendanceService
+      .getLateSummary(
+        this.lateSummaryFrom,
+        this.lateSummaryTo,
+        this.lateSummaryEmployeeSearch || null,
+        this.lateSummaryDepartmentId,
+        this.lateSummaryPageNumber,
+        this.lateSummaryPageSize,
+        this.lateSummaryLocationId,
+      )
+      .subscribe({
+        next: (response: any) => {
+          this.isLoadingLateSummary = false;
 
-  this.lateSummaryFrom = fromApiDate;
-  this.lateSummaryTo = toApiDate;
-  this.lateSummaryFromDisplay = this.apiDateToDisplay(fromApiDate);
-  this.lateSummaryToDisplay = this.apiDateToDisplay(toApiDate);
+          const data = response?.data ?? response;
 
-  this.attendanceService
-    .getLateSummary(
-      this.lateSummaryFrom,
-      this.lateSummaryTo,
-      this.lateSummaryEmployeeSearch || null,
-      this.lateSummaryDepartmentId,
-      this.lateSummaryPageNumber,
-      this.lateSummaryPageSize
-    )
-    .subscribe({
-      next: (response: any) => {
-        this.isLoadingLateSummary = false;
+          if (Array.isArray(data?.items)) {
+            this.lateSummaryRows = data.items;
+            this.lateSummaryPageNumber = data.pageNumber || 1;
+            this.lateSummaryPageSize = data.pageSize || this.lateSummaryPageSize;
+            this.lateSummaryTotalCount = data.totalCount || 0;
+            this.lateSummaryTotalPages = data.totalPages || 0;
+          } else if (Array.isArray(data)) {
+            this.lateSummaryRows = data;
+            this.lateSummaryTotalCount = data.length;
+            this.lateSummaryTotalPages = 1;
+          } else {
+            this.lateSummaryRows = [];
+            this.lateSummaryTotalCount = 0;
+            this.lateSummaryTotalPages = 0;
+          }
 
-        const data = response?.data ?? response;
+          this.lateSummaryData = this.lateSummaryRows;
+          this.lateSummarySuccessMessage = response?.message || 'تم عرض ملخص التأخير بنجاح';
+        },
+        error: (err: any) => {
+          this.isLoadingLateSummary = false;
 
-        if (Array.isArray(data?.items)) {
-          this.lateSummaryRows = data.items;
-          this.lateSummaryPageNumber = data.pageNumber || 1;
-          this.lateSummaryPageSize = data.pageSize || this.lateSummaryPageSize;
-          this.lateSummaryTotalCount = data.totalCount || 0;
-          this.lateSummaryTotalPages = data.totalPages || 0;
-        } else if (Array.isArray(data)) {
-          this.lateSummaryRows = data;
-          this.lateSummaryTotalCount = data.length;
-          this.lateSummaryTotalPages = 1;
-        } else {
+          this.lateSummaryErrorMessage = this.translateApiMessage(
+            err?.error?.message || err?.message || 'حدث خطأ أثناء جلب ملخص التأخير',
+            'حدث خطأ أثناء جلب ملخص التأخير',
+          );
+
+          this.lateSummaryData = null;
           this.lateSummaryRows = [];
-          this.lateSummaryTotalCount = 0;
-          this.lateSummaryTotalPages = 0;
-        }
+        },
+      });
+  }
 
-        this.lateSummaryData = this.lateSummaryRows;
-        this.lateSummarySuccessMessage =
-          response?.message || 'تم عرض ملخص التأخير بنجاح';
-      },
-      error: (err: any) => {
-        this.isLoadingLateSummary = false;
+  clearLateSummary(): void {
+    this.lateSummaryFrom = '';
+    this.lateSummaryTo = '';
+    this.lateSummaryFromDisplay = '';
+    this.lateSummaryToDisplay = '';
 
-        this.lateSummaryErrorMessage = this.translateApiMessage(
-          err?.error?.message || err?.message || 'حدث خطأ أثناء جلب ملخص التأخير',
-          'حدث خطأ أثناء جلب ملخص التأخير'
-        );
+    this.lateSummaryLocationId = null;
+    this.lateSummaryEmployeeId = null;
+    this.initializeDepartments();
+    this.lateSummaryEmployeeSearch = '';
 
-        this.lateSummaryData = null;
-        this.lateSummaryRows = [];
-      }
-    });
-}
+    this.lateSummarySelectedEmployee = null;
+    this.lateSummaryDepartmentId = null;
+    this.lateSummaryPageNumber = 1;
+    this.lateSummaryPageSize = 10;
+    this.lateSummaryTotalCount = 0;
+    this.lateSummaryTotalPages = 0;
 
-    clearLateSummary(): void {
-  this.lateSummaryFrom = '';
-  this.lateSummaryTo = '';
-  this.lateSummaryFromDisplay = '';
-  this.lateSummaryToDisplay = '';
-
-  this.lateSummaryLocationId = null;
-  this.lateSummaryEmployeeId = null;
-  this.initializeDepartments();
-  this.lateSummaryEmployeeSearch = '';
-
-  this.lateSummarySelectedEmployee = null;
-  this.lateSummaryDepartmentId = null;
-  this.lateSummaryPageNumber = 1;
-  this.lateSummaryPageSize = 10;
-  this.lateSummaryTotalCount = 0;
-  this.lateSummaryTotalPages = 0;
-
-  this.lateSummaryData = null;
-  this.lateSummaryRows = [];
-  this.lateSummaryErrorMessage = '';
-  this.lateSummarySuccessMessage = '';
-}
+    this.lateSummaryData = null;
+    this.lateSummaryRows = [];
+    this.lateSummaryErrorMessage = '';
+    this.lateSummarySuccessMessage = '';
+  }
 
   clearData(): void {
     this.attendanceRows = [];
@@ -2083,66 +2001,66 @@ loadLateSummary(): void {
     this.hasImportedCurrentSheet = false;
   }
 
-normalizeTimeForApi(value: string | null | undefined): string | null {
-  if (!value || String(value).trim() === '') {
-    return null;
-  }
+  normalizeTimeForApi(value: string | null | undefined): string | null {
+    if (!value || String(value).trim() === '') {
+      return null;
+    }
 
-  let text = String(value).trim().toUpperCase();
+    let text = String(value).trim().toUpperCase();
 
-  // يشيل (+1) أو -- لو موجودين
-  text = text.replace(/\(\s*\+\s*\d+\s*\)/g, '').trim();
-  text = text.replace(/\s*[-–—]{2,}\s*$/g, '').trim();
+    // يشيل (+1) أو -- لو موجودين
+    text = text.replace(/\(\s*\+\s*\d+\s*\)/g, '').trim();
+    text = text.replace(/\s*[-–—]{2,}\s*$/g, '').trim();
 
-  // لو جاي HH:mm:ss.000Z نخليه HH:mm:ss
-  const zMatch = text.match(/^(\d{1,2}):(\d{2}):(\d{2})\.\d{3}Z$/);
-  if (zMatch) {
-    return `${this.pad(Number(zMatch[1]))}:${zMatch[2]}:${zMatch[3]}`;
-  }
+    // لو جاي HH:mm:ss.000Z نخليه HH:mm:ss
+    const zMatch = text.match(/^(\d{1,2}):(\d{2}):(\d{2})\.\d{3}Z$/);
+    if (zMatch) {
+      return `${this.pad(Number(zMatch[1]))}:${zMatch[2]}:${zMatch[3]}`;
+    }
 
-  const isoTimeMatch = text.match(/(?:^|T)(\d{1,2}):(\d{2})(?::(\d{2}))?/);
-  if (isoTimeMatch) {
-    const hours = Number(isoTimeMatch[1]);
-    const minutes = Number(isoTimeMatch[2]);
-    const seconds = Number(isoTimeMatch[3] || 0);
+    const isoTimeMatch = text.match(/(?:^|T)(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (isoTimeMatch) {
+      const hours = Number(isoTimeMatch[1]);
+      const minutes = Number(isoTimeMatch[2]);
+      const seconds = Number(isoTimeMatch[3] || 0);
 
-    if (minutes > 59 || seconds > 59 || hours < 0 || hours > 23) {
+      if (minutes > 59 || seconds > 59 || hours < 0 || hours > 23) {
+        return null;
+      }
+
+      return `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
+    }
+
+    // يقبل 09:00 أو 09:00:00 أو 12:15 PM
+    const match = text.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/);
+
+    if (!match) {
+      return null;
+    }
+
+    let hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    const seconds = Number(match[3] || 0);
+    const meridiem = match[4];
+
+    if (minutes > 59 || seconds > 59) {
+      return null;
+    }
+
+    if (meridiem === 'PM' && hours < 12) {
+      hours += 12;
+    }
+
+    if (meridiem === 'AM' && hours === 12) {
+      hours = 0;
+    }
+
+    if (hours < 0 || hours > 23) {
       return null;
     }
 
     return `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
   }
-
-  // يقبل 09:00 أو 09:00:00 أو 12:15 PM
-  const match = text.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/);
-
-  if (!match) {
-    return null;
-  }
-
-  let hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  const seconds = Number(match[3] || 0);
-  const meridiem = match[4];
-
-  if (minutes > 59 || seconds > 59) {
-    return null;
-  }
-
-  if (meridiem === 'PM' && hours < 12) {
-    hours += 12;
-  }
-
-  if (meridiem === 'AM' && hours === 12) {
-    hours = 0;
-  }
-
-  if (hours < 0 || hours > 23) {
-    return null;
-  }
-
-  return `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
-}
 
   timeForInput(value: string | null | undefined): string {
     if (!value) {
@@ -2169,7 +2087,7 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
 
     for (const key of possibleKeys) {
       const matchedKey = rowKeys.find(
-        (rowKey) => this.normalizeArabicText(rowKey) === this.normalizeArabicText(key)
+        (rowKey) => this.normalizeArabicText(rowKey) === this.normalizeArabicText(key),
       );
 
       if (
@@ -2343,12 +2261,7 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
     const seconds = Number(match[3]);
 
     return (
-      hours >= 0 &&
-      hours <= 23 &&
-      minutes >= 0 &&
-      minutes <= 59 &&
-      seconds >= 0 &&
-      seconds <= 59
+      hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 && seconds >= 0 && seconds <= 59
     );
   }
 
@@ -2368,10 +2281,7 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
 
   private isEmptyRow(row: any): boolean {
     return Object.values(row).every(
-      (value) =>
-        value === null ||
-        value === undefined ||
-        String(value).trim() === ''
+      (value) => value === null || value === undefined || String(value).trim() === '',
     );
   }
 
@@ -2391,7 +2301,7 @@ normalizeTimeForApi(value: string | null | undefined): string | null {
     return value.toString().padStart(2, '0');
   }
 
-formatMinutesToHoursLabel(value: number | string | null | undefined): string {
+  formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     if (value === null || value === undefined || value === '') {
       return '-';
     }
@@ -2418,28 +2328,9 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     return `${wholeHours}:${remainingMinutes.toString().padStart(2, '0')}`;
   }
 
-  getStatusLabel(status: string | null | undefined): string {
-    const value = String(status || '').trim();
-
-    const statusMap: Record<string, string> = {
-      Present: 'حاضر',
-      Absent: 'غائب',
-      Late: 'متأخر',
-      EarlyDeparture: 'انصراف مبكر',
-      PersonalLeave: 'إذن شخصي / إجازة عارضة',
-      Permission: 'إذن',
-      Vacation: 'إجازة',
-      Mission: 'مأمورية',
-      DrivingRoute: 'خط سير',
-      OnLeave: 'في إجازة',
-      Incomplete: 'بيانات ناقصة',
-      MissingIn: 'حضور ناقص',
-      MissingOut: 'انصراف ناقص'
-    };
-
-    return statusMap[value] || value || '-';
+  getAttendanceStatusLabel(status: any): string {
+    return getAttendanceStatusLabel(status);
   }
-
   getStatusClass(status: string | null | undefined): string {
     const value = String(status || '').trim();
 
@@ -2479,7 +2370,9 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
       : [];
   }
 
-  getAttendanceNotes(notes: unknown): Array<{ content: string; displayName?: string; createdAt?: string }> {
+  getAttendanceNotes(
+    notes: unknown,
+  ): Array<{ content: string; displayName?: string; createdAt?: string }> {
     type NoteEntry = { content: string; displayName?: string; createdAt?: string };
 
     if (Array.isArray(notes)) {
@@ -2498,7 +2391,9 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
           createdOn?: string;
         };
 
-        const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
+        const content = this.normalizeNoteText(
+          candidate.content || candidate.text || candidate.note,
+        );
         if (!content) {
           return acc;
         }
@@ -2506,7 +2401,7 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
         acc.push({
           content,
           displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
-          createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn)
+          createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
         });
 
         return acc;
@@ -2543,15 +2438,17 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
         {
           content,
           displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
-          createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn)
-        }
+          createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
+        },
       ]);
     }
 
     return [];
   }
 
-  private parseNotesString(notes: string): Array<{ content: string; displayName?: string; createdAt?: string }> {
+  private parseNotesString(
+    notes: string,
+  ): Array<{ content: string; displayName?: string; createdAt?: string }> {
     const normalized = this.normalizeNotesValue(notes);
     if (!normalized) {
       return [];
@@ -2579,13 +2476,15 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     return entries.length > 0 ? entries : [];
   }
 
-  private attachReviewMetadata(entries: Array<{ content: string; displayName?: string; createdAt?: string }>) {
+  private attachReviewMetadata(
+    entries: Array<{ content: string; displayName?: string; createdAt?: string }>,
+  ) {
     return entries.map((entry) => {
       if (this.isReviewMarker(entry.content)) {
         return {
           content: entry.content,
           displayName: this.getReviewNoteAuthor(),
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         };
       }
       return entry;
@@ -2655,7 +2554,7 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
       'Approved manually': 'تم الاعتماد يدويًا',
       'needs review': 'يحتاج مراجعة',
       'needs revision': 'يحتاج مراجعة',
-      'reviewed': 'تمت المراجعة'
+      reviewed: 'تمت المراجعة',
     };
 
     return translated || notesMap[value] || value;
@@ -2670,43 +2569,55 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     const normalized = this.normalizeNotesValue(notes);
 
     if (Array.isArray(notes)) {
-      const existingNotes: Array<{ content: string; displayName?: string; createdAt?: string }> = notes.reduce(
-        (acc, note) => {
-          if (!note || typeof note !== 'object') {
+      const existingNotes: Array<{ content: string; displayName?: string; createdAt?: string }> =
+        notes.reduce(
+          (acc, note) => {
+            if (!note || typeof note !== 'object') {
+              return acc;
+            }
+
+            const candidate = note as {
+              content?: string;
+              text?: string;
+              note?: string;
+              displayName?: string;
+              createdBy?: string;
+              createdAt?: string;
+              createdOn?: string;
+            };
+
+            const content = this.normalizeNoteText(
+              candidate.content || candidate.text || candidate.note,
+            );
+            if (!content) {
+              return acc;
+            }
+
+            acc.push({
+              content,
+              displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+              createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
+            });
+
             return acc;
-          }
+          },
+          [] as Array<{ content: string; displayName?: string; createdAt?: string }>,
+        );
 
-          const candidate = note as {
-            content?: string;
-            text?: string;
-            note?: string;
-            displayName?: string;
-            createdBy?: string;
-            createdAt?: string;
-            createdOn?: string;
-          };
-
-          const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
-          if (!content) {
-            return acc;
-          }
-
-          acc.push({
-            content,
-            displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
-            createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn)
-          });
-
-          return acc;
-        },
-        [] as Array<{ content: string; displayName?: string; createdAt?: string }>
-      );
-
-      if (existingNotes.some((note) => note.content.includes(reviewNoteContent) || note.content.toLowerCase().includes('reviewed'))) {
+      if (
+        existingNotes.some(
+          (note) =>
+            note.content.includes(reviewNoteContent) ||
+            note.content.toLowerCase().includes('reviewed'),
+        )
+      ) {
         return notes;
       }
 
-      return [...existingNotes, { content: reviewNoteContent, createdAt: new Date().toISOString() }];
+      return [
+        ...existingNotes,
+        { content: reviewNoteContent, createdAt: new Date().toISOString() },
+      ];
     }
 
     if (typeof notes === 'object' && notes !== null) {
@@ -2721,17 +2632,25 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
       };
 
       const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
-      const noteObject = content ? {
-        content,
-        displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
-        createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn)
-      } : null;
+      const noteObject = content
+        ? {
+            content,
+            displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+            createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
+          }
+        : null;
 
-      if (noteObject && (noteObject.content.includes(reviewNoteContent) || noteObject.content.toLowerCase().includes('reviewed'))) {
+      if (
+        noteObject &&
+        (noteObject.content.includes(reviewNoteContent) ||
+          noteObject.content.toLowerCase().includes('reviewed'))
+      ) {
         return notes;
       }
 
-      return noteObject ? [noteObject, { content: reviewNoteContent, createdAt: new Date().toISOString() }] : reviewNoteContent;
+      return noteObject
+        ? [noteObject, { content: reviewNoteContent, createdAt: new Date().toISOString() }]
+        : reviewNoteContent;
     }
 
     if (!normalized) {
@@ -2795,7 +2714,13 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
         name?: string;
       };
 
-      const text = candidate.text || candidate.note || candidate.content || candidate.description || candidate.value || candidate.name;
+      const text =
+        candidate.text ||
+        candidate.note ||
+        candidate.content ||
+        candidate.description ||
+        candidate.value ||
+        candidate.name;
       if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeValue(text)) {
         return text.trim();
       }
@@ -2805,7 +2730,8 @@ formatMinutesToHoursLabel(value: number | string | null | undefined): string {
   }
 
   private isFrameworkTypeValue(value: string): boolean {
-    return /(System\.Collections\.Generic\.(HashSet|List)|HashSet`|ICollection|IEnumerable)/i.test(value);
+    return /(System\.Collections\.Generic\.(HashSet|List)|HashSet`|ICollection|IEnumerable)/i.test(
+      value,
+    );
   }
-
 }
