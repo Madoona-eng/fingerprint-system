@@ -9,16 +9,14 @@ export class FingerprintSheetService {
   constructor(private attendanceService: AttendanceService) {}
 
   getRawPunches(
-    fromDate: string,
-    toDate: string,
+    date: string,
     employeeCode: string = '',
     employeeName: string = '',
     pageNumber: number = 1,
     pageSize: number = 10
   ) {
     return this.attendanceService.getRawPunches(
-      fromDate,
-      toDate,
+      date,
       employeeCode,
       employeeName,
       pageNumber,
@@ -27,8 +25,7 @@ export class FingerprintSheetService {
   }
 
   async fetchAllRawPunches(
-    fromDate: string,
-    toDate: string,
+    date: string,
     employeeCode: string = '',
     employeeName: string = '',
     perPage: number = 1000
@@ -37,38 +34,27 @@ export class FingerprintSheetService {
     let page = 1;
     let totalPages = 1;
 
-    try {
-      while (page <= totalPages) {
-        const resp: any = await firstValueFrom(
-          this.attendanceService.getRawPunches(
-            fromDate,
-            toDate,
-            employeeCode,
-            employeeName,
-            page,
-            perPage
-          )
-        );
+    while (page <= totalPages) {
+      const resp: any = await firstValueFrom(
+        this.attendanceService.getRawPunches(date, employeeCode, employeeName, page, perPage)
+      );
 
-        const data = resp?.data ?? resp;
-        let items: any[] = [];
+      const data = resp?.data ?? resp;
+      let items: any[] = [];
 
-        if (Array.isArray(data?.items)) {
-          items = data.items;
-          totalPages = data.totalPages || 1;
-        } else if (Array.isArray(data)) {
-          items = data;
-          totalPages = 1;
-        } else {
-          items = [];
-          totalPages = 0;
-        }
-
-        allRecords.push(...items);
-        page++;
+      if (Array.isArray(data?.items)) {
+        items = data.items;
+        totalPages = data.totalPages || 1;
+      } else if (Array.isArray(data)) {
+        items = data;
+        totalPages = 1;
+      } else {
+        items = [];
+        totalPages = 1;
       }
-    } catch (err) {
-      throw err;
+
+      allRecords.push(...items);
+      page++;
     }
 
     return allRecords;

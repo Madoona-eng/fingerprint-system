@@ -14,10 +14,8 @@ import { RawPunchRecord } from '../model/models';
   styleUrls: ['./fingerprint-sheet.component.css']
 })
 export class FingerprintSheetComponent implements OnInit {
-  fromDate = '';
-  toDate = '';
-  fromDateDisplay = '';
-  toDateDisplay = '';
+  date = '';
+  dateDisplay = '';
 
   employeeCode = '';
   employeeName = '';
@@ -35,7 +33,7 @@ export class FingerprintSheetComponent implements OnInit {
   constructor(private fingerprintSheetService: FingerprintSheetService) {}
 
   ngOnInit(): void {
-    this.setTodayDateRange();
+    this.setTodayDate();
     this.loadData();
   }
 
@@ -43,28 +41,19 @@ export class FingerprintSheetComponent implements OnInit {
     return String(value).padStart(2, '0');
   }
 
-  private setDateRangeFromDates(from: Date, to: Date): void {
-    this.fromDate = this.formatDateToApi(from);
-    this.toDate = this.formatDateToApi(to);
-    this.fromDateDisplay = this.formatDateToDisplay(from);
-    this.toDateDisplay = this.formatDateToDisplay(to);
+  private setDate(d: Date): void {
+    this.date = this.formatDateToApi(d);
+    this.dateDisplay = this.formatDateToDisplay(d);
   }
 
-  setTodayDateRange(): void {
-    const today = new Date();
-    this.setDateRangeFromDates(today, today);
+  setTodayDate(): void {
+    this.setDate(new Date());
   }
 
-  setYesterdayDateRange(): void {
+  setYesterdayDate(): void {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    this.setDateRangeFromDates(yesterday, yesterday);
-  }
-
-  setCurrentMonthDateRange(): void {
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    this.setDateRangeFromDates(firstDay, today);
+    this.setDate(yesterday);
   }
 
   openNativeDatePicker(input: HTMLInputElement): void {
@@ -76,7 +65,7 @@ export class FingerprintSheetComponent implements OnInit {
     input.click();
   }
 
-  onNativeDatePicked(event: Event, field: 'from' | 'to'): void {
+  onNativeDatePicked(event: Event): void {
     const input = event.target as HTMLInputElement;
     const apiDate = input.value;
 
@@ -84,30 +73,18 @@ export class FingerprintSheetComponent implements OnInit {
       return;
     }
 
-    if (field === 'from') {
-      this.fromDate = apiDate;
-      this.fromDateDisplay = this.apiDateToDisplay(apiDate);
-    } else {
-      this.toDate = apiDate;
-      this.toDateDisplay = this.apiDateToDisplay(apiDate);
-    }
+    this.date = apiDate;
+    this.dateDisplay = this.apiDateToDisplay(apiDate);
   }
 
-  onDateInputChange(value: string, field: 'from' | 'to'): void {
+  onDateInputChange(value: string): void {
     const apiDate = value ? this.displayDateToApi(value) : '';
-
-    if (field === 'from') {
-      this.fromDate = apiDate;
-      this.fromDateDisplay = this.apiDateToDisplay(apiDate);
-      return;
-    }
-
-    this.toDate = apiDate;
-    this.toDateDisplay = this.apiDateToDisplay(apiDate);
+    this.date = apiDate;
+    this.dateDisplay = this.apiDateToDisplay(apiDate);
   }
 
-  formatDateDisplayWhileTyping(field: 'from' | 'to'): void {
-    let value = field === 'from' ? this.fromDateDisplay : this.toDateDisplay;
+  formatDateDisplayWhileTyping(): void {
+    let value = this.dateDisplay;
 
     value = String(value || '').replace(/\D/g, '').slice(0, 8);
 
@@ -117,13 +94,8 @@ export class FingerprintSheetComponent implements OnInit {
       value = `${value.slice(0, 2)}/${value.slice(2)}`;
     }
 
-    if (field === 'from') {
-      this.fromDateDisplay = value;
-      this.onDateInputChange(value, 'from');
-    } else {
-      this.toDateDisplay = value;
-      this.onDateInputChange(value, 'to');
-    }
+    this.dateDisplay = value;
+    this.onDateInputChange(value);
   }
 
   private formatDateToApi(date: Date): string {
@@ -205,7 +177,6 @@ export class FingerprintSheetComponent implements OnInit {
       return '-';
     }
 
-    // إذا القيمة أرقام فقط (كود الموظف)، نعرضها كما هي بدون تحويل لتاريخ
     if (/^\d+$/.test(raw)) {
       return raw;
     }
@@ -230,12 +201,8 @@ export class FingerprintSheetComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    const from = this.fromDate;
-    const to = this.toDate;
-
     this.fingerprintSheetService.getRawPunches(
-      from,
-      to,
+      this.date,
       this.employeeCode.trim(),
       this.employeeName.trim(),
       this.pageNumber,
@@ -257,9 +224,21 @@ export class FingerprintSheetComponent implements OnInit {
     });
   }
 
+  clearFilters(): void {
+    this.date = '';
+    this.dateDisplay = '';
+    this.employeeCode = '';
+    this.employeeName = '';
+    this.pageNumber = 1;
+    this.errorMessage = '';
+    this.records = [];
+    this.totalCount = 0;
+    this.totalPages = 0;
+  }
+
   async exportToExcel(): Promise<void> {
-    if (!this.fromDate || !this.toDate) {
-      this.errorMessage = 'يرجى اختيار نطاق التاريخ أولاً';
+    if (!this.date) {
+      this.errorMessage = 'يرجى اختيار التاريخ أولاً';
       return;
     }
 
@@ -268,8 +247,7 @@ export class FingerprintSheetComponent implements OnInit {
 
     try {
       const allRecords = await this.fingerprintSheetService.fetchAllRawPunches(
-        this.fromDate,
-        this.toDate,
+        this.date,
         this.employeeCode.trim(),
         this.employeeName.trim(),
         1000

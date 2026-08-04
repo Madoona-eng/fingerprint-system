@@ -100,16 +100,14 @@ export class AttendanceService {
   }
 
   getRawPunches(
-    fromDate: string,
-    toDate: string,
+    date: string,
     employeeCode: string = '',
     employeeName: string = '',
     pageNumber: number = 1,
     pageSize: number = 10,
   ): Observable<any> {
     let params = new HttpParams()
-      .set('fromDate', fromDate)
-      .set('toDate', toDate)
+      .set('date', date)
       .set('pageNumber', String(pageNumber))
       .set('pageSize', String(pageSize));
 

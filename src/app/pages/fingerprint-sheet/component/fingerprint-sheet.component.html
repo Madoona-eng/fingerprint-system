@@ -3,8 +3,9 @@
     <div>
       <a routerLink="/dashboard" class="back-link">العودة للوحة التحكم</a>
     </div>
+
     <div class="filter-field date-field">
-      <label>من تاريخ</label>
+      <label>التاريخ</label>
 
       <div class="date-input-wrap">
         <input
@@ -13,50 +14,21 @@
           inputmode="numeric"
           maxlength="10"
           placeholder="31/03/2026"
-          [(ngModel)]="fromDateDisplay"
+          [(ngModel)]="dateDisplay"
           [ngModelOptions]="{ standalone: true }"
-          (input)="formatDateDisplayWhileTyping('from')"
+          (input)="formatDateDisplayWhileTyping()"
         />
 
-        <button type="button" class="calendar-btn" (click)="openNativeDatePicker(fromDatePicker)">
+        <button type="button" class="calendar-btn" (click)="openNativeDatePicker(datePicker)">
           📅
         </button>
 
         <input
-          #fromDatePicker
+          #datePicker
           class="native-date-picker"
           type="date"
-          [value]="fromDate"
-          (change)="onNativeDatePicked($event, 'from')"
-        />
-      </div>
-    </div>
-
-    <div class="filter-field date-field">
-      <label>إلى تاريخ</label>
-
-      <div class="date-input-wrap">
-        <input
-          class="date-text-input"
-          type="text"
-          inputmode="numeric"
-          maxlength="10"
-          placeholder="31/03/2026"
-          [(ngModel)]="toDateDisplay"
-          [ngModelOptions]="{ standalone: true }"
-          (input)="formatDateDisplayWhileTyping('to')"
-        />
-
-        <button type="button" class="calendar-btn" (click)="openNativeDatePicker(toDatePicker)">
-          📅
-        </button>
-
-        <input
-          #toDatePicker
-          class="native-date-picker"
-          type="date"
-          [value]="toDate"
-          (change)="onNativeDatePicked($event, 'to')"
+          [value]="date"
+          (change)="onNativeDatePicked($event)"
         />
       </div>
     </div>
@@ -80,26 +52,23 @@
         [ngModelOptions]="{ standalone: true }"
       />
     </div>
+  </div>
 
-    <div class="filter-field action-field">
-      <label class="sr-only">إجراءات</label>
+  <div class="filter-field action-field">
+    <button type="button" class="apply-search-btn" (click)="loadData()">تطبيق الفلتره</button>
 
-      <button type="button" class="apply-search-btn" (click)="loadData()">تطبيق الفلتره</button>
+    <button type="button" class="clear-search-btn" (click)="clearFilters()">
+      مسح الفلتر
+    </button>
 
-      <!-- <button type="button" class="clear-search-btn" (click)="clearDateRangeFilter()">
-        مسح الفلتر
-      </button> -->
-
-      <button type="button" class="export-excel-btn" (click)="exportToExcel()" [disabled]="isExporting">
-        {{ isExporting ? 'جاري التصدير...' : 'تصدير Excel' }}
-      </button>
-    </div>
+    <button type="button" class="export-excel-btn" (click)="exportToExcel()" [disabled]="isExporting">
+      {{ isExporting ? 'جاري التصدير...' : 'تصدير Excel' }}
+    </button>
   </div>
 
   <div class="date-shortcuts">
-    <button type="button" (click)="setTodayDateRange()">اليوم</button>
-    <button type="button" (click)="setYesterdayDateRange()">أمس</button>
-    <button type="button" (click)="setCurrentMonthDateRange()">من أول الشهر</button>
+    <button type="button" (click)="setTodayDate()">اليوم</button>
+    <button type="button" (click)="setYesterdayDate()">أمس</button>
   </div>
 
   <div *ngIf="isLoading" class="status-box">جاري تحميل شيت البصمة...</div>
