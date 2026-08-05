@@ -44,8 +44,11 @@
         [(ngModel)]="departmentId"
         [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="departmentChange.emit($event)"
+        [disabled]="selectedLocationId === null"
       >
-        <option [ngValue]="null">كل الأقسام</option>
+        <option [ngValue]="null">
+          {{ selectedLocationId === null ? 'اختر الموقع أولاًلعرض الأقسام' : 'كل الأقسام' }}
+        </option>
         <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">
           {{ dep.name }}
         </option>

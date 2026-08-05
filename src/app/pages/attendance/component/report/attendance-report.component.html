@@ -90,7 +90,11 @@
         [ngModel]="dateRangeDepartmentId"
         [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="dateRangeDepartmentIdChange.emit($event)"
+        [disabled]="isSuperAdmin && selectedLocationId === null"
       >
+        <option [ngValue]="null">
+          {{ isSuperAdmin && selectedLocationId === null ? 'اختر الموقع أولاً لعرض الأقسام' : 'كل الأقسام' }}
+        </option>
         <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
       </select>
     </div>
@@ -155,6 +159,7 @@
           <th>الحالة</th>
           <th>معاد الحضور</th>
           <th>معاد الانصراف</th>
+          <th>فترة السماح</th>
           <th>وقت الحضور</th>
           <th>وقت الانصراف</th>
           <th>التأخير (د)</th>
@@ -176,6 +181,7 @@
           </td>
           <td>{{ row.scheduleIn || row.shift?.scheduleIn || '-' }}</td>
           <td>{{ row.scheduleOut || row.shift?.scheduleOut || '-' }}</td>
+          <td>{{ row.graceTime || row.allowance || row.grace || '-' }}</td>
           <td>{{ row.actualIn || '-' }}</td>
           <td>{{ row.actualOut || '-' }}</td>
           <td>{{ row.lateMinutes ?? '-' }}</td>

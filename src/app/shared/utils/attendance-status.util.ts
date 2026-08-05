@@ -3,7 +3,7 @@ const STATUS_TRANSLATIONS: Record<string, string> = {
   late: 'متأخر',
   absent: 'غائب',
   earlydeparture: 'ترك عمل',
-  personalleave: 'إجازة شخصية',
+  personalleave: 'اذن شخصي',
   mission: 'مأمورية',
   drivingroute: 'خط سير',
   onleave: 'أجازه',

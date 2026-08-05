@@ -171,7 +171,10 @@ export class AttendanceComponent implements OnInit {
   // onLocationChange
   // ============================================================
   onLocationChange(locationId: number | null): void {
-    if (locationId) {
+    this.selectedLocationId = locationId;
+    this.dateRangeDepartmentId = null;
+
+    if (locationId !== null) {
       this.employeesService.getDepartments(locationId).subscribe({
         next: (response: any) => {
           this.departmentOptions = response?.data || [];
@@ -182,7 +185,7 @@ export class AttendanceComponent implements OnInit {
         },
       });
     } else {
-      this.initializeDepartments();
+      this.departmentOptions = [];
     }
   }
 
