@@ -6,8 +6,8 @@ import { AttendanceService } from '../../attendance/service/attendance.service';
 export class ReportsService {
   constructor(private attendanceService: AttendanceService) {}
 
-  getAttendanceSummary(date: string): Observable<any> {
-    return this.attendanceService.getAttendanceSummary(date);
+  getAttendanceSummary(date: string, locationId: number | null = null): Observable<any> {
+    return this.attendanceService.getAttendanceSummary(date, locationId);
   }
 
   getAttendanceByDateRange(

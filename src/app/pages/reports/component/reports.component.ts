@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { utils, writeFile, WorkBook } from 'xlsx';
 import { ReportsService } from '../service/reports.service';
+import { EmployeesService } from '../../employees/service/employees.service';
 import { AuthService } from '../../../auth/Services/auth.service';
 
 import { AnalyticsStats } from '../model/models';
@@ -41,13 +42,18 @@ export class ReportsComponent implements OnInit {
   };
 
   departmentRows: any[] = [];
-constructor(
-  private reportsService: ReportsService,
-  private authService: AuthService
-) {}
+  selectedLocationId: number | null = null;
+  locationOptions: Array<{ id: number; name: string }> = [];
+
+  constructor(
+    private reportsService: ReportsService,
+    private employeesService: EmployeesService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.setTodayDate();
+    this.loadLocations();
     this.loadAnalytics();
   }
 
@@ -122,7 +128,23 @@ constructor(
     this.analyticsDateDisplay = this.apiDateToDisplay(pickedValue);
   }
 
- loadAnalytics(): void {
+  onLocationChange(locationId: number | null): void {
+    this.selectedLocationId = locationId;
+  }
+
+  private loadLocations(): void {
+    this.employeesService.getLocations().subscribe({
+      next: (response: any) => {
+        this.locationOptions = response?.data || response || [];
+      },
+      error: (err) => {
+        console.error('Failed to load location options:', err);
+        this.locationOptions = [];
+      }
+    });
+  }
+
+  loadAnalytics(): void {
   if (!this.authService.isLoggedIn()) {
     this.errorMessage = 'لم يتم تسجيل الدخول بعد. يرجى تسجيل الدخول مرة أخرى ثم أعد المحاولة.';
     this.rawData = null;
@@ -147,9 +169,6 @@ constructor(
   this.successMessage = '';
 
   forkJoin({
-    // send API date in DD-MM-YYYY for Attendance/summary
-    summary: this.reportsService.getAttendanceSummary(this.analyticsDate),
-
     attendance: this.reportsService.getAttendanceByDateRange(
       this.analyticsDate,
       this.analyticsDate,
@@ -157,7 +176,9 @@ constructor(
       '',
       1,
       10000
-    )
+    ),
+    // send API date in DD-MM-YYYY for Attendance/summary
+    summary: this.reportsService.getAttendanceSummary(this.analyticsDate, this.selectedLocationId)
   }).subscribe({
     next: (result: any) => {
       console.log('Employees Summary Response:', result.summary);

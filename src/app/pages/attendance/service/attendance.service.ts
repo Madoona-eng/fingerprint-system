@@ -95,8 +95,12 @@ export class AttendanceService {
     });
   }
 
-  getAttendanceSummary(date: string): Observable<any> {
+  getAttendanceSummary(date: string, locationId: number | null = null): Observable<any> {
     let params = new HttpParams().set('date', date);
+
+    if (locationId !== null && locationId !== undefined && locationId > 0) {
+      params = params.set('locationId', String(locationId));
+    }
 
     return this.http.get<any>(`${this.apiUrl}/summary`, {
       headers: this.getHeaders(),

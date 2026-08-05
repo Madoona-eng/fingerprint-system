@@ -39,14 +39,19 @@
         </div>
       </div>
 
-      <button type="button" class="ghost-btn" (click)="setTodayDate()">
-        اليوم
-      </button>
-
-      <button type="button" class="ghost-btn" (click)="setYesterdayDate()">
-        أمس
-      </button>
-
+      <div class="filter-field">
+        <label>الموقع</label>
+        <select
+          [(ngModel)]="selectedLocationId"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onLocationChange($event)"
+        >
+          <option [ngValue]="null">كل المواقع</option>
+          <option *ngFor="let loc of locationOptions" [ngValue]="loc.id">
+            {{ loc.name }}
+          </option>
+        </select>
+      </div>
       <button
         type="button"
         class="main-btn"
@@ -62,11 +67,11 @@
 
       <button
         type="button"
-        class="ghost-btn"
+        class="export-btn"
         [disabled]="isLoading"
         (click)="exportSummaryToExcel()"
       >
-        تصدير ملخص اليوم
+        📥 تصدير إكسيل
       </button>
     </div>
   </section>

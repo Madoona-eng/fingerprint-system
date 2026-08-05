@@ -272,7 +272,6 @@ getDepartmentNameById(id: number | null | undefined): string {
     'الاستثمار',
     
     'الإسكان',
-    'الإعلام',
     'الإعلانات',
     'الأمن',
     'الأمومة والطفولة',
@@ -327,7 +326,6 @@ getDepartmentNameById(id: number | null | undefined): string {
     'الاسكان': 'الإسكان',
     'الإسكان': 'الإسكان',
 'الاعلام': 'الإعلام',
-    'الإعلام': 'الإعلام',
     'الاعلانات': 'الإعلانات',
     'الإعلانات': 'الإعلانات',
 
@@ -513,13 +511,18 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
 
         if (normalizedRole === 'superadmin' || normalizedRole === 'technicaladmin') {
           this.selectedLocationId = userLocationId ?? null;
+          if (this.selectedLocationId !== null) {
+            this.loadDepartmentOptions(this.selectedLocationId);
+          } else {
+            this.departmentOptions = [];
+          }
         } else if (locations.length > 0) {
           this.selectedLocationId = userLocationId ?? locations[0].id;
+          this.loadDepartmentOptions(this.selectedLocationId);
         } else {
           this.selectedLocationId = null;
+          this.departmentOptions = [];
         }
-
-        this.loadDepartmentOptions(this.selectedLocationId);
       },
       error: () => {
         console.warn('Failed to load locations.');
