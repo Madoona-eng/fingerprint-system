@@ -937,6 +937,17 @@
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
+.late-minutes-badge.exceeds-threshold {
+  background-color: #fdecea;
+  color: #f31d06 !important;
+  font-weight: bold;
+  border: 2px solid #ff1900;
+}
+
+.threshold-icon {
+  margin-right: 4px;
+}
+
 .notes-modal-backdrop {
   position: fixed;
   inset: 0;

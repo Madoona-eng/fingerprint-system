@@ -123,7 +123,12 @@
           <td>{{ row.departmentName || '-' }}</td>
           <td>{{ row.from || '-' }}</td>
           <td>{{ row.to || '-' }}</td>
-          <td><span class="late-minutes-badge">{{ row.totalLateMinutes || 0 }} دقيقة</span></td>
+          <td>
+            <span class="late-minutes-badge" [class.exceeds-threshold]="row.exceedsThreshold">
+              {{ row.totalLateMinutes || 0 }} دقيقة
+              <span *ngIf="row.exceedsThreshold" class="threshold-icon" title="تجاوز الحد 300 دقيقه">⚠️</span>
+            </span>
+          </td>
         </tr>
       </tbody>
     </table>

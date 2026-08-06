@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { EmployeeLateSummaryRow } from '../../model/models';
 
 @Component({
   selector: 'app-attendance-late-summary',
@@ -17,7 +18,7 @@ export class AttendanceLateSummaryComponent {
   @Input() lateSummaryEmployeeSearch = '';
   @Input() lateSummaryLocationId: number | null = null;
   @Input() lateSummaryDepartmentId: number | null = null;
-  @Input() lateSummaryRows: any[] = [];
+  @Input() lateSummaryRows: EmployeeLateSummaryRow[] = [];
   @Input() lateSummaryData: any = null;
   @Input() lateSummaryPageNumber = 1;
   @Input() lateSummaryTotalPages = 0;

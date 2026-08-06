@@ -32,3 +32,14 @@ export interface FingerprintPunch {
   date: string;
   time: string;
 }
+
+export interface EmployeeLateSummaryRow {
+  employeeId: number;
+  employeeCode: string;
+  employeeName: string;
+  departmentName: string;
+  from: string;
+  to: string;
+  totalLateMinutes: number;
+  exceedsThreshold: boolean;
+}
