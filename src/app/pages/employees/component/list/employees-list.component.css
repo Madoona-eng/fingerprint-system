@@ -144,14 +144,6 @@
     background: var(--main-color-hover);
 }
 
-.clear-search-btn {
-    background:var(--main-color) ;
-}
-
-.clear-search-btn:hover {
-    background: var(--main-color-hover);
-}
-
 .system-settings-toggle-btn {
     height: 38px;
     border: none;
@@ -666,4 +658,37 @@ tbody tr:hover {
   font-size: 12px;
   line-height: 1.4;
   margin: 0;
+}
+
+/* تعريف ألوان الزر في الـ root أو مكون الأب */
+:root {
+  --filter-clear-color: #dc2626;      /* اللون الأساسي (أحمر مثلاً) */
+  --filter-clear-hover: #b91c1c;      /* لون التمرير (Hover) */
+}
+
+/* تنسيق الزر الرئيسي */
+.clear-search-btn {
+  background-color: var(--filter-clear-color);
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+/* تأثير التمرير (Hover) */
+.clear-search-btn:hover {
+  background-color: var(--filter-clear-hover);
+}
+
+/* تأثير الضغط (Active) */
+.clear-search-btn:active {
+  transform: scale(0.98);
 }

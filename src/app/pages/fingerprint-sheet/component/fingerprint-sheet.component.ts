@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { utils, writeFile } from 'xlsx';
 import { FingerprintSheetService } from '../service/fingerprint-sheet.service';
 import { RawPunchRecord } from '../model/models';
+import { exportToExcel } from '../../../shared/utils/excel.util';
 
 @Component({
   selector: 'app-fingerprint-sheet',
@@ -196,10 +196,6 @@ export class FingerprintSheetComponent implements OnInit {
     return raw;
   }
 
-  // ============================================================
-  // بيفصل قيمة البحث الواحدة لـ كود أو اسم حسب المحتوى:
-  // أرقام فقط -> كود الموظف، غير كده -> اسم الموظف
-  // ============================================================
   private splitSearchTerm(): { employeeCode: string; employeeName: string } {
     const term = this.searchTerm.trim();
 
@@ -298,12 +294,8 @@ export class FingerprintSheetComponent implements OnInit {
       'وقت الاستيراد': this.formatDisplayValue(item['importedAt'] || '-')
     }));
 
-    const worksheet = utils.json_to_sheet(rows);
-    const workbook = utils.book_new();
-    utils.book_append_sheet(workbook, worksheet, 'شيت البصمة');
-
-    const fileName = `شيت البصمة.xlsx`;
-    writeFile(workbook, fileName);
+    // استدعاء دالة التصدير الموحدة التي تضمن RTL وتنسيق العناوين وحساب العرض
+    exportToExcel(rows, 'شيت البصمة', 'شيت البصمة');
 
     this.isExporting = false;
   }

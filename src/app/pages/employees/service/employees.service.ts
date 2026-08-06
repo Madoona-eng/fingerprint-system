@@ -39,7 +39,8 @@ export class EmployeesService {
     search: string = '',
     pageNumber: number = 1,
     pageSize: number = 10,
-    departmentId: number | null = null
+    departmentId: number | null = null,
+    locationId: number | null = null
   ): Observable<ApiResponse<EmployeesPagedData>> {
     let params = new HttpParams()
       .set('search', search || '')
@@ -48,6 +49,10 @@ export class EmployeesService {
 
     if (departmentId !== null && departmentId !== undefined && departmentId > 0) {
       params = params.set('departmentId', String(departmentId));
+    }
+
+    if (locationId !== null && locationId !== undefined && locationId > 0) {
+      params = params.set('locationId', String(locationId));
     }
 
     return this.http.get<ApiResponse<EmployeesPagedData>>(this.apiUrl, {

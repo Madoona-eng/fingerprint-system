@@ -106,6 +106,7 @@
         [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="dateRangeStatusChange.emit($event)"
       >
+        <option [ngValue]="''">كل الحالات</option>
         <option *ngFor="let status of statusOptions" [ngValue]="status.value">{{ status.label }}</option>
       </select>
     </div>
@@ -136,7 +137,7 @@
     </button>
 
     <button type="button" class="export-excel-btn" (click)="exportAttendanceReportToExcel.emit()">
-      تصدير لملف اكسل
+      📥 تصدير إكسيل
     </button>
   </div>
 

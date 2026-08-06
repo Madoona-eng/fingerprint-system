@@ -8,7 +8,8 @@ import {
   Validators
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { read, utils, writeFile, WorkBook, WorkSheet } from 'xlsx';
+import { read, utils, WorkBook, WorkSheet } from 'xlsx';
+import { exportToExcel } from '../../../shared/utils/excel.util';
 import { firstValueFrom } from 'rxjs';
 
 import { EmployeesService } from '../service/employees.service';
@@ -675,7 +676,6 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
     this.departmentId = null;
     this.pageNumber = 1;
     this.loadDepartmentOptions(locationId);
-    this.loadEmployees();
   }
 
   loadEmployees(): void {
@@ -690,7 +690,8 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
         this.searchTerm,
         this.pageNumber,
         this.pageSize,
-        this.departmentId
+        this.departmentId,
+        this.selectedLocationId
       )
       .subscribe({
         next: (response: any) => {
@@ -1372,16 +1373,12 @@ openEmployeeDetails(employee: Employee): void {
       الكود: emp.employeeCode || '-',
       الاسم: emp.name || '-',
       القسم: emp.departmentName || emp.departmentId || '-',
-      'رقم اللوكيشن': emp.locationId != null ? emp.locationId : '-',
       'وقت الحضور': this.timeForInput(emp.scheduleIn),
       'وقت الانصراف': this.timeForInput(emp.scheduleOut),
       'وقت السماح': this.timeForInput(emp.graceTime)
     }));
 
-    const worksheet = utils.json_to_sheet(exportData);
-    const workbook: WorkBook = utils.book_new();
-    utils.book_append_sheet(workbook, worksheet, 'موظفين');
-    writeFile(workbook, `employees-${this.analyticsDateDisplay || 'list'}.xlsx`);
+    exportToExcel(exportData, `employees-${this.analyticsDateDisplay || 'list'}`, 'موظفين');
   }
 
   exportEmployeeDetailsToExcel(): void {
@@ -1404,10 +1401,7 @@ openEmployeeDetails(employee: Employee): void {
       الملاحظات: this.getNoteLabel(row.notes)
     }));
 
-    const worksheet = utils.json_to_sheet(exportData);
-    const workbook: WorkBook = utils.book_new();
-    utils.book_append_sheet(workbook, worksheet, 'تفاصيل الموظف');
-    writeFile(workbook, `employee-details-${this.selectedEmployeeForDetails?.employeeCode || 'details'}.xlsx`);
+    exportToExcel(exportData, `employee-details-${this.selectedEmployeeForDetails?.employeeCode || 'details'}`, 'تفاصيل الموظف');
   }
   
   showDeleteConfirmation(emp: Employee): void {
@@ -1855,7 +1849,7 @@ openEmployeeDetails(employee: Employee): void {
 
         const employeesMap = new Map<string, Employee>();
 
-        workbook.SheetNames.forEach((sheetName) => {
+workbook.SheetNames.forEach((sheetName: string) => {
           const worksheet: WorkSheet = workbook.Sheets[sheetName];
 
           const rows = utils.sheet_to_json(worksheet, {

@@ -5,13 +5,14 @@
   </div>
 
   <div class="employees-search-box">
+    <!-- البحث بالاسم أو الكود -->
     <div class="search-input-wrapper">
       <input
         type="text"
         placeholder="قم بالبحث بالكود أو الاسم"
-        [(ngModel)]="searchTerm"
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearchTermChange($event)"
         [ngModelOptions]="{ standalone: true }"
-        (input)="searchTermChange.emit(searchTerm)"
         (keyup.enter)="onSearch()"
       />
       <button type="button" class="search-icon-btn" (click)="onSearch()" aria-label="بحث">
@@ -22,13 +23,13 @@
       </button>
     </div>
 
-    <!-- قائمة اختر الموقع -->
+    <!-- قائمة اختر الموقع (SuperAdmin فقط) -->
     <div class="custom-select-wrapper" *ngIf="isSuperAdmin">
       <select
         class="filter-select"
-        [(ngModel)]="selectedLocationId"
+        [ngModel]="selectedLocationId"
+        (ngModelChange)="onLocationChange($event)"
         [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="locationChange.emit($event)"
       >
         <option [ngValue]="null">اختر الموقع</option>
         <option *ngFor="let loc of locationOptions" [ngValue]="loc.id">
@@ -41,13 +42,13 @@
     <div class="custom-select-wrapper">
       <select
         class="filter-select"
-        [(ngModel)]="departmentId"
+        [ngModel]="departmentId"
+        (ngModelChange)="onDepartmentChange($event)"
         [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="departmentChange.emit($event)"
-        [disabled]="selectedLocationId === null"
+        [disabled]="isSuperAdmin && selectedLocationId === null"
       >
         <option [ngValue]="null">
-          {{ selectedLocationId === null ? 'اختر الموقع أولاًلعرض الأقسام' : 'كل الأقسام' }}
+          {{ (isSuperAdmin && selectedLocationId === null) ? 'اختر الموقع أولاً لعرض الأقسام' : 'كل الأقسام' }}
         </option>
         <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">
           {{ dep.name }}
@@ -55,105 +56,96 @@
       </select>
     </div>
 
+    <!-- كارت حالة النظام (تأكيد التفعيل / الإيقاف) -->
+    
 
-<div class="system-status-card">
+    <!-- أزرار الإجراءات -->
+    <button type="button" class="apply-filter-btn" (click)="applyFilter.emit()">تطبيق الفلترة</button>
+ <button type="button" class="clear-search-btn" (click)="onClear()" style="background-color: var(--filter-clear-color, #dc2626); color: #ffffff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; height: 46px;">مسح الفلترة</button>
+    <div class="system-status-card" *ngIf="isSuperAdmin">
+      <div
+        class="status-card"
+        [class.online]="systemSettingsData"
+        [class.offline]="!systemSettingsData"
+      >
+        <div class="status-icon">
+          <mat-icon>{{ systemSettingsData ? 'language' : 'domain' }}</mat-icon>
+        </div>
 
-  <!-- Status Card -->
-  <div
-    class="status-card"
-    [class.online]="systemSettingsData"
-    [class.offline]="!systemSettingsData"
-  >
+        <div class="status-content">
+          <h4>
+            وضع العمل :
+            <span
+              [class.online-text]="systemSettingsData"
+              [class.offline-text]="!systemSettingsData"
+            >
+              {{ systemSettingsData ? 'أونلاين (عن بُعد)' : 'مكتبي (حضوري)' }}
+            </span>
+          </h4>
 
-    <!-- Left Icon -->
-    <div class="status-icon">
-      <mat-icon>{{ systemSettingsData ? 'language' : 'domain' }}</mat-icon>
+          <p *ngIf="systemSettingsData">
+            تسجيل الحضور مُتاح إلكترونياً والعمل عن بُعد مفعّل لجميع الموظفين اليوم.
+          </p>
+
+          <p *ngIf="!systemSettingsData">
+            تسجيل الحضور الإلكتروني متوقف، والعمل يتطلب التواجد المكتبي.
+          </p>
+        </div>
+
+        <div class="status-actions">
+          <button
+            mat-icon-button
+            type="button"
+            (click)="openConfirm()"
+            [disabled]="systemSettingsUpdating || systemSettingsData === null"
+          >
+            <mat-icon>expand_more</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- نافذة التأكيد البوب أب -->
+      <div class="confirm-popup" *ngIf="confirmToggle">
+        <div class="popup-icon">
+          <mat-icon>{{ systemSettingsData ? 'portable_wifi_off' : 'wifi' }}</mat-icon>
+        </div>
+
+        <h3>
+          {{ systemSettingsData ? 'إيقاف وضع العمل عن بُعد' : 'تفعيل وضع العمل عن بُعد' }}
+        </h3>
+
+        <p>
+          {{ systemSettingsData
+            ? 'سيتم إيقاف تسجيل الحضور الإلكتروني وتحويل النظام للعمل المكتبي.'
+            : 'سيتم السماح للموظفين بتسجيل الحضور والعمل عن بُعد اليوم.' }}
+        </p>
+
+        <div class="popup-actions">
+          <button
+            type="button"
+            class="confirm-btn"
+            (click)="confirmToggleYes()"
+          >
+            {{ systemSettingsData ? 'تأكيد الإيقاف' : 'تأكيد التفعيل' }}
+          </button>
+
+          <button
+            type="button"
+            class="cancel-btn"
+            (click)="confirmToggleNo()"
+          >
+            إلغاء
+          </button>
+        </div>
+      </div>
     </div>
-
-    <!-- Center Content -->
-    <div class="status-content">
-      <h4>
-        وضع العمل :
-        <span [class.online-text]="systemSettingsData"
-              [class.offline-text]="!systemSettingsData">
-          {{ systemSettingsData ? 'أونلاين (عن بُعد)' : 'مكتبي (حضوري)' }}
-        </span>
-      </h4>
-
-      <p *ngIf="systemSettingsData">
-        تسجيل الحضور مُتاح إلكترونياً والعمل عن بُعد مفعّل لجميع الموظفين اليوم.
-      </p>
-
-      <p *ngIf="!systemSettingsData">
-        تسجيل الحضور الإلكتروني متوقف، والعمل يتطلب التواجد المكتبي.
-      </p>
-    </div>
-
-    <!-- Right Actions -->
-    <div class="status-actions">
-
-      <!-- <mat-slide-toggle
-        color="primary"
-        [checked]="systemSettingsData"
-        [disabled]="systemSettingsUpdating"
-        (change)="openConfirm()">
-      </mat-slide-toggle> -->
-
-      <button
-        mat-icon-button
-        (click)="openConfirm()">
-        <mat-icon>expand_more</mat-icon>
-      </button>
-
-    </div>
-
+    <button type="button" class="export-excel-btn" (click)="export.emit()">📥 تصدير إكسيل</button>
   </div>
 
-  <!-- Confirmation Popup -->
-  <div class="confirm-popup" *ngIf="confirmToggle">
-
-    <div class="popup-icon">
-      <mat-icon>{{ systemSettingsData ? 'portable_wifi_off' : 'wifi' }}</mat-icon> 
-    </div>
-
-    <h3>
-      {{ systemSettingsData
-        ? 'إيقاف وضع العمل عن بُعد'
-        : 'تفعيل وضع العمل عن بُعد' }}
-    </h3>
-
-    <p>
-      {{ systemSettingsData
-        ? 'سيتم إيقاف تسجيل الحضور الإلكتروني وتحويل النظام للعمل المكتبي.'
-        : 'سيتم السماح للموظفين بتسجيل الحضور والعمل عن بُعد اليوم.' }}
-    </p>
-
-    <div class="popup-actions">
-
-      <button
-        class="confirm-btn"
-        (click)="confirmToggleYes()">
-        {{ systemSettingsData ? 'تأكيد الإيقاف' : 'تأكيد التفعيل' }}
-      </button>
-
-      <button
-        class="cancel-btn"
-        (click)="confirmToggleNo()">
-        إلغاء
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-    <button type="button" class="clear-search-btn" (click)="onClear()">مسح الفلتره</button>
-    <button type="button" class="export-excel-btn" (click)="export.emit()">تصدير لملف اكسل</button>
-  </div>
-
+  <!-- حالة التحميل -->
   <div *ngIf="isLoading" class="loading-box">جاري تحميل بيانات الموظفين...</div>
 
+  <!-- الجدول -->
   <div *ngIf="!isLoading" class="table-wrapper">
     <table>
       <thead>
@@ -179,7 +171,7 @@
             <div class="employee-actions">
               <button type="button" class="table-action-btn edit-action" (click)="editEmployee.emit(emp)">تعديل</button>
               <button type="button" class="table-action-btn details-action" (click)="openDetails.emit(emp)">تفاصيل</button>
-              <button type="button" class="table-action-btn note-action" (click)="openNote.emit(emp)">اضافه ملاحظه</button>
+              <button type="button" class="table-action-btn note-action" (click)="openNote.emit(emp)">إضافة ملاحظة</button>
               <button type="button" class="table-action-btn delete-action" (click)="deleteEmployee.emit(emp)">حذف</button>
             </div>
           </td>
@@ -192,6 +184,7 @@
     </table>
   </div>
 
+  <!-- التنقل بين الصفحات -->
   <div class="pagination-box" *ngIf="totalPages > 1">
     <button type="button" (click)="previousPage.emit()" [disabled]="pageNumber === 1">السابق</button>
     <span>صفحة {{ pageNumber }} من {{ totalPages }}</span>

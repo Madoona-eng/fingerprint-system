@@ -2,9 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { WorkBook, WorkSheet, read, utils, writeFile } from 'xlsx';
+import { read, utils, WorkBook, WorkSheet } from 'xlsx';
 import { AuthService } from '../../../auth/Services/auth.service';
 import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
+import { exportToExcel } from '../../../shared/utils/excel.util';
 import { EmployeesService } from '../../employees/service/employees.service';
 import { AttendancePayload, FingerprintPunch } from '../model/models';
 import { AttendanceService } from '../service/attendance.service';
@@ -811,16 +812,13 @@ export class AttendanceComponent implements OnInit {
           التاريخ: row.date || row.attendanceDate || '-',
           الحضور: row.actualIn || '-',
           الانصراف: row.actualOut || '-',
-          الحالة: row.status || '-',
+          الحالة: this.getAttendanceStatusLabel(row.status),
           'التأخير (د)': row.lateMinutes ?? '-',
           'العمل (س)': row.workedMinutes ?? '-',
           الملاحظات: row.notes || '-',
         }));
 
-        const worksheet = utils.json_to_sheet(exportData);
-        const workbook: WorkBook = utils.book_new();
-        utils.book_append_sheet(workbook, worksheet, 'تقرير الحضور');
-        writeFile(workbook, `attendance-report-${this.dateRangeFrom || 'report'}.xlsx`);
+        exportToExcel(exportData, `attendance-report-${this.dateRangeFrom || 'report'}`, 'تقرير الحضور');
       } catch (err) {
         console.error('Failed exporting attendance report', err);
         this.dateRangeErrorMessage = 'فشل تصدير ملف Excel';
@@ -894,10 +892,7 @@ export class AttendanceComponent implements OnInit {
           'إجمالي دقائق التأخير': row.totalLateMinutes || 0,
         }));
 
-        const worksheet = utils.json_to_sheet(exportData);
-        const workbook: WorkBook = utils.book_new();
-        utils.book_append_sheet(workbook, worksheet, 'ملخص التأخير');
-        writeFile(workbook, `late-summary-${this.lateSummaryFrom || 'summary'}.xlsx`);
+        exportToExcel(exportData, `late-summary-${this.lateSummaryFrom || 'summary'}`, 'ملخص التأخير');
       } catch (err) {
         console.error('Failed exporting late summary', err);
         this.lateSummaryErrorMessage = 'فشل تصدير ملف Excel';
@@ -1103,7 +1098,7 @@ export class AttendanceComponent implements OnInit {
       const attendanceMap = new Map<string, AttendancePayload>();
       const fingerprintPunches: FingerprintPunch[] = [];
 
-      workbook.SheetNames.forEach((sheetName) => {
+      workbook.SheetNames.forEach((sheetName: string) => {
         const worksheet: WorkSheet = workbook.Sheets[sheetName];
 
         const rows = utils.sheet_to_json(worksheet, {

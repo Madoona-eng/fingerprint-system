@@ -54,20 +54,20 @@
       </div>
       <button
         type="button"
-        class="main-btn"
+        class="apply-search-btn"
         [disabled]="isLoading"
         (click)="loadAnalytics()"
       >
-        {{ isLoading ? 'جاري التحميل...' : 'عرض التحليل' }}
+        {{ isLoading ? 'جاري التحميل...' : 'تطبيق الفلتره' }}
       </button>
 
-      <button type="button" class="ghost-btn" (click)="clearAnalytics()">
+      <button type="button" class="clear-search-btn" (click)="clearAnalytics()">
         مسح
       </button>
 
       <button
         type="button"
-        class="export-btn"
+        class="export-excel-btn"
         [disabled]="isLoading"
         (click)="exportSummaryToExcel()"
       >

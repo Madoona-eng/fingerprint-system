@@ -9,7 +9,13 @@ import { MatButtonModule } from '@angular/material/button';
 @Component({
   selector: 'app-employees-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, MatSlideToggleModule, MatButtonModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    MatIconModule, 
+    MatSlideToggleModule, 
+    MatButtonModule
+  ],
   templateUrl: './employees-list.component.html',
   styleUrls: ['./employees-list.component.css']
 })
@@ -27,16 +33,16 @@ export class EmployeesListComponent {
   @Input() totalPages = 0;
   @Input() systemSettingsData: boolean | null = null;
   @Input() systemSettingsUpdating = false;
-  confirmToggle = false;
-
-  // 1. إضافة إدخال الصلاحية هنا
   @Input() isSuperAdmin = false; 
 
+  confirmToggle = false;
+
   @Output() searchTermChange = new EventEmitter<string>();
-  @Output() departmentChange = new EventEmitter<number | null>();
-  @Output() locationChange = new EventEmitter<number | null>();
+  @Output() departmentIdChange = new EventEmitter<number | null>();
+  @Output() selectedLocationIdChange = new EventEmitter<number | null>();
   @Output() search = new EventEmitter<void>();
   @Output() clear = new EventEmitter<void>();
+  @Output() applyFilter = new EventEmitter<void>();
   @Output() export = new EventEmitter<void>();
   @Output() toggleSystemSettings = new EventEmitter<void>();
   @Output() editEmployee = new EventEmitter<Employee>();
@@ -50,12 +56,25 @@ export class EmployeesListComponent {
     this.search.emit();
   }
 
+  onSearchTermChange(value: string): void {
+    this.searchTerm = value;
+    this.searchTermChange.emit(value);
+  }
+
+  onDepartmentChange(value: number | null): void {
+    this.departmentId = value;
+    this.departmentIdChange.emit(value);
+  }
+
+  onLocationChange(value: number | null): void {
+    this.selectedLocationId = value;
+    this.selectedLocationIdChange.emit(value);
+  }
+
   onToggleClick(): void {
     if (this.systemSettingsUpdating || this.systemSettingsData === null) {
       return;
     }
-
-    // Immediate toggle on pill click
     this.toggleSystemSettings.emit();
   }
 
@@ -63,7 +82,6 @@ export class EmployeesListComponent {
     if (this.systemSettingsUpdating || this.systemSettingsData === null) {
       return;
     }
-
     this.confirmToggle = true;
   }
 
@@ -80,7 +98,7 @@ export class EmployeesListComponent {
     this.clear.emit();
   }
 
-  trackByEmployee(index: number, employee: Employee): string {
-    return employee.employeeCode || String(index);
+  trackByEmployee(index: number, employee: Employee): string | number {
+    return employee.id || employee.employeeCode || index;
   }
 }
