@@ -157,26 +157,25 @@
   font-size: 14px;
 }
 
-.success-message {
-  padding: 12px 14px;
-  border-radius: 14px;
-  color: #b8fff1;
-  background: rgba(45, 212, 191, 0.14);
-  border: 1px solid rgba(45, 212, 191, 0.28);
+.success-message,
+.error-message {
+  padding: 14px 18px;
+  border-radius: 12px;
   font-size: 14px;
-  line-height: 1.7;
+  font-weight: 700;
+}
+
+.success-message {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
 }
 
 .error-message {
-  padding: 12px 14px;
-  border-radius: 14px;
-  color: #ffd2d2;
-  background: rgba(255, 68, 68, 0.14);
-  border: 1px solid rgba(255, 100, 100, 0.28);
-  font-size: 14px;
-  line-height: 1.7;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
 }
-
 .unknown-card {
   padding: 16px;
   border-radius: 18px;

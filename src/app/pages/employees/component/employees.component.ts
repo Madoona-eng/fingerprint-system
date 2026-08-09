@@ -5,36 +5,34 @@ import {
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
-  Validators
+  Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { read, utils, WorkBook, WorkSheet } from 'xlsx';
-import { exportToExcel } from '../../../shared/utils/excel.util';
 import { firstValueFrom } from 'rxjs';
+import { WorkBook, WorkSheet, read, utils } from 'xlsx';
+import { exportToExcel } from '../../../shared/utils/excel.util';
 
-import { EmployeesService } from '../service/employees.service';
 import { AuthService } from '../../../auth/Services/auth.service';
+import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
 import {
+  BulkImportEmployeePayload,
   Employee,
   EmployeePayload,
   UpdateEmployeePayload,
-  BulkImportEmployeePayload
 } from '../model/models';
-import { EmployeesListComponent } from './list/employees-list.component';
-import { EmployeeFormComponent } from './form/employee-form.component';
-import { EmployeeEditComponent } from './edit/employee-edit.component';
-import { EmployeeDetailsComponent } from './details/employee-details.component';
+import { EmployeesService } from '../service/employees.service';
 import { EmployeeDeleteModalComponent } from './delete/employee-delete-modal.component';
+import { EmployeeDetailsComponent } from './details/employee-details.component';
+import { EmployeeEditComponent } from './edit/employee-edit.component';
+import { EmployeeFormComponent } from './form/employee-form.component';
+import { EmployeesListComponent } from './list/employees-list.component';
 import { EmployeeNoteModalComponent } from './note/employee-note-modal.component';
-import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
-
 
 import { MatIconModule } from '@angular/material/icon'; // 1. استيراد الموديول هنا
 interface UnknownDepartment {
   key: string;
   name: string;
   id: number | null;
-  
 }
 type EmployeePage = 'upload' | 'list' | 'form' | 'edit' | 'details' | 'analytics';
 
@@ -52,10 +50,9 @@ type EmployeePage = 'upload' | 'list' | 'form' | 'edit' | 'details' | 'analytics
     EmployeeDeleteModalComponent,
     EmployeeNoteModalComponent,
     MatIconModule,
-
   ],
   templateUrl: './employees.component.html',
-  styleUrls: ['./employees.component.css']
+  styleUrls: ['./employees.component.css'],
 })
 export class EmployeesComponent implements OnInit {
   employees: Employee[] = [];
@@ -90,8 +87,8 @@ export class EmployeesComponent implements OnInit {
   selectedEmployeeForDetails: Employee | null = null;
   employeeDetailsRows: any[] = [];
 
-employeeDetailsRaw: any = null;
-employeeDetailsInfo: any = null;
+  employeeDetailsRaw: any = null;
+  employeeDetailsInfo: any = null;
 
   isLoadingEmployeeDetails = false;
 
@@ -110,7 +107,7 @@ employeeDetailsInfo: any = null;
     { value: 'absent', label: 'غائب' },
     { value: 'late', label: 'متأخر' },
     { value: 'earlydeparture', label: 'انصراف مبكر' },
-    { value: 'ontime', label: 'في الميعاد' }
+    { value: 'ontime', label: 'في الميعاد' },
   ];
   private employeeDetailsAllRows: any[] = [];
 
@@ -121,32 +118,32 @@ employeeDetailsInfo: any = null;
   excelErrorMessage = '';
   excelSuccessMessage = '';
   analyticsDate = '';
-analyticsDateDisplay = '';
+  analyticsDateDisplay = '';
 
-isLoadingEmployeesAnalytics = false;
-employeesAnalyticsErrorMessage = '';
-employeesAnalyticsSuccessMessage = '';
+  isLoadingEmployeesAnalytics = false;
+  employeesAnalyticsErrorMessage = '';
+  employeesAnalyticsSuccessMessage = '';
 
-systemSettingsLoaded = false;
-systemSettingsUpdating = false;
-systemSettingsData: boolean | null = null;
-systemSettingsMessage = '';
-systemSettingsErrorMessage = '';
+  systemSettingsLoaded = false;
+  systemSettingsUpdating = false;
+  systemSettingsData: boolean | null = null;
+  systemSettingsMessage = '';
+  systemSettingsErrorMessage = '';
 
-employeesAnalyticsRaw: any = null;
-employeesAnalyticsRows: any[] = [];
+  employeesAnalyticsRaw: any = null;
+  employeesAnalyticsRows: any[] = [];
 
-analyticsStats = {
-  total: 0,
-  present: 0,
-  absent: 0,
-  late: 0,
-  earlyDeparture: 0,
-  needsReview: 0,
-  reviewed: 0
-};
+  analyticsStats = {
+    total: 0,
+    present: 0,
+    absent: 0,
+    late: 0,
+    earlyDeparture: 0,
+    needsReview: 0,
+    reviewed: 0,
+  };
 
-analyticsDepartmentRows: any[] = [];
+  analyticsDepartmentRows: any[] = [];
   excelRowErrors: string[] = [];
 
   bulkImportResults: any[] = [];
@@ -159,61 +156,61 @@ analyticsDepartmentRows: any[] = [];
     'ادارة الازمات': 1,
     'الاتصال السياسي': 2,
     'الموارد البشرية': 1,
-    'تكنولوجيا المعلومات': 2
+    'تكنولوجيا المعلومات': 2,
   };
   locationOptions: { id: number; name: string }[] = [];
   selectedLocationId: number | null = null;
 
   departmentOptions: { id: number; name: string }[] = [
-  { id: 1, name: 'إدارة الأزمات' },
-  { id: 2, name: 'الاتصال السياسي' },
-  { id: 3, name: 'الإدارة العامة للتنمية' },
-  { id: 4, name: 'الاستثمار' },
-  { id: 5, name: 'الإسكان' },
-  { id: 6, name: 'الاعلام' },
-  { id: 7, name: 'الإعلانات' },
-  { id: 8, name: 'الأمن' },
-  { id: 9, name: 'الأمومة والطفولة' },
-  { id: 10, name: 'التخطيط العمراني' },
-  { id: 11, name: 'التخطيط والمتابعة' },
-  { id: 12, name: 'التنمية الحضارية' },
-  { id: 13, name: 'التوريدات' },
-  { id: 14, name: 'الحجز الإداري' },
-  { id: 15, name: 'الحسابات' },
-  { id: 16, name: 'الحوكمة' },
-  { id: 17, name: 'الخزينة' },
-  { id: 18, name: 'الرصد الإعلامي' },
-  { id: 19, name: 'السياحة' },
-  { id: 20, name: 'الشؤون الإدارية' },
-  { id: 21, name: 'الشؤون القانونية' },
-  { id: 22, name: 'الشؤون المالية' },
-  { id: 23, name: 'الصندوق التأميني' },
-  { id: 24, name: 'العلاقات الدولية' },
-  { id: 25, name: 'العلاقات العامة' },
-  { id: 26, name: 'المتغيرات المكانية' },
-  { id: 27, name: 'المخازن' },
-  { id: 28, name: 'المركبات' },
-  { id: 29, name: 'المكتب الفني' },
-  { id: 30, name: 'الموارد البشرية' },
-  { id: 31, name: 'الهيئة الموازنية' },
-  { id: 32, name: 'ترشيد الطاقة' },
-  { id: 33, name: 'حساب الخدمات' },
-  { id: 34, name: 'خدمة المواطنين' },
-  { id: 35, name: 'شؤون المجالس' },
-  { id: 36, name: 'شؤون المقر' },
-  { id: 37, name: 'صندوق الخدمات' },
-  { id: 38, name: 'فض المنازعات' },
-  { id: 39, name: 'مكتب الإعلام' },
-  { id: 40, name: 'مكتب المستشار القضائي' },
-  { id: 41, name: 'مكتب مفوض الدولة' }
-];
-getDepartmentNameById(id: number | null | undefined): string {
-  if (!id) {
-    return '';
-  }
+    { id: 1, name: 'إدارة الأزمات' },
+    { id: 2, name: 'الاتصال السياسي' },
+    { id: 3, name: 'الإدارة العامة للتنمية' },
+    { id: 4, name: 'الاستثمار' },
+    { id: 5, name: 'الإسكان' },
+    { id: 6, name: 'الاعلام' },
+    { id: 7, name: 'الإعلانات' },
+    { id: 8, name: 'الأمن' },
+    { id: 9, name: 'الأمومة والطفولة' },
+    { id: 10, name: 'التخطيط العمراني' },
+    { id: 11, name: 'التخطيط والمتابعة' },
+    { id: 12, name: 'التنمية الحضارية' },
+    { id: 13, name: 'التوريدات' },
+    { id: 14, name: 'الحجز الإداري' },
+    { id: 15, name: 'الحسابات' },
+    { id: 16, name: 'الحوكمة' },
+    { id: 17, name: 'الخزينة' },
+    { id: 18, name: 'الرصد الإعلامي' },
+    { id: 19, name: 'السياحة' },
+    { id: 20, name: 'الشؤون الإدارية' },
+    { id: 21, name: 'الشؤون القانونية' },
+    { id: 22, name: 'الشؤون المالية' },
+    { id: 23, name: 'الصندوق التأميني' },
+    { id: 24, name: 'العلاقات الدولية' },
+    { id: 25, name: 'العلاقات العامة' },
+    { id: 26, name: 'المتغيرات المكانية' },
+    { id: 27, name: 'المخازن' },
+    { id: 28, name: 'المركبات' },
+    { id: 29, name: 'المكتب الفني' },
+    { id: 30, name: 'الموارد البشرية' },
+    { id: 31, name: 'الهيئة الموازنية' },
+    { id: 32, name: 'ترشيد الطاقة' },
+    { id: 33, name: 'حساب الخدمات' },
+    { id: 34, name: 'خدمة المواطنين' },
+    { id: 35, name: 'شؤون المجالس' },
+    { id: 36, name: 'شؤون المقر' },
+    { id: 37, name: 'صندوق الخدمات' },
+    { id: 38, name: 'فض المنازعات' },
+    { id: 39, name: 'مكتب الإعلام' },
+    { id: 40, name: 'مكتب المستشار القضائي' },
+    { id: 41, name: 'مكتب مفوض الدولة' },
+  ];
+  getDepartmentNameById(id: number | null | undefined): string {
+    if (!id) {
+      return '';
+    }
 
-  return this.departmentOptions.find((dep) => dep.id === Number(id))?.name || '';
-}
+    return this.departmentOptions.find((dep) => dep.id === Number(id))?.name || '';
+  }
 
   formatWorkedHours(value: unknown): string {
     if (value === null || value === undefined || value === '') {
@@ -271,7 +268,7 @@ getDepartmentNameById(id: number | null | undefined): string {
     'الاتصال السياسي',
     'الإدارة العامة للتنمية',
     'الاستثمار',
-    
+
     'الإسكان',
     'الإعلانات',
     'الأمن',
@@ -307,7 +304,7 @@ getDepartmentNameById(id: number | null | undefined): string {
     'فض المنازعات',
     'مكتب الإعلام',
     'مكتب المستشار القضائي',
-    'مكتب مفوض الدولة'
+    'مكتب مفوض الدولة',
   ];
 
   departmentAliases: Record<string, string> = {
@@ -322,16 +319,16 @@ getDepartmentNameById(id: number | null | undefined): string {
     'الادارة العامة للتنمية': 'الإدارة العامة للتنمية',
     'الإدارة العامة للتنمية': 'الإدارة العامة للتنمية',
 
-    'الاستثمار': 'الاستثمار',
+    الاستثمار: 'الاستثمار',
 
-    'الاسكان': 'الإسكان',
-    'الإسكان': 'الإسكان',
-'الاعلام': 'الإعلام',
-    'الاعلانات': 'الإعلانات',
-    'الإعلانات': 'الإعلانات',
+    الاسكان: 'الإسكان',
+    الإسكان: 'الإسكان',
+    الاعلام: 'الإعلام',
+    الاعلانات: 'الإعلانات',
+    الإعلانات: 'الإعلانات',
 
-    'الامن': 'الأمن',
-    'الأمن': 'الأمن',
+    الامن: 'الأمن',
+    الأمن: 'الأمن',
 
     'الامومة و الطفولة': 'الأمومة والطفولة',
     'الأمومة و الطفولة': 'الأمومة والطفولة',
@@ -346,22 +343,22 @@ getDepartmentNameById(id: number | null | undefined): string {
 
     'التنمية الحضارية': 'التنمية الحضارية',
 
-    'التوريدات': 'التوريدات',
-    'توريدات': 'التوريدات',
+    التوريدات: 'التوريدات',
+    توريدات: 'التوريدات',
 
     'الحجز الاداري': 'الحجز الإداري',
     'الحجز الإداري': 'الحجز الإداري',
 
-    'الحسابات': 'الحسابات',
-    'حسابات': 'الحسابات',
+    الحسابات: 'الحسابات',
+    حسابات: 'الحسابات',
 
-    'الحوكمة': 'الحوكمة',
-    'الخزينة': 'الخزينة',
+    الحوكمة: 'الحوكمة',
+    الخزينة: 'الخزينة',
 
     'الرصد الاعلامى': 'الرصد الإعلامي',
     'الرصد الإعلامي': 'الرصد الإعلامي',
 
-    'السياحة': 'السياحة',
+    السياحة: 'السياحة',
 
     'الشون الادارية': 'الشؤون الإدارية',
     'الشون الإدارية': 'الشؤون الإدارية',
@@ -395,8 +392,8 @@ getDepartmentNameById(id: number | null | undefined): string {
     'العلاقات العامة': 'العلاقات العامة',
 
     'المتغيرات المكانية': 'المتغيرات المكانية',
-    'المخازن': 'المخازن',
-    'المركبات': 'المركبات',
+    المخازن: 'المخازن',
+    المركبات: 'المركبات',
 
     'المكتب الفنى': 'المكتب الفني',
     'المكتب الفني': 'المكتب الفني',
@@ -424,7 +421,7 @@ getDepartmentNameById(id: number | null | undefined): string {
     'مكتب المستشار القضائى': 'مكتب المستشار القضائي',
     'مكتب المستشار القضائي': 'مكتب المستشار القضائي',
 
-    'مكتب مفوض الدولة': 'مكتب مفوض الدولة'
+    'مكتب مفوض الدولة': 'مكتب مفوض الدولة',
   };
 
   constructor(
@@ -432,13 +429,15 @@ getDepartmentNameById(id: number | null | undefined): string {
     private employeesService: EmployeesService,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.initForm();
     const role = this.authService.getUserRole();
-    this.isSuperAdmin = ['superadmin', 'technicaladmin'].includes((role || '').trim().toLowerCase());
+    this.isSuperAdmin = ['superadmin', 'technicaladmin'].includes(
+      (role || '').trim().toLowerCase(),
+    );
     this.loadLocations();
     this.loadDepartmentOptions();
     this.route.queryParams.subscribe((params) => {
@@ -456,36 +455,36 @@ getDepartmentNameById(id: number | null | undefined): string {
     this.loadSystemSettings();
   }
 
-openEmployeePage(page: EmployeePage, id: number | null = null): void {
-  if (page === 'form') {
-    this.selectedEmployeeId = null;
-    this.employeeForm.reset();
-    this.employeeForm.controls['employeeCode'].enable();
-    this.errorMessage = '';
-    this.successMessage = '';
+  openEmployeePage(page: EmployeePage, id: number | null = null): void {
+    if (page === 'form') {
+      this.selectedEmployeeId = null;
+      this.employeeForm.reset();
+      this.employeeForm.controls['employeeCode'].enable();
+      this.errorMessage = '';
+      this.successMessage = '';
+    }
+
+    if (page === 'edit' && id) {
+      this.selectedEmployeeId = id;
+    }
+
+    this.activeEmployeePage = page;
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page,
+        ...(id ? { id } : {}),
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+
+    if (page === 'analytics' && !this.analyticsDateDisplay) {
+      this.setTodayAnalyticsDate();
+      this.loadEmployeesAnalytics();
+    }
   }
-
-  if (page === 'edit' && id) {
-    this.selectedEmployeeId = id;
-  }
-
-  this.activeEmployeePage = page;
-
-  this.router.navigate([], {
-    relativeTo: this.route,
-    queryParams: {
-      page,
-      ...(id ? { id } : {})
-    },
-    queryParamsHandling: 'merge',
-    replaceUrl: true
-  });
-
-  if (page === 'analytics' && !this.analyticsDateDisplay) {
-    this.setTodayAnalyticsDate();
-    this.loadEmployeesAnalytics();
-  }
-}
   initForm(): void {
     this.employeeForm = this.fb.group({
       employeeCode: ['', Validators.required],
@@ -496,7 +495,7 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
       scheduleOut: ['', Validators.required],
       graceTime: ['', Validators.required],
       isChristian: [false],
-      note: ['']
+      note: [''],
     });
   }
 
@@ -527,7 +526,7 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
       },
       error: () => {
         console.warn('Failed to load locations.');
-      }
+      },
     });
   }
 
@@ -546,7 +545,7 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
         this.systemSettingsLoaded = true;
         this.systemSettingsErrorMessage =
           err?.error?.message || err?.message || 'فشل تحميل إعدادات النظام';
-      }
+      },
     });
   }
 
@@ -563,14 +562,14 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
       next: (response) => {
         this.systemSettingsUpdating = false;
         this.systemSettingsData = response?.data ?? newState;
-        this.systemSettingsMessage = response?.message ||
-          (this.systemSettingsData ? 'تم تشغيل السياسة' : 'تم إيقاف السياسة');
+        this.systemSettingsMessage =
+          response?.message || (this.systemSettingsData ? 'تم تشغيل السياسة' : 'تم إيقاف السياسة');
       },
       error: (err) => {
         this.systemSettingsUpdating = false;
         this.systemSettingsErrorMessage =
           err?.error?.message || err?.message || 'فشل تحديث إعدادات النظام';
-      }
+      },
     });
   }
 
@@ -578,7 +577,7 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
     const resolvedLocationId =
       locationId && locationId > 0
         ? locationId
-        : this.authService.getUserLocationId() ?? this.getSuperAdminLocationId();
+        : (this.authService.getUserLocationId() ?? this.getSuperAdminLocationId());
 
     this.employeesService.getDepartments(resolvedLocationId).subscribe({
       next: (response: any) => {
@@ -599,13 +598,13 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
             },
             error: () => {
               console.warn('Failed to load departments without location filter.');
-            }
+            },
           });
         }
       },
       error: () => {
         console.warn('Failed to load departments for the selected location.');
-      }
+      },
     });
   }
 
@@ -633,7 +632,9 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
       .map((item: any) => {
         const rawId = item?.id ?? item?.locationId ?? item?.value;
         const id = Number(rawId);
-        const name = String(item?.name ?? item?.locationName ?? item?.title ?? item?.label ?? '').trim();
+        const name = String(
+          item?.name ?? item?.locationName ?? item?.title ?? item?.label ?? '',
+        ).trim();
 
         if (!Number.isFinite(id) || id <= 0 || !name) {
           return null;
@@ -641,7 +642,10 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
 
         return { id, name };
       })
-      .filter((item: { id: number; name: string } | null): item is { id: number; name: string } => item !== null);
+      .filter(
+        (item: { id: number; name: string } | null): item is { id: number; name: string } =>
+          item !== null,
+      );
   }
 
   private mapDepartmentOptions(response: any): Array<{ id: number; name: string }> {
@@ -659,7 +663,12 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
         const rawId = item?.id ?? item?.departmentId ?? item?.department?.id ?? item?.value;
         const id = Number(rawId);
         const name = String(
-          item?.name ?? item?.departmentName ?? item?.title ?? item?.label ?? item?.department?.name ?? ''
+          item?.name ??
+            item?.departmentName ??
+            item?.title ??
+            item?.label ??
+            item?.department?.name ??
+            '',
         ).trim();
 
         if (!Number.isFinite(id) || id <= 0 || !name) {
@@ -668,7 +677,10 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
 
         return { id, name };
       })
-      .filter((item: { id: number; name: string } | null): item is { id: number; name: string } => item !== null);
+      .filter(
+        (item: { id: number; name: string } | null): item is { id: number; name: string } =>
+          item !== null,
+      );
   }
 
   onLocationChanged(locationId: number | null): void {
@@ -679,9 +691,8 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
   }
 
   loadEmployees(): void {
-      
-      console.log('DepartmentId =', this.departmentId);
-  console.log('Search =', this.searchTerm);
+    console.log('DepartmentId =', this.departmentId);
+    console.log('Search =', this.searchTerm);
     this.isLoading = true;
     this.errorMessage = '';
 
@@ -691,7 +702,7 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
         this.pageNumber,
         this.pageSize,
         this.departmentId,
-        this.selectedLocationId
+        this.selectedLocationId,
       )
       .subscribe({
         next: (response: any) => {
@@ -718,7 +729,7 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
           console.log('Employees resolved from response, length:', this.employees.length);
           console.log(
             'Employees Array (first 10):',
-            JSON.stringify(this.employees.slice(0, 10), null, 2)
+            JSON.stringify(this.employees.slice(0, 10), null, 2),
           );
 
           this.isLoading = false;
@@ -728,356 +739,344 @@ openEmployeePage(page: EmployeePage, id: number | null = null): void {
           this.employees = [];
           this.errorMessage = 'حدث خطأ أثناء تحميل بيانات الموظفين';
           this.isLoading = false;
-        }
+        },
       });
   }
   setTodayAnalyticsDate(): void {
-  const today = new Date();
+    const today = new Date();
 
-  this.analyticsDate = this.analyticsDateToApi(today);
-  this.analyticsDateDisplay = this.analyticsDateToDisplay(today);
-}
-
-formatAnalyticsDateWhileTyping(): void {
-  let value = String(this.analyticsDateDisplay || '')
-    .replace(/\D/g, '')
-    .slice(0, 8);
-
-  if (value.length > 4) {
-    value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
-  } else if (value.length > 2) {
-    value = `${value.slice(0, 2)}/${value.slice(2)}`;
+    this.analyticsDate = this.analyticsDateToApi(today);
+    this.analyticsDateDisplay = this.analyticsDateToDisplay(today);
   }
 
-  this.analyticsDateDisplay = value;
-}
+  formatAnalyticsDateWhileTyping(): void {
+    let value = String(this.analyticsDateDisplay || '')
+      .replace(/\D/g, '')
+      .slice(0, 8);
 
-loadEmployeesAnalytics(): void {
-  const apiDate = this.analyticsDisplayDateToApi(this.analyticsDateDisplay);
+    if (value.length > 4) {
+      value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
+    } else if (value.length > 2) {
+      value = `${value.slice(0, 2)}/${value.slice(2)}`;
+    }
 
-  if (!apiDate) {
-    this.employeesAnalyticsErrorMessage =
-      'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
-    return;
+    this.analyticsDateDisplay = value;
   }
 
-  this.analyticsDate = apiDate;
-  this.analyticsDateDisplay = this.analyticsApiDateToDisplay(apiDate);
+  loadEmployeesAnalytics(): void {
+    const apiDate = this.analyticsDisplayDateToApi(this.analyticsDateDisplay);
 
-  this.isLoadingEmployeesAnalytics = true;
-  this.employeesAnalyticsErrorMessage = '';
-  this.employeesAnalyticsSuccessMessage = '';
-
-  this.employeesService.getEmployeesSummary(this.analyticsDate).subscribe({
-    next: (response: any) => {
-      console.log('Employees Summary Response:', response);
-
-      const data = response?.data || response;
-
-      this.employeesAnalyticsRaw = data;
-      this.employeesAnalyticsRows = this.extractAnalyticsRows(data);
-      this.analyticsStats = this.buildAnalyticsStats(data, this.employeesAnalyticsRows);
-      this.analyticsDepartmentRows = this.buildDepartmentAnalyticsRows(
-        this.employeesAnalyticsRows
-      );
-
-      this.employeesAnalyticsSuccessMessage = 'تم تحميل تحليل البيانات بنجاح';
-      this.isLoadingEmployeesAnalytics = false;
-    },
-    error: (err) => {
-      console.log('Employees analytics error:', err);
-
-      this.employeesAnalyticsRaw = null;
-      this.employeesAnalyticsRows = [];
-      this.analyticsDepartmentRows = [];
-
-      this.analyticsStats = {
-        total: 0,
-        present: 0,
-        absent: 0,
-        late: 0,
-        earlyDeparture: 0,
-        needsReview: 0,
-        reviewed: 0
-      };
-
-      this.employeesAnalyticsErrorMessage =
-        err?.error?.message ||
-        err?.message ||
-        'حدث خطأ أثناء تحميل تحليل البيانات';
-
-      this.isLoadingEmployeesAnalytics = false;
+    if (!apiDate) {
+      this.employeesAnalyticsErrorMessage = 'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
+      return;
     }
-  });
-}
 
-clearEmployeesAnalytics(): void {
-  this.analyticsDate = '';
-  this.analyticsDateDisplay = '';
-  this.employeesAnalyticsRaw = null;
-  this.employeesAnalyticsRows = [];
-  this.analyticsDepartmentRows = [];
-  this.employeesAnalyticsErrorMessage = '';
-  this.employeesAnalyticsSuccessMessage = '';
+    this.analyticsDate = apiDate;
+    this.analyticsDateDisplay = this.analyticsApiDateToDisplay(apiDate);
 
-  this.analyticsStats = {
-    total: 0,
-    present: 0,
-    absent: 0,
-    late: 0,
-    earlyDeparture: 0,
-    needsReview: 0,
-    reviewed: 0
-  };
-}
+    this.isLoadingEmployeesAnalytics = true;
+    this.employeesAnalyticsErrorMessage = '';
+    this.employeesAnalyticsSuccessMessage = '';
 
-get attendancePercent(): number {
-  if (!this.analyticsStats.total) return 0;
-  return Math.round((this.analyticsStats.present / this.analyticsStats.total) * 100);
-}
+    this.employeesService.getEmployeesSummary(this.analyticsDate).subscribe({
+      next: (response: any) => {
+        console.log('Employees Summary Response:', response);
 
-get latePercent(): number {
-  if (!this.analyticsStats.total) return 0;
-  return Math.round((this.analyticsStats.late / this.analyticsStats.total) * 100);
-}
+        const data = response?.data || response;
 
-get absencePercent(): number {
-  if (!this.analyticsStats.total) return 0;
-  return Math.round((this.analyticsStats.absent / this.analyticsStats.total) * 100);
-}
+        this.employeesAnalyticsRaw = data;
+        this.employeesAnalyticsRows = this.extractAnalyticsRows(data);
+        this.analyticsStats = this.buildAnalyticsStats(data, this.employeesAnalyticsRows);
+        this.analyticsDepartmentRows = this.buildDepartmentAnalyticsRows(
+          this.employeesAnalyticsRows,
+        );
 
-private extractAnalyticsRows(data: any): any[] {
-  if (Array.isArray(data?.items)) return data.items;
-  if (Array.isArray(data?.employees)) return data.employees;
-  if (Array.isArray(data?.details)) return data.details;
-  if (Array.isArray(data?.rows)) return data.rows;
-  if (Array.isArray(data)) return data;
+        this.employeesAnalyticsSuccessMessage = 'تم تحميل تحليل البيانات بنجاح';
+        this.isLoadingEmployeesAnalytics = false;
+      },
+      error: (err) => {
+        console.log('Employees analytics error:', err);
 
-  return [];
-}
+        this.employeesAnalyticsRaw = null;
+        this.employeesAnalyticsRows = [];
+        this.analyticsDepartmentRows = [];
 
-private buildAnalyticsStats(data: any, rows: any[]): any {
-  const apiStats = {
-    total: this.pickNumber(data, ['total', 'totalEmployees', 'employeeCount', 'count']),
-    present: this.pickNumber(data, ['present', 'presentCount', 'totalPresent']),
-    absent: this.pickNumber(data, ['absent', 'absentCount', 'totalAbsent']),
-    late: this.pickNumber(data, ['late', 'lateCount', 'totalLate']),
-    earlyDeparture: this.pickNumber(data, [
-      'earlyDeparture',
-      'earlyDepartureCount',
-      'totalEarlyDeparture'
-    ]),
-    needsReview: this.pickNumber(data, ['needsReview', 'needsReviewCount']),
-    reviewed: this.pickNumber(data, ['reviewed', 'reviewedCount'])
-  };
+        this.analyticsStats = {
+          total: 0,
+          present: 0,
+          absent: 0,
+          late: 0,
+          earlyDeparture: 0,
+          needsReview: 0,
+          reviewed: 0,
+        };
 
-  const hasApiStats = Object.values(apiStats).some((value) => value > 0);
+        this.employeesAnalyticsErrorMessage =
+          err?.error?.message || err?.message || 'حدث خطأ أثناء تحميل تحليل البيانات';
 
-  if (hasApiStats) {
-    return apiStats;
+        this.isLoadingEmployeesAnalytics = false;
+      },
+    });
   }
 
-  const stats = {
-    total: rows.length,
-    present: 0,
-    absent: 0,
-    late: 0,
-    earlyDeparture: 0,
-    needsReview: 0,
-    reviewed: 0
-  };
+  clearEmployeesAnalytics(): void {
+    this.analyticsDate = '';
+    this.analyticsDateDisplay = '';
+    this.employeesAnalyticsRaw = null;
+    this.employeesAnalyticsRows = [];
+    this.analyticsDepartmentRows = [];
+    this.employeesAnalyticsErrorMessage = '';
+    this.employeesAnalyticsSuccessMessage = '';
 
-  rows.forEach((row: any) => {
-    const status = String(
-      row.status || row.attendanceStatus || row.todayStatus || ''
-    ).trim();
-
-    const notes = String(row.notes || '').toLowerCase();
-
-    if (status === 'Present') {
-      stats.present++;
-    } else if (status === 'Absent') {
-      stats.absent++;
-    } else if (status === 'Late') {
-      stats.late++;
-    } else if (status === 'EarlyDeparture') {
-      stats.earlyDeparture++;
-    }
-
-    if (
-      notes.includes('needs review') ||
-      notes.includes('يحتاج مراجعة') ||
-      status === 'Incomplete' ||
-      status === 'MissingIn' ||
-      status === 'MissingOut'
-    ) {
-      stats.needsReview++;
-    }
-
-    if (
-      row.isReviewed === true ||
-      row.reviewed === true ||
-      notes.includes('reviewed') ||
-      notes.includes('تمت المراجعة')
-    ) {
-      stats.reviewed++;
-    }
-  });
-
-  return stats;
-}
-
-private buildDepartmentAnalyticsRows(rows: any[]): any[] {
-  const map = new Map<string, any>();
-
-  rows.forEach((row: any) => {
-    const departmentName =
-      row.departmentName ||
-      row.employee?.departmentName ||
-      row.department?.name ||
-      'غير محدد';
-
-    const status = String(
-      row.status || row.attendanceStatus || row.todayStatus || ''
-    ).trim();
-
-    if (!map.has(departmentName)) {
-      map.set(departmentName, {
-        departmentName,
-        total: 0,
-        present: 0,
-        absent: 0,
-        late: 0,
-        earlyDeparture: 0
-      });
-    }
-
-    const item = map.get(departmentName);
-
-    item.total++;
-
-    if (status === 'Present') {
-      item.present++;
-    } else if (status === 'Absent') {
-      item.absent++;
-    } else if (status === 'Late') {
-      item.late++;
-    } else if (status === 'EarlyDeparture') {
-      item.earlyDeparture++;
-    }
-  });
-
-  return Array.from(map.values());
-}
-
-private pickNumber(data: any, keys: string[]): number {
-  for (const key of keys) {
-    const value = Number(data?.[key]);
-
-    if (Number.isFinite(value)) {
-      return value;
-    }
+    this.analyticsStats = {
+      total: 0,
+      present: 0,
+      absent: 0,
+      late: 0,
+      earlyDeparture: 0,
+      needsReview: 0,
+      reviewed: 0,
+    };
   }
 
-  return 0;
-}
+  get attendancePercent(): number {
+    if (!this.analyticsStats.total) return 0;
+    return Math.round((this.analyticsStats.present / this.analyticsStats.total) * 100);
+  }
 
-private analyticsDateToApi(date: Date): string {
-  const year = date.getFullYear();
-  const month = this.analyticsPad(date.getMonth() + 1);
-  const day = this.analyticsPad(date.getDate());
+  get latePercent(): number {
+    if (!this.analyticsStats.total) return 0;
+    return Math.round((this.analyticsStats.late / this.analyticsStats.total) * 100);
+  }
 
-  return `${year}-${month}-${day}`;
-}
+  get absencePercent(): number {
+    if (!this.analyticsStats.total) return 0;
+    return Math.round((this.analyticsStats.absent / this.analyticsStats.total) * 100);
+  }
 
-private analyticsDateToDisplay(date: Date): string {
-  const day = this.analyticsPad(date.getDate());
-  const month = this.analyticsPad(date.getMonth() + 1);
-  const year = date.getFullYear();
+  private extractAnalyticsRows(data: any): any[] {
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.employees)) return data.employees;
+    if (Array.isArray(data?.details)) return data.details;
+    if (Array.isArray(data?.rows)) return data.rows;
+    if (Array.isArray(data)) return data;
 
-  return `${day}/${month}/${year}`;
-}
+    return [];
+  }
 
-private analyticsDisplayDateToApi(displayDate: string): string {
-  const text = String(displayDate || '').trim();
+  private buildAnalyticsStats(data: any, rows: any[]): any {
+    const apiStats = {
+      total: this.pickNumber(data, ['total', 'totalEmployees', 'employeeCount', 'count']),
+      present: this.pickNumber(data, ['present', 'presentCount', 'totalPresent']),
+      absent: this.pickNumber(data, ['absent', 'absentCount', 'totalAbsent']),
+      late: this.pickNumber(data, ['late', 'lateCount', 'totalLate']),
+      earlyDeparture: this.pickNumber(data, [
+        'earlyDeparture',
+        'earlyDepartureCount',
+        'totalEarlyDeparture',
+      ]),
+      needsReview: this.pickNumber(data, ['needsReview', 'needsReviewCount']),
+      reviewed: this.pickNumber(data, ['reviewed', 'reviewedCount']),
+    };
 
-  if (!text) return '';
+    const hasApiStats = Object.values(apiStats).some((value) => value > 0);
 
-  const normalizedText = text.replace(/[.\-]/g, '/');
+    if (hasApiStats) {
+      return apiStats;
+    }
 
-  let day = 0;
-  let month = 0;
-  let year = 0;
+    const stats = {
+      total: rows.length,
+      present: 0,
+      absent: 0,
+      late: 0,
+      earlyDeparture: 0,
+      needsReview: 0,
+      reviewed: 0,
+    };
 
-  const slashMatch = normalizedText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    rows.forEach((row: any) => {
+      const status = String(row.status || row.attendanceStatus || row.todayStatus || '').trim();
 
-  if (slashMatch) {
-    day = Number(slashMatch[1]);
-    month = Number(slashMatch[2]);
-    year = Number(slashMatch[3]);
-  } else {
-    const digits = normalizedText.replace(/\D/g, '');
+      const notes = String(row.notes || '').toLowerCase();
 
-    if (!/^\d{8}$/.test(digits)) {
+      if (status === 'Present') {
+        stats.present++;
+      } else if (status === 'Absent') {
+        stats.absent++;
+      } else if (status === 'Late') {
+        stats.late++;
+      } else if (status === 'EarlyDeparture') {
+        stats.earlyDeparture++;
+      }
+
+      if (
+        notes.includes('needs review') ||
+        notes.includes('يحتاج مراجعة') ||
+        status === 'Incomplete' ||
+        status === 'MissingIn' ||
+        status === 'MissingOut'
+      ) {
+        stats.needsReview++;
+      }
+
+      if (
+        row.isReviewed === true ||
+        row.reviewed === true ||
+        notes.includes('reviewed') ||
+        notes.includes('تمت المراجعة')
+      ) {
+        stats.reviewed++;
+      }
+    });
+
+    return stats;
+  }
+
+  private buildDepartmentAnalyticsRows(rows: any[]): any[] {
+    const map = new Map<string, any>();
+
+    rows.forEach((row: any) => {
+      const departmentName =
+        row.departmentName || row.employee?.departmentName || row.department?.name || 'غير محدد';
+
+      const status = String(row.status || row.attendanceStatus || row.todayStatus || '').trim();
+
+      if (!map.has(departmentName)) {
+        map.set(departmentName, {
+          departmentName,
+          total: 0,
+          present: 0,
+          absent: 0,
+          late: 0,
+          earlyDeparture: 0,
+        });
+      }
+
+      const item = map.get(departmentName);
+
+      item.total++;
+
+      if (status === 'Present') {
+        item.present++;
+      } else if (status === 'Absent') {
+        item.absent++;
+      } else if (status === 'Late') {
+        item.late++;
+      } else if (status === 'EarlyDeparture') {
+        item.earlyDeparture++;
+      }
+    });
+
+    return Array.from(map.values());
+  }
+
+  private pickNumber(data: any, keys: string[]): number {
+    for (const key of keys) {
+      const value = Number(data?.[key]);
+
+      if (Number.isFinite(value)) {
+        return value;
+      }
+    }
+
+    return 0;
+  }
+
+  private analyticsDateToApi(date: Date): string {
+    const year = date.getFullYear();
+    const month = this.analyticsPad(date.getMonth() + 1);
+    const day = this.analyticsPad(date.getDate());
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private analyticsDateToDisplay(date: Date): string {
+    const day = this.analyticsPad(date.getDate());
+    const month = this.analyticsPad(date.getMonth() + 1);
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  }
+
+  private analyticsDisplayDateToApi(displayDate: string): string {
+    const text = String(displayDate || '').trim();
+
+    if (!text) return '';
+
+    const normalizedText = text.replace(/[.\-]/g, '/');
+
+    let day = 0;
+    let month = 0;
+    let year = 0;
+
+    const slashMatch = normalizedText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+    if (slashMatch) {
+      day = Number(slashMatch[1]);
+      month = Number(slashMatch[2]);
+      year = Number(slashMatch[3]);
+    } else {
+      const digits = normalizedText.replace(/\D/g, '');
+
+      if (!/^\d{8}$/.test(digits)) {
+        return '';
+      }
+
+      day = Number(digits.slice(0, 2));
+      month = Number(digits.slice(2, 4));
+      year = Number(digits.slice(4, 8));
+    }
+
+    const date = new Date(year, month - 1, day);
+
+    const isValidDate =
+      date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+
+    if (!isValidDate) return '';
+
+    return `${year}-${this.analyticsPad(month)}-${this.analyticsPad(day)}`;
+  }
+
+  private analyticsApiDateToDisplay(apiDate: string): string {
+    if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
       return '';
     }
 
-    day = Number(digits.slice(0, 2));
-    month = Number(digits.slice(2, 4));
-    year = Number(digits.slice(4, 8));
+    const [year, month, day] = apiDate.split('-');
+
+    return `${day}/${month}/${year}`;
   }
 
-  const date = new Date(year, month - 1, day);
-
-  const isValidDate =
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day;
-
-  if (!isValidDate) return '';
-
-  return `${year}-${this.analyticsPad(month)}-${this.analyticsPad(day)}`;
-}
-
-private analyticsApiDateToDisplay(apiDate: string): string {
-  if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
-    return '';
+  private analyticsPad(value: number): string {
+    return value.toString().padStart(2, '0');
   }
 
-  const [year, month, day] = apiDate.split('-');
+  openEmployeeDetailsDatePicker(input: HTMLInputElement): void {
+    if ((input as any).showPicker) {
+      (input as any).showPicker();
+      return;
+    }
 
-  return `${day}/${month}/${year}`;
-}
-
-private analyticsPad(value: number): string {
-  return value.toString().padStart(2, '0');
-}
-
-openEmployeeDetailsDatePicker(input: HTMLInputElement): void {
-  if ((input as any).showPicker) {
-    (input as any).showPicker();
-    return;
+    input.click();
   }
 
-  input.click();
-}
+  onEmployeeDetailsNativeDatePicked(event: Event, field: 'from' | 'to'): void {
+    const input = event.target as HTMLInputElement;
+    const apiDate = input.value; // YYYY-MM-DD
 
-onEmployeeDetailsNativeDatePicked(event: Event, field: 'from' | 'to'): void {
-  const input = event.target as HTMLInputElement;
-  const apiDate = input.value; // YYYY-MM-DD
+    if (!apiDate) {
+      return;
+    }
 
-  if (!apiDate) {
-    return;
+    if (field === 'from') {
+      this.employeeDetailsFrom = apiDate;
+      this.employeeDetailsFromDisplay = this.employeeDetailsApiDateToDisplay(apiDate);
+    } else {
+      this.employeeDetailsTo = apiDate;
+      this.employeeDetailsToDisplay = this.employeeDetailsApiDateToDisplay(apiDate);
+    }
   }
-
-  if (field === 'from') {
-    this.employeeDetailsFrom = apiDate;
-    this.employeeDetailsFromDisplay = this.employeeDetailsApiDateToDisplay(apiDate);
-  } else {
-    this.employeeDetailsTo = apiDate;
-    this.employeeDetailsToDisplay = this.employeeDetailsApiDateToDisplay(apiDate);
-  }
-}
 
   onEmployeeDetailsDateInputChanged(event: { field: 'from' | 'to'; value: string }): void {
     if (event.field === 'from') {
@@ -1088,116 +1087,106 @@ onEmployeeDetailsNativeDatePicked(event: Event, field: 'from' | 'to'): void {
   }
 
   private employeeDetailsApiDateToDisplay(apiDate: string): string {
-  if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
-    return '';
+    if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
+      return '';
+    }
+
+    const [year, month, day] = apiDate.split('-');
+
+    return `${day}/${month}/${year}`;
+  }
+  openEmployeeDetails(employee: Employee): void {
+    if (!employee.id) {
+      this.errorMessage = 'لا يمكن عرض تفاصيل هذا الموظف لأن رقم ID غير موجود';
+      return;
+    }
+
+    this.selectedEmployeeForDetails = employee;
+    this.employeeDetailsPageNumber = 1;
+    this.employeeDetailsRows = [];
+    this.employeeDetailsAllRows = [];
+    this.employeeDetailsRaw = null;
+    this.employeeDetailsInfo = null;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.activeEmployeePage = 'details';
+
+    this.loadEmployeeDetails();
   }
 
-  const [year, month, day] = apiDate.split('-');
+  loadEmployeeDetails(): void {
+    const employeeId = this.selectedEmployeeForDetails?.id;
 
-  return `${day}/${month}/${year}`;
-}
-openEmployeeDetails(employee: Employee): void {
-  if (!employee.id) {
-    this.errorMessage = 'لا يمكن عرض تفاصيل هذا الموظف لأن رقم ID غير موجود';
-    return;
+    if (!employeeId) {
+      this.errorMessage = 'قم بإختيار موظف أولًا لعرض التفاصيل';
+      return;
+    }
+
+    this.isLoadingEmployeeDetails = true;
+    this.errorMessage = '';
+
+    this.employeesService
+      .getEmployeeById(
+        employeeId,
+        this.employeeDetailsFrom,
+        this.employeeDetailsTo,
+        this.employeeDetailsPageNumber,
+        this.employeeDetailsPageSize,
+      )
+      .subscribe({
+        next: (response: any) => {
+          console.log('Employee Details Response:', response);
+
+          const data = response?.data || response;
+
+          this.selectedEmployeeForDetails = this.normalizeEmployeeBooleans(data);
+          this.employeeDetailsRaw = data;
+          this.employeeDetailsInfo = data;
+
+          const attendanceData =
+            data?.attendance || data?.attendances || data?.attendanceData || null;
+
+          let rows: any[] = [];
+
+          if (attendanceData?.items && Array.isArray(attendanceData.items)) {
+            rows = attendanceData.items;
+            this.employeeDetailsPageNumber = attendanceData.pageNumber || 1;
+            this.employeeDetailsPageSize = attendanceData.pageSize || this.employeeDetailsPageSize;
+            this.employeeDetailsTotalCount = attendanceData.totalCount || 0;
+            this.employeeDetailsTotalPages = attendanceData.totalPages || 0;
+          } else if (Array.isArray(attendanceData)) {
+            rows = attendanceData;
+            this.employeeDetailsTotalCount = attendanceData.length;
+            this.employeeDetailsTotalPages = 1;
+          } else {
+            rows = [];
+            this.employeeDetailsTotalCount = 0;
+            this.employeeDetailsTotalPages = 0;
+          }
+
+          this.employeeDetailsAllRows = rows;
+          this.applyEmployeeDetailsStatusFilter();
+          this.isLoadingEmployeeDetails = false;
+        },
+        error: (err) => {
+          console.log('Get employee details error:', err);
+
+          this.employeeDetailsRows = [];
+          this.employeeDetailsRaw = null;
+          this.employeeDetailsInfo = null;
+
+          this.errorMessage =
+            err?.error?.message || err?.message || 'حدث خطأ أثناء تحميل تفاصيل الموظف';
+
+          this.isLoadingEmployeeDetails = false;
+        },
+      });
   }
-
-  this.selectedEmployeeForDetails = employee;
-  this.employeeDetailsPageNumber = 1;
-  this.employeeDetailsRows = [];
-  this.employeeDetailsAllRows = [];
-  this.employeeDetailsRaw = null;
-  this.employeeDetailsInfo = null;
-  this.errorMessage = '';
-  this.successMessage = '';
-
-  this.activeEmployeePage = 'details';
-
-  this.loadEmployeeDetails();
-}
-
- loadEmployeeDetails(): void {
-  const employeeId = this.selectedEmployeeForDetails?.id;
-
-  if (!employeeId) {
-    this.errorMessage = 'قم بإختيار موظف أولًا لعرض التفاصيل';
-    return;
-  }
-
-  this.isLoadingEmployeeDetails = true;
-  this.errorMessage = '';
-
-  this.employeesService
-    .getEmployeeById(
-      employeeId,
-      this.employeeDetailsFrom,
-      this.employeeDetailsTo,
-      this.employeeDetailsPageNumber,
-      this.employeeDetailsPageSize
-    )
-    .subscribe({
-      next: (response: any) => {
-        console.log('Employee Details Response:', response);
-
-        const data = response?.data || response;
-
-        this.selectedEmployeeForDetails = this.normalizeEmployeeBooleans(data);
-        this.employeeDetailsRaw = data;
-        this.employeeDetailsInfo = data;
-
-        const attendanceData =
-          data?.attendance ||
-          data?.attendances ||
-          data?.attendanceData ||
-          null;
-
-        let rows: any[] = [];
-
-        if (attendanceData?.items && Array.isArray(attendanceData.items)) {
-          rows = attendanceData.items;
-          this.employeeDetailsPageNumber = attendanceData.pageNumber || 1;
-          this.employeeDetailsPageSize =
-            attendanceData.pageSize || this.employeeDetailsPageSize;
-          this.employeeDetailsTotalCount = attendanceData.totalCount || 0;
-          this.employeeDetailsTotalPages = attendanceData.totalPages || 0;
-        } else if (Array.isArray(attendanceData)) {
-          rows = attendanceData;
-          this.employeeDetailsTotalCount = attendanceData.length;
-          this.employeeDetailsTotalPages = 1;
-        } else {
-          rows = [];
-          this.employeeDetailsTotalCount = 0;
-          this.employeeDetailsTotalPages = 0;
-        }
-
-        this.employeeDetailsAllRows = rows;
-        this.applyEmployeeDetailsStatusFilter();
-        this.isLoadingEmployeeDetails = false;
-      },
-      error: (err) => {
-        console.log('Get employee details error:', err);
-
-        this.employeeDetailsRows = [];
-        this.employeeDetailsRaw = null;
-        this.employeeDetailsInfo = null;
-
-        this.errorMessage =
-          err?.error?.message ||
-          err?.message ||
-          'حدث خطأ أثناء تحميل تفاصيل الموظف';
-
-        this.isLoadingEmployeeDetails = false;
-      }
-    });
-}
 
   applyEmployeeDetailsDateFilter(): void {
-    this.employeeDetailsFrom = this.formatEmployeeDetailsDateToApi(
-      this.employeeDetailsFromDisplay
-    );
-    this.employeeDetailsTo = this.formatEmployeeDetailsDateToApi(
-      this.employeeDetailsToDisplay
-    );
+    this.employeeDetailsFrom = this.formatEmployeeDetailsDateToApi(this.employeeDetailsFromDisplay);
+    this.employeeDetailsTo = this.formatEmployeeDetailsDateToApi(this.employeeDetailsToDisplay);
     this.employeeDetailsPageNumber = 1;
     this.loadEmployeeDetails();
   }
@@ -1221,9 +1210,7 @@ openEmployeeDetails(employee: Employee): void {
       return;
     }
 
-    const selectedStatus = this.normalizeEmployeeDetailsStatus(
-      this.employeeDetailsStatusFilter
-    );
+    const selectedStatus = this.normalizeEmployeeDetailsStatus(this.employeeDetailsStatusFilter);
 
     this.employeeDetailsRows = this.employeeDetailsAllRows.filter((row) => {
       const rowStatus = this.normalizeEmployeeDetailsStatus(row?.status);
@@ -1240,9 +1227,7 @@ openEmployeeDetails(employee: Employee): void {
 
   formatEmployeeDetailsDateWhileTyping(field: 'from' | 'to'): void {
     const currentValue =
-      field === 'from'
-        ? this.employeeDetailsFromDisplay
-        : this.employeeDetailsToDisplay;
+      field === 'from' ? this.employeeDetailsFromDisplay : this.employeeDetailsToDisplay;
 
     const normalized = String(currentValue || '')
       .replace(/\D/g, '')
@@ -1290,14 +1275,14 @@ openEmployeeDetails(employee: Employee): void {
     }
   }
 
- backToEmployeesList(): void {
-  this.activeEmployeePage = 'list';
-  this.selectedEmployeeForDetails = null;
-  this.employeeDetailsRows = [];
-  this.employeeDetailsRaw = null;
-  this.employeeDetailsInfo = null;
-  this.loadEmployees();
-}
+  backToEmployeesList(): void {
+    this.activeEmployeePage = 'list';
+    this.selectedEmployeeForDetails = null;
+    this.employeeDetailsRows = [];
+    this.employeeDetailsRaw = null;
+    this.employeeDetailsInfo = null;
+    this.loadEmployees();
+  }
 
   searchEmployees(): void {
     this.pageNumber = 1;
@@ -1339,8 +1324,8 @@ openEmployeeDetails(employee: Employee): void {
             this.searchTerm || '',
             page,
             exportPageSize,
-            this.departmentId
-          )
+            this.departmentId,
+          ),
         );
 
         const data = resp?.data ?? resp;
@@ -1375,7 +1360,7 @@ openEmployeeDetails(employee: Employee): void {
       القسم: emp.departmentName || emp.departmentId || '-',
       'وقت الحضور': this.timeForInput(emp.scheduleIn),
       'وقت الانصراف': this.timeForInput(emp.scheduleOut),
-      'وقت السماح': this.timeForInput(emp.graceTime)
+      'وقت السماح': this.timeForInput(emp.graceTime),
     }));
 
     exportToExcel(exportData, `employees-${this.analyticsDateDisplay || 'list'}`, 'موظفين');
@@ -1398,12 +1383,16 @@ openEmployeeDetails(employee: Employee): void {
       'دقائق التأخير': row.lateMinutes != null ? row.lateMinutes : '-',
       'دقائق الإضافي': row.overtimeMinutes != null ? row.overtimeMinutes : '-',
       الحالة: this.getStatusLabel(row.status),
-      الملاحظات: this.getNoteLabel(row.notes)
+      الملاحظات: this.getNoteLabel(row.notes),
     }));
 
-    exportToExcel(exportData, `employee-details-${this.selectedEmployeeForDetails?.employeeCode || 'details'}`, 'تفاصيل الموظف');
+    exportToExcel(
+      exportData,
+      `employee-details-${this.selectedEmployeeForDetails?.employeeCode || 'details'}`,
+      'تفاصيل الموظف',
+    );
   }
-  
+
   showDeleteConfirmation(emp: Employee): void {
     this.openDeleteModal(emp);
   }
@@ -1467,7 +1456,7 @@ openEmployeeDetails(employee: Employee): void {
         this.noteTargetEmployee = null;
         this.noteModalEmployeeName = '';
         this.errorMessage = err?.error?.message || err?.message || 'حدث خطأ أثناء إضافة الملاحظة';
-      }
+      },
     });
   }
 
@@ -1496,7 +1485,7 @@ openEmployeeDetails(employee: Employee): void {
       error: (err) => {
         this.isSaving = false;
         this.errorMessage = err?.error?.message || err?.message || 'حدث خطأ أثناء حذف الملاحظة';
-      }
+      },
     });
   }
 
@@ -1546,7 +1535,11 @@ openEmployeeDetails(employee: Employee): void {
     this.employeesService.deleteEmployee(id).subscribe({
       next: (resp: any) => {
         const data = resp?.data ?? resp;
-        const success = data === true || resp?.isSuccess === true || data?.isSuccess === true || data?.data === true;
+        const success =
+          data === true ||
+          resp?.isSuccess === true ||
+          data?.isSuccess === true ||
+          data?.data === true;
 
         if (success) {
           this.successMessage = 'تم حذف الموظف بنجاح';
@@ -1562,15 +1555,15 @@ openEmployeeDetails(employee: Employee): void {
         console.error('Delete employee error:', err);
         this.errorMessage = err?.error?.message || err?.message || 'حدث خطأ أثناء حذف الموظف';
         this.isLoading = false;
-      }
+      },
     });
   }
 
   saveEmployee(): void {
     if (this.employeeForm.invalid) {
       this.employeeForm.markAllAsTouched();
-          this.pendingDeleteId = null;
-          this.loadEmployees();
+      this.pendingDeleteId = null;
+      this.loadEmployees();
       return;
     }
 
@@ -1622,29 +1615,29 @@ openEmployeeDetails(employee: Employee): void {
     }
 
     if (isUpdate) {
-      this.employeesService.updateEmployee(this.selectedEmployeeId!, employee as UpdateEmployeePayload).subscribe({
-        next: (response: any) => {
-          console.log('Update Employee Response:', response);
+      this.employeesService
+        .updateEmployee(this.selectedEmployeeId!, employee as UpdateEmployeePayload)
+        .subscribe({
+          next: (response: any) => {
+            console.log('Update Employee Response:', response);
 
-          if (response?.isSuccess === false) {
-            this.errorMessage = response?.message || 'فشل تعديل بيانات الموظف';
+            if (response?.isSuccess === false) {
+              this.errorMessage = response?.message || 'فشل تعديل بيانات الموظف';
+              this.isSaving = false;
+              return;
+            }
+
+            this.afterSave(response?.message || 'تم تعديل بيانات الموظف بنجاح');
+          },
+          error: (err) => {
+            console.log('Update employee error:', err);
+
+            this.errorMessage =
+              err?.error?.message || err?.message || 'حدث خطأ أثناء تعديل بيانات الموظف';
+
             this.isSaving = false;
-            return;
-          }
-
-          this.afterSave(response?.message || 'تم تعديل بيانات الموظف بنجاح');
-        },
-        error: (err) => {
-          console.log('Update employee error:', err);
-
-          this.errorMessage =
-            err?.error?.message ||
-            err?.message ||
-            'حدث خطأ أثناء تعديل بيانات الموظف';
-
-          this.isSaving = false;
-        }
-      });
+          },
+        });
 
       return;
     }
@@ -1664,13 +1657,10 @@ openEmployeeDetails(employee: Employee): void {
       error: (err) => {
         console.log('Add employee error:', err);
 
-        this.errorMessage =
-          err?.error?.message ||
-          err?.message ||
-          'حدث خطأ أثناء إضافة الموظف';
+        this.errorMessage = err?.error?.message || err?.message || 'حدث خطأ أثناء إضافة الموظف';
 
         this.isSaving = false;
-      }
+      },
     });
   }
 
@@ -1679,12 +1669,15 @@ openEmployeeDetails(employee: Employee): void {
       employeeCode: String(this.employeeForm.value.employeeCode || '').trim(),
       name: String(this.employeeForm.value.name || '').trim(),
       departmentId: Number(this.employeeForm.value.departmentId),
-      locationId: this.employeeForm.value.locationId != null ? Number(this.employeeForm.value.locationId) : undefined,
+      locationId:
+        this.employeeForm.value.locationId != null
+          ? Number(this.employeeForm.value.locationId)
+          : undefined,
       scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
       scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
       graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime),
       isChristian: Boolean(this.employeeForm.value.isChristian),
-      note: String(this.employeeForm.value.note || '').trim()
+      note: String(this.employeeForm.value.note || '').trim(),
     };
   }
 
@@ -1692,12 +1685,15 @@ openEmployeeDetails(employee: Employee): void {
     return {
       name: String(this.employeeForm.value.name || '').trim(),
       departmentId: Number(this.employeeForm.value.departmentId),
-      locationId: this.employeeForm.value.locationId != null ? Number(this.employeeForm.value.locationId) : undefined,
+      locationId:
+        this.employeeForm.value.locationId != null
+          ? Number(this.employeeForm.value.locationId)
+          : undefined,
       scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
       scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
       graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime),
       isChristian: Boolean(this.employeeForm.value.isChristian),
-      note: String(this.employeeForm.value.note || '').trim()
+      note: String(this.employeeForm.value.note || '').trim(),
     };
   }
 
@@ -1725,7 +1721,7 @@ openEmployeeDetails(employee: Employee): void {
       scheduleOut: this.timeForInput(employee.scheduleOut),
       graceTime: this.timeForInput(employee.graceTime),
       isChristian: employee.isChristian ?? false,
-      note: employee.note ?? (employee as any).notes ?? ''
+      note: employee.note ?? (employee as any).notes ?? '',
     });
 
     this.successMessage = '';
@@ -1741,10 +1737,10 @@ openEmployeeDetails(employee: Employee): void {
       relativeTo: this.route,
       queryParams: {
         page: 'edit',
-        id: employee.id
+        id: employee.id,
       },
       queryParamsHandling: 'merge',
-      replaceUrl: true
+      replaceUrl: true,
     });
   }
 
@@ -1758,10 +1754,10 @@ openEmployeeDetails(employee: Employee): void {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
-        page: 'list'
+        page: 'list',
       },
       queryParamsHandling: 'merge',
-      replaceUrl: true
+      replaceUrl: true,
     });
   }
 
@@ -1839,7 +1835,7 @@ openEmployeeDetails(employee: Employee): void {
 
         const workbook: WorkBook = read(arrayBuffer, {
           type: 'array',
-          cellDates: false
+          cellDates: false,
         });
 
         if (!workbook.SheetNames.length) {
@@ -1849,12 +1845,12 @@ openEmployeeDetails(employee: Employee): void {
 
         const employeesMap = new Map<string, Employee>();
 
-workbook.SheetNames.forEach((sheetName: string) => {
+        workbook.SheetNames.forEach((sheetName: string) => {
           const worksheet: WorkSheet = workbook.Sheets[sheetName];
 
           const rows = utils.sheet_to_json(worksheet, {
             defval: '',
-            raw: true
+            raw: true,
           }) as any[];
 
           rows.forEach((row, index) => {
@@ -1872,7 +1868,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
 
             if (missingFields.length > 0) {
               this.excelRowErrors.push(
-                `Sheet ${sheetName} - صف رقم ${index + 2}: بيانات ناقصة أو غير صحيحة: ${missingFields.join(' - ')}`
+                `Sheet ${sheetName} - صف رقم ${index + 2}: بيانات ناقصة أو غير صحيحة: ${missingFields.join(' - ')}`,
               );
               return;
             }
@@ -1888,8 +1884,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
           return;
         }
 
-        this.excelSuccessMessage =
-          `تم استخراج ${this.excelEmployees.length} موظف بدون تكرار من ملف الحضور، وجاري حفظهم في السيستم...`;
+        this.excelSuccessMessage = `تم استخراج ${this.excelEmployees.length} موظف بدون تكرار من ملف الحضور، وجاري حفظهم في السيستم...`;
 
         this.unknownDepartments = [];
         this.excelErrorMessage = '';
@@ -1915,18 +1910,12 @@ workbook.SheetNames.forEach((sheetName: string) => {
         'EmployeeCode',
         'Employee Code',
         'code',
-        'Code'
-      ])
+        'Code',
+      ]),
     ).trim();
 
     const name = String(
-      this.getCellValue(row, [
-        'اسم الموظف',
-        'name',
-        'Name',
-        'Employee Name',
-        'employeeName'
-      ])
+      this.getCellValue(row, ['اسم الموظف', 'name', 'Name', 'Employee Name', 'employeeName']),
     ).trim();
 
     const departmentName = String(
@@ -1937,8 +1926,8 @@ workbook.SheetNames.forEach((sheetName: string) => {
         'department',
         'Department',
         'departmentName',
-        'Department Name'
-      ])
+        'Department Name',
+      ]),
     ).trim();
 
     const scheduleInRaw = this.getCellValue(row, [
@@ -1946,7 +1935,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
       'موعد الحضور',
       'scheduleIn',
       'ScheduleIn',
-      'Schedule In'
+      'Schedule In',
     ]);
 
     const scheduleOutRaw = this.getCellValue(row, [
@@ -1954,7 +1943,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
       'موعد الانصراف',
       'scheduleOut',
       'ScheduleOut',
-      'Schedule Out'
+      'Schedule Out',
     ]);
 
     const graceRaw = this.getCellValue(row, [
@@ -1962,7 +1951,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
       'وقت السماح',
       'graceTime',
       'GraceTime',
-      'Grace Time'
+      'Grace Time',
     ]);
 
     const locationId = this.getNumberCellValue(row, [
@@ -1974,14 +1963,14 @@ workbook.SheetNames.forEach((sheetName: string) => {
       'location id',
       'لوكيشن',
       'Location رقم',
-      'المكان '
+      'المكان ',
     ]);
 
     const isChristian = this.getBooleanCellValue(row, [
       'مسيحي',
       'christian',
       'isChristian',
-      'Christian'
+      'Christian',
     ]);
 
     if (!employeeCode || !name) {
@@ -1997,7 +1986,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
       scheduleIn: this.normalizeExcelTime(scheduleInRaw),
       scheduleOut: this.normalizeExcelTime(scheduleOutRaw),
       graceTime: this.calculateGraceTime(scheduleInRaw, graceRaw),
-      isChristian
+      isChristian,
     };
   }
 
@@ -2005,7 +1994,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
     const normalizedName = this.normalizeArabicText(departmentName);
 
     const matchedKey = Object.keys(this.departmentMap).find(
-      (key) => this.normalizeArabicText(key) === normalizedName
+      (key) => this.normalizeArabicText(key) === normalizedName,
     );
 
     if (matchedKey) {
@@ -2034,7 +2023,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
 
     for (const key of possibleKeys) {
       const matchedKey = rowKeys.find(
-        (rowKey) => this.normalizeArabicText(rowKey) === this.normalizeArabicText(key)
+        (rowKey) => this.normalizeArabicText(rowKey) === this.normalizeArabicText(key),
       );
 
       if (
@@ -2107,7 +2096,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
   private normalizeEmployeeBooleans(employee: any): Employee {
     return {
       ...employee,
-      isChristian: this.normalizeBoolean(employee?.isChristian)
+      isChristian: this.normalizeBoolean(employee?.isChristian),
     } as Employee;
   }
 
@@ -2155,12 +2144,11 @@ workbook.SheetNames.forEach((sheetName: string) => {
     }
 
     const invalidDepartmentNames = this.excelEmployees.filter(
-      (employee) => !employee.departmentName || employee.departmentName.trim() === ''
+      (employee) => !employee.departmentName || employee.departmentName.trim() === '',
     );
 
     if (invalidDepartmentNames.length > 0) {
-      this.excelErrorMessage =
-        `يوجد ${invalidDepartmentNames.length} موظف بدون اسم إدارة صحيح.`;
+      this.excelErrorMessage = `يوجد ${invalidDepartmentNames.length} موظف بدون اسم إدارة صحيح.`;
       return;
     }
 
@@ -2168,12 +2156,11 @@ workbook.SheetNames.forEach((sheetName: string) => {
       (employee) =>
         !this.isValidTimeString(employee.scheduleIn) ||
         !this.isValidTimeString(employee.scheduleOut) ||
-        !this.isValidTimeString(employee.graceTime)
+        !this.isValidTimeString(employee.graceTime),
     );
 
     if (invalidTimes.length > 0) {
-      this.excelErrorMessage =
-        `يوجد ${invalidTimes.length} موظف لديهم مواعيد غير صحيحة. راجعي بيانات الشيت.`;
+      this.excelErrorMessage = `يوجد ${invalidTimes.length} موظف لديهم مواعيد غير صحيحة. راجعي بيانات الشيت.`;
       return;
     }
 
@@ -2187,12 +2174,11 @@ workbook.SheetNames.forEach((sheetName: string) => {
     }
 
     const invalidDepartmentNames = this.excelEmployees.filter(
-      (employee) => !employee.departmentName || employee.departmentName.trim() === ''
+      (employee) => !employee.departmentName || employee.departmentName.trim() === '',
     );
 
     if (invalidDepartmentNames.length > 0) {
-      this.excelErrorMessage =
-        `يوجد ${invalidDepartmentNames.length} موظف بدون اسم إدارة صحيح.`;
+      this.excelErrorMessage = `يوجد ${invalidDepartmentNames.length} موظف بدون اسم إدارة صحيح.`;
       return;
     }
 
@@ -2200,12 +2186,11 @@ workbook.SheetNames.forEach((sheetName: string) => {
       (employee) =>
         !this.isValidTimeString(employee.scheduleIn) ||
         !this.isValidTimeString(employee.scheduleOut) ||
-        !this.isValidTimeString(employee.graceTime)
+        !this.isValidTimeString(employee.graceTime),
     );
 
     if (invalidTimes.length > 0) {
-      this.excelErrorMessage =
-        `يوجد ${invalidTimes.length} موظف لديهم مواعيد غير صحيحة. راجعي بيانات الشيت.`;
+      this.excelErrorMessage = `يوجد ${invalidTimes.length} موظف لديهم مواعيد غير صحيحة. راجعي بيانات الشيت.`;
       return;
     }
 
@@ -2216,7 +2201,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
     const payload = this.getEmployeesImportPayload();
 
     const uniqueDepartmentsSent = Array.from(
-      new Set(payload.map((item) => item.departmentName))
+      new Set(payload.map((item) => item.departmentName)),
     ).sort();
 
     console.log('Unique Departments Sent To API:');
@@ -2224,7 +2209,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
 
     const departmentCompare = this.excelEmployees.map((employee, index) => ({
       originalFromExcel: employee.departmentName,
-      sentToApi: payload[index].departmentName
+      sentToApi: payload[index].departmentName,
     }));
 
     console.table(departmentCompare);
@@ -2240,10 +2225,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
 
         const responseAny = response as any;
 
-        const data =
-          responseAny?.data?.data ||
-          responseAny?.data ||
-          responseAny;
+        const data = responseAny?.data?.data || responseAny?.data || responseAny;
 
         const successCount =
           data?.successCount ??
@@ -2252,21 +2234,14 @@ workbook.SheetNames.forEach((sheetName: string) => {
           data?.savedCount ??
           0;
 
-        const skippedCount =
-          data?.skippedCount ??
-          data?.skipCount ??
-          0;
+        const skippedCount = data?.skippedCount ?? data?.skipCount ?? 0;
 
-        const failedCount =
-          data?.failedCount ??
-          data?.failureCount ??
-          data?.errorCount ??
-          0;
+        const failedCount = data?.failedCount ?? data?.failureCount ?? data?.errorCount ?? 0;
 
         this.bulkImportResults = this.extractBulkImportResults(response);
 
-        this.bulkImportErrors = this.bulkImportResults.filter((item: any) =>
-          String(item?.status || '').toLowerCase() === 'failed'
+        this.bulkImportErrors = this.bulkImportResults.filter(
+          (item: any) => String(item?.status || '').toLowerCase() === 'failed',
         );
 
         this.missingDepartmentNames = this.extractMissingDepartmentNames(this.bulkImportErrors);
@@ -2278,16 +2253,13 @@ workbook.SheetNames.forEach((sheetName: string) => {
         console.table(this.getFailureReasonsSummary(this.bulkImportErrors));
 
         if (successCount === 0 && skippedCount === 0 && failedCount === 0) {
-          this.excelSuccessMessage =
-            `تم إرسال ${payload.length} موظف للسيستم، لكن السيرفر لم يرجع أرقام الحفظ بوضوح. راجعي Response في Console.`;
+          this.excelSuccessMessage = `تم إرسال ${payload.length} موظف للسيستم، لكن السيرفر لم يرجع أرقام الحفظ بوضوح. راجعي Response في Console.`;
         } else {
-          this.excelSuccessMessage =
-            `تم الاستيراد: ${successCount} تم حفظهم، ${skippedCount} تم تخطيهم، ${failedCount} فشل حفظهم.`;
+          this.excelSuccessMessage = `تم الاستيراد: ${successCount} تم حفظهم، ${skippedCount} تم تخطيهم، ${failedCount} فشل حفظهم.`;
         }
 
         if (failedCount > 0 || this.bulkImportErrors.length > 0) {
-          this.excelErrorMessage =
-            `فشل حفظ ${failedCount || this.bulkImportErrors.length} موظف. السبب غالبًا أن أسماء الإدارات غير موجودة أو غير مطابقة في قاعدة البيانات.`;
+          this.excelErrorMessage = `فشل حفظ ${failedCount || this.bulkImportErrors.length} موظف. السبب غالبًا أن أسماء الإدارات غير موجودة أو غير مطابقة في قاعدة البيانات.`;
         }
 
         this.loadEmployees();
@@ -2295,11 +2267,9 @@ workbook.SheetNames.forEach((sheetName: string) => {
       error: (err) => {
         console.log('Bulk import error:', err);
         this.excelErrorMessage =
-          err?.error?.message ||
-          err?.message ||
-          'حدث خطأ أثناء حفظ بيانات الشيت في السيستم';
+          err?.error?.message || err?.message || 'حدث خطأ أثناء حفظ بيانات الشيت في السيستم';
         this.isImporting = false;
-      }
+      },
     });
   }
 
@@ -2312,7 +2282,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
       scheduleIn: employee.scheduleIn,
       scheduleOut: employee.scheduleOut,
       graceTime: employee.graceTime,
-      isChristian: employee.isChristian
+      isChristian: employee.isChristian,
     }));
   }
 
@@ -2326,7 +2296,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
     const normalizedExcelName = this.normalizeArabicText(originalName);
 
     const aliasKey = Object.keys(this.departmentAliases).find(
-      (key) => this.normalizeArabicText(key) === normalizedExcelName
+      (key) => this.normalizeArabicText(key) === normalizedExcelName,
     );
 
     if (aliasKey) {
@@ -2334,7 +2304,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
     }
 
     const exactDbName = this.databaseDepartmentNames.find(
-      (dbName) => this.normalizeArabicText(dbName) === normalizedExcelName
+      (dbName) => this.normalizeArabicText(dbName) === normalizedExcelName,
     );
 
     if (exactDbName) {
@@ -2404,7 +2374,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
           matrix[i][j] = Math.min(
             matrix[i - 1][j - 1] + 1,
             matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
+            matrix[i - 1][j] + 1,
           );
         }
       }
@@ -2443,7 +2413,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
       data.failedItems,
       data.failures,
       data.importResults,
-      data.employeeResults
+      data.employeeResults,
     ];
 
     for (const item of possibleArrays) {
@@ -2467,7 +2437,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
 
     return Array.from(reasonMap.entries()).map(([reason, count]) => ({
       reason,
-      count
+      count,
     }));
   }
 
@@ -2595,12 +2565,7 @@ workbook.SheetNames.forEach((sheetName: string) => {
     const seconds = Number(match[3]);
 
     return (
-      hours >= 0 &&
-      hours <= 23 &&
-      minutes >= 0 &&
-      minutes <= 59 &&
-      seconds >= 0 &&
-      seconds <= 59
+      hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 && seconds >= 0 && seconds <= 59
     );
   }
 
@@ -2629,7 +2594,6 @@ workbook.SheetNames.forEach((sheetName: string) => {
       .replace(/[ـ]/g, '')
       .replace(/[^\u0600-\u06FF\w\s]/g, ' ')
 
-
       .replace(/\s+و\s+/g, ' و ')
       .replace(/\s+/g, ' ')
       .toLowerCase();
@@ -2638,5 +2602,4 @@ workbook.SheetNames.forEach((sheetName: string) => {
   private pad(value: number): string {
     return value.toString().padStart(2, '0');
   }
-
 }

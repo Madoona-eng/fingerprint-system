@@ -2,7 +2,8 @@
   <div class="upload-info">
     <h1>استيراد الحضور والانصراف</h1>
     <p>
-      قم برفع شيت الحضور، وسيتم استخراج كود الموظف، التاريخ، وقت الحضور، ووقت الانصراف ثم حفظهم في السيستم.
+      قم برفع شيت الحضور، وسيتم استخراج كود الموظف، التاريخ، وقت الحضور، ووقت الانصراف ثم حفظهم في
+      السيستم.
     </p>
   </div>
 
@@ -42,22 +43,13 @@
     <button
       type="button"
       class="import-btn"
-      [disabled]="isImporting || hasImportedCurrentSheet"
+      [disabled]="isImporting"
       (click)="importAttendance.emit()"
+      *ngIf="!hasImportedCurrentSheet"
     >
-      {{
-        isImporting
-          ? 'جاري الحفظ...'
-          : hasImportedCurrentSheet
-            ? 'تم الحفظ في السيستم'
-            : 'استيراد الحضور للسيستم'
-      }}
+      {{ isImporting ? 'جاري الحفظ...' : 'استيراد الحضور للسيستم' }}
     </button>
 
-    <button type="button" class="ghost-btn" (click)="clearData.emit()">
-      مسح الشيت
-    </button>
+    <!-- <div *ngIf="hasImportedCurrentSheet" class="success-banner">✅ تم الحفظ في السيستم بنجاح</div> -->
   </div>
 </section>
-
-

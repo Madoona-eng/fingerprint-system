@@ -1,11 +1,8 @@
 <div class="employees-page" dir="rtl">
-
   <section class="employees-title">
     <div>
       <h1>إدارة الموظفين</h1>
-      <p>
-        رفع شيت الحضور، استخراج الموظفين بدون تكرار، أو إضافة وتعديل بيانات الموظفين يدويًا.
-      </p>
+      <p>رفع شيت الحضور، استخراج الموظفين بدون تكرار، أو إضافة وتعديل بيانات الموظفين يدويًا.</p>
     </div>
   </section>
 
@@ -20,12 +17,15 @@
 
     <button
       type="button"
-      [class.active]="activeEmployeePage === 'list' || activeEmployeePage === 'details' || activeEmployeePage === 'edit'"
+      [class.active]="
+        activeEmployeePage === 'list' ||
+        activeEmployeePage === 'details' ||
+        activeEmployeePage === 'edit'
+      "
       (click)="openEmployeePage('list')"
     >
       👥 قائمة الموظفين
     </button>
-    
 
     <button
       type="button"
@@ -37,8 +37,7 @@
   </section>
 
   <ng-container [ngSwitch]="activeEmployeePage">
-
-   <section *ngSwitchCase="'form'">
+    <section *ngSwitchCase="'form'">
       <app-employee-form
         [employeeForm]="employeeForm"
         [selectedEmployeeId]="selectedEmployeeId"
@@ -57,8 +56,8 @@
         <div class="upload-info">
           <h3>رفع شيت الموظفين</h3>
           <p>
-            قم برفع الملف وسيتم استخراج كود الموظف، الاسم، الإدارة،
-            مواعيد الحضور والانصراف، ووقت السماح.
+            قم برفع الملف وسيتم استخراج كود الموظف، الاسم، الإدارة، مواعيد الحضور والانصراف، ووقت
+            السماح.
           </p>
         </div>
 
@@ -76,9 +75,7 @@
           <span>📁 قم بإختيار ملف Excel أو اسحبه هنا</span>
         </label>
 
-        <div *ngIf="excelFileName" class="file-name">
-          الملف المختار: {{ excelFileName }}
-        </div>
+        <div *ngIf="excelFileName" class="file-name">الملف المختار: {{ excelFileName }}</div>
 
         <div *ngIf="excelSuccessMessage" class="success-message">
           {{ excelSuccessMessage }}
@@ -90,9 +87,7 @@
 
         <div *ngIf="missingDepartmentNames.length > 0" class="unknown-card">
           <h4>إدارات غير موجودة أو غير مطابقة</h4>
-          <p>
-            راجعي الأسماء التالية وأضيفيها في قاعدة البيانات أو في aliases.
-          </p>
+          <p>راجعي الأسماء التالية وأضيفيها في قاعدة البيانات أو في aliases.</p>
           <ul>
             <li *ngFor="let dep of missingDepartmentNames">
               {{ dep }}
@@ -102,9 +97,7 @@
 
         <div *ngIf="unknownDepartments.length > 0" class="unknown-card">
           <h4>إدارات غير مربوطة برقم قسم</h4>
-          <p>
-            اكتب رقم القسم الصحيح لكل إدارة، وبعدها اضغطي تطبيق أرقام الأقسام.
-          </p>
+          <p>اكتب رقم القسم الصحيح لكل إدارة، وبعدها اضغطي تطبيق أرقام الأقسام.</p>
 
           <div class="department-map-list">
             <div
@@ -122,17 +115,13 @@
             </div>
           </div>
 
-          <button
-            type="button"
-            class="apply-map-btn"
-            (click)="applyManualDepartmentIds()"
-          >
+          <button type="button" class="apply-map-btn" (click)="applyManualDepartmentIds()">
             تطبيق أرقام الأقسام
           </button>
         </div>
 
         <ul *ngIf="excelRowErrors.length > 0" class="row-errors">
-          <li *ngFor="let rowError of excelRowErrors | slice:0:6">
+          <li *ngFor="let rowError of excelRowErrors | slice: 0 : 6">
             {{ rowError }}
           </li>
           <li *ngIf="excelRowErrors.length > 6">
@@ -146,19 +135,14 @@
             class="import-btn"
             [disabled]="isImporting || hasImportedCurrentSheet"
             (click)="bulkImportEmployees()"
+            *ngIf="!hasImportedCurrentSheet"
           >
-            {{
-              isImporting
-                ? 'جاري الحفظ...'
-                : hasImportedCurrentSheet
-                  ? 'تم الحفظ في السيستم'
-                  : 'استيراد الموظفين للسيستم'
-            }}
+            {{ isImporting ? 'جاري الحفظ...' : 'استيراد الموظفين للسيستم' }}
           </button>
 
-          <button type="button" class="ghost-btn" (click)="clearExcelData()">
-            مسح بيانات الشيت
-          </button>
+          <div *ngIf="hasImportedCurrentSheet" class="success-banner">
+            ✅ تم الحفظ في السيستم بنجاح
+          </div>
         </div>
       </section>
     </section>
@@ -232,7 +216,6 @@
         (cancel)="cancelEdit()"
       ></app-employee-edit>
     </section>
-
   </ng-container>
 
   <app-employee-delete-modal
