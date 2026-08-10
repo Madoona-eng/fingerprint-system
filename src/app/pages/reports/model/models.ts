@@ -8,6 +8,8 @@ export interface AnalyticsStats {
   workLeave: number;
   mission: number;
   drivingRoute: number;
+  onLeave: number;
+  online: number;
   needsReview: number;
   reviewed: number;
 }

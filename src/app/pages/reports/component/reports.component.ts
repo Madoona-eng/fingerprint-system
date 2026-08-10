@@ -36,6 +36,8 @@ export class ReportsComponent implements OnInit {
     workLeave: 0,
     mission: 0,
     drivingRoute: 0,
+    onLeave: 0,
+    online: 0,
     needsReview: 0,
     reviewed: 0
   };
@@ -253,6 +255,14 @@ export class ReportsComponent implements OnInit {
     return Math.round((this.attendedCount / this.analyticsStats.total) * 100);
   }
 
+  get leaveCount(): number {
+    return (
+      Number(this.analyticsStats.personalLeave || 0) +
+      Number(this.analyticsStats.workLeave || 0) +
+      Number(this.analyticsStats.onLeave || 0)
+    );
+  }
+
   get latePercent(): number {
     if (!this.analyticsStats.total) {
       return 0;
@@ -290,6 +300,8 @@ export class ReportsComponent implements OnInit {
       workLeave: 0,
       mission: 0,
       drivingRoute: 0,
+      onLeave: 0,
+      online: 0,
       needsReview: 0,
       reviewed: 0
     };
@@ -312,6 +324,16 @@ export class ReportsComponent implements OnInit {
         calculatedStats.late++;
       } else if (status === 'EarlyDeparture') {
         calculatedStats.earlyDeparture++;
+      } else if (status === 'PersonalLeave') {
+        calculatedStats.personalLeave++;
+      } else if (status === 'Mission') {
+        calculatedStats.mission++;
+      } else if (status === 'DrivingRoute') {
+        calculatedStats.drivingRoute++;
+      } else if (status === 'OnLeave') {
+        calculatedStats.onLeave++;
+      } else if (status === 'Online') {
+        calculatedStats.online++;
       }
 
       const reviewed =
@@ -377,28 +399,42 @@ export class ReportsComponent implements OnInit {
           'personalLeave',
           'personalLeaveCount',
           'totalPersonalLeave'
-        ]) || 0,
+        ]) || calculatedStats.personalLeave,
 
       workLeave:
         this.pickNumber(data, [
           'workLeave',
           'workLeaveCount',
           'totalWorkLeave'
-        ]) || 0,
+        ]) || calculatedStats.workLeave,
 
       mission:
         this.pickNumber(data, [
           'mission',
           'missionCount',
           'totalMission'
-        ]) || 0,
+        ]) || calculatedStats.mission,
 
       drivingRoute:
         this.pickNumber(data, [
           'drivingRoute',
           'drivingRouteCount',
           'totalDrivingRoute'
-        ]) || 0,
+        ]) || calculatedStats.drivingRoute,
+
+      onLeave:
+        this.pickNumber(data, [
+          'onLeave',
+          'onLeaveCount',
+          'totalOnLeave'
+        ]) || calculatedStats.onLeave,
+
+      online:
+        this.pickNumber(data, [
+          'online',
+          'onlineCount',
+          'totalOnline'
+        ]) || calculatedStats.online,
 
       needsReview:
         this.pickNumber(data, [
@@ -531,6 +567,8 @@ export class ReportsComponent implements OnInit {
       workLeave: 0,
       mission: 0,
       drivingRoute: 0,
+      onLeave: 0,
+      online: 0,
       needsReview: 0,
       reviewed: 0
     };

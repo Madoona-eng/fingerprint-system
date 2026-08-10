@@ -22,7 +22,35 @@ export class AttendanceReportComponent {
   @Input() dateRangeNeedsReview: boolean | null = null;
   @Input() dateRangeRoute = '';
   @Input() routeOptions: string[] = [];
-  @Input() statusOptions: { value: string; label: string }[] = [];
+
+  private readonly statusApiValues: string[] = [
+    'Present',
+    'Late',
+    'Absent',
+    'EarlyDeparture',
+    'PersonalLeave',
+    'Mission',
+    'DrivingRoute',
+    'OnLeave',
+    'Online',
+  ];
+
+  private _statusOptions: { value: string; label: string }[] = [];
+
+  @Input()
+  set statusOptions(value: { value: string; label: string }[]) {
+    this._statusOptions = value || [];
+  }
+
+  get statusOptions(): { value: string; label: string }[] {
+    return this._statusOptions.length > 0
+      ? this._statusOptions
+      : this.statusApiValues.map((value) => ({
+          value,
+          label: this.getAttendanceStatusLabel(value),
+        }));
+  }
+
   @Input() filteredDateRangeRows: any[] = [];
   @Input() dateRangePageNumber = 1;
   @Input() dateRangeTotalPages = 0;

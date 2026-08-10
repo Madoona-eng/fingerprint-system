@@ -1383,7 +1383,6 @@ export class EmployeesComponent implements OnInit {
       'دقائق التأخير': row.lateMinutes != null ? row.lateMinutes : '-',
       'دقائق الإضافي': row.overtimeMinutes != null ? row.overtimeMinutes : '-',
       الحالة: this.getStatusLabel(row.status),
-      الملاحظات: this.getNoteLabel(row.notes),
     }));
 
     exportToExcel(
@@ -1673,9 +1672,9 @@ export class EmployeesComponent implements OnInit {
         this.employeeForm.value.locationId != null
           ? Number(this.employeeForm.value.locationId)
           : undefined,
-      scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
-      scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
-      graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime),
+      scheduleIn: this.normalizeTimeForPayload(this.employeeForm.value.scheduleIn),
+      scheduleOut: this.normalizeTimeForPayload(this.employeeForm.value.scheduleOut),
+      graceTime: this.normalizeTimeForPayload(this.employeeForm.value.graceTime),
       isChristian: Boolean(this.employeeForm.value.isChristian),
       note: String(this.employeeForm.value.note || '').trim(),
     };
@@ -1689,9 +1688,9 @@ export class EmployeesComponent implements OnInit {
         this.employeeForm.value.locationId != null
           ? Number(this.employeeForm.value.locationId)
           : undefined,
-      scheduleIn: this.normalizeExcelTime(this.employeeForm.value.scheduleIn),
-      scheduleOut: this.normalizeExcelTime(this.employeeForm.value.scheduleOut),
-      graceTime: this.normalizeExcelTime(this.employeeForm.value.graceTime),
+      scheduleIn: this.normalizeTimeForPayload(this.employeeForm.value.scheduleIn),
+      scheduleOut: this.normalizeTimeForPayload(this.employeeForm.value.scheduleOut),
+      graceTime: this.normalizeTimeForPayload(this.employeeForm.value.graceTime),
       isChristian: Boolean(this.employeeForm.value.isChristian),
       note: String(this.employeeForm.value.note || '').trim(),
     };
@@ -1717,9 +1716,9 @@ export class EmployeesComponent implements OnInit {
       name: employee.name,
       departmentId: departmentId || null,
       locationId: employee.locationId != null ? employee.locationId : null,
-      scheduleIn: this.timeForInput(employee.scheduleIn),
-      scheduleOut: this.timeForInput(employee.scheduleOut),
-      graceTime: this.timeForInput(employee.graceTime),
+      scheduleIn: employee.scheduleIn || '',
+      scheduleOut: employee.scheduleOut || '',
+      graceTime: employee.graceTime || '',
       isChristian: employee.isChristian ?? false,
       note: employee.note ?? (employee as any).notes ?? '',
     });
@@ -2469,9 +2468,22 @@ export class EmployeesComponent implements OnInit {
       return `${this.pad(value.getHours())}:${this.pad(value.getMinutes())}:${this.pad(value.getSeconds())}`;
     }
 
-    const text = String(value).trim().toUpperCase();
+    const text = String(value).trim();
 
-    const match = text.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/);
+    const isoTimeMatch = text.match(/^(?:\d{4}-\d{2}-\d{2}[T ]?)?(\d{1,2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/);
+    if (isoTimeMatch) {
+      const hours = Number(isoTimeMatch[1]);
+      const minutes = Number(isoTimeMatch[2]);
+      const seconds = Number(isoTimeMatch[3]);
+
+      if (hours > 23 || minutes > 59 || seconds > 59) {
+        return text.toUpperCase();
+      }
+
+      return `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
+    }
+
+    const match = text.toUpperCase().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/);
 
     if (!match) {
       return text;
@@ -2550,11 +2562,13 @@ export class EmployeesComponent implements OnInit {
   }
 
   private isValidTimeString(value: string): boolean {
-    if (!value) {
+    const normalized = this.normalizeExcelTime(value);
+
+    if (!normalized) {
       return false;
     }
 
-    const match = String(value).match(/^(\d{2}):(\d{2}):(\d{2})$/);
+    const match = normalized.match(/^(\d{2}):(\d{2}):(\d{2})$/);
 
     if (!match) {
       return false;
@@ -2567,6 +2581,20 @@ export class EmployeesComponent implements OnInit {
     return (
       hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 && seconds >= 0 && seconds <= 59
     );
+  }
+
+  private normalizeTimeForPayload(value: any): string {
+    const text = String(value || '').trim();
+
+    if (!text) {
+      return '';
+    }
+
+    if (/Z$/i.test(text) || /[+-]\d{2}:?\d{2}$/.test(text)) {
+      return text;
+    }
+
+    return this.normalizeExcelTime(value);
   }
 
   timeForInput(value: string): string {

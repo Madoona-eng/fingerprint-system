@@ -285,8 +285,8 @@ export class FingerprintSheetComponent implements OnInit {
 
   private downloadExcel(records: RawPunchRecord[]): void {
     const rows = records.map((item) => ({
-      'الموظف': item.employeeName || 'غير محدد',
       'الكود': item.employeeCode || '-',
+      'الموظف': item.employeeName || 'غير محدد',
       'القسم': item['departmentRaw'] || '-',
       'التاريخ': this.formatDisplayValue(item['punchDate'] || item.date || '-'),
       'الدخول': item['inRaw'] || item.time || '-',

@@ -101,7 +101,7 @@
             <td><strong class="val-total">{{ analyticsStats.total }}</strong></td>
           </tr>
           <tr>
-            <td>حاضر منتظم</td>
+            <td>حاضر </td>
             <td><strong class="val-present">{{ analyticsStats.present }}</strong></td>
           </tr>
           <tr>
@@ -117,12 +117,8 @@
             <td><strong class="val-early">{{ analyticsStats.earlyDeparture }}</strong></td>
           </tr>
           <tr>
-            <td>إجازة شخصية</td>
-            <td><strong class="val-default">{{ analyticsStats.personalLeave }}</strong></td>
-          </tr>
-          <tr>
-            <td>إجازة عمل</td>
-            <td><strong class="val-default">{{ analyticsStats.workLeave }}</strong></td>
+            <td>أجازات</td>
+            <td><strong class="val-default">{{ leaveCount }}</strong></td>
           </tr>
           <tr>
             <td>مأمورية</td>
@@ -131,6 +127,10 @@
           <tr>
             <td>خط سير</td>
             <td><strong class="val-default">{{ analyticsStats.drivingRoute }}</strong></td>
+          </tr>
+          <tr>
+            <td>أونلاين</td>
+            <td><strong class="val-default">{{ analyticsStats.online }}</strong></td>
           </tr>
           <tr>
             <td>يحتاج مراجعة</td>
