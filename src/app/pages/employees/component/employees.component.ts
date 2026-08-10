@@ -1363,7 +1363,7 @@ export class EmployeesComponent implements OnInit {
       'وقت السماح': this.timeForInput(emp.graceTime),
     }));
 
-    exportToExcel(exportData, `employees-${this.analyticsDateDisplay || 'list'}`, 'موظفين');
+    exportToExcel(exportData, `الموظفين-${this.analyticsDateDisplay || 'قائمة'}`, 'موظفين');
   }
 
   exportEmployeeDetailsToExcel(): void {
@@ -1388,7 +1388,7 @@ export class EmployeesComponent implements OnInit {
 
     exportToExcel(
       exportData,
-      `employee-details-${this.selectedEmployeeForDetails?.employeeCode || 'details'}`,
+      `تفاصيل-الموظف-${this.selectedEmployeeForDetails?.employeeCode || 'تفاصيل'}`,
       'تفاصيل الموظف',
     );
   }

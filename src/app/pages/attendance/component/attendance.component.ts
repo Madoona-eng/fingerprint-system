@@ -814,11 +814,10 @@ export class AttendanceComponent implements OnInit {
           الانصراف: row.actualOut || '-',
           الحالة: this.getAttendanceStatusLabel(row.status),
           'التأخير (د)': row.lateMinutes ?? '-',
-          'العمل (س)': row.workedMinutes ?? '-',
-          الملاحظات: row.notes || '-',
+          'العمل (س)': this.formatWorkedHours(row.workedMinutes),
         }));
 
-        exportToExcel(exportData, `attendance-report-${this.dateRangeFrom || 'report'}`, 'تقرير الحضور');
+        exportToExcel(exportData, `تقرير-الحضور-${this.dateRangeFrom || 'تقرير'}`, 'تقرير الحضور');
       } catch (err) {
         console.error('Failed exporting attendance report', err);
         this.dateRangeErrorMessage = 'فشل تصدير ملف Excel';
@@ -892,7 +891,7 @@ export class AttendanceComponent implements OnInit {
           'إجمالي دقائق التأخير': row.totalLateMinutes || 0,
         }));
 
-        exportToExcel(exportData, `late-summary-${this.lateSummaryFrom || 'summary'}`, 'ملخص التأخير');
+        exportToExcel(exportData, `ملخص-التأخير-${this.lateSummaryFrom || 'ملخص'}`, 'ملخص التأخير');
       } catch (err) {
         console.error('Failed exporting late summary', err);
         this.lateSummaryErrorMessage = 'فشل تصدير ملف Excel';
@@ -936,6 +935,34 @@ export class AttendanceComponent implements OnInit {
       normalizedNotes.includes('تمت مراجعه') ||
       normalizedNotes.includes('reviewed')
     );
+  }
+
+  // ============================================================
+  // formatWorkedHours
+  // ============================================================
+  formatWorkedHours(value: unknown): string {
+    if (value === null || value === undefined || value === '') {
+      return '-';
+    }
+
+    const totalMinutes = Number(value);
+
+    if (!Number.isFinite(totalMinutes) || totalMinutes < 0) {
+      return '-';
+    }
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours === 0) {
+      return `${minutes} دقيقة`;
+    }
+
+    if (minutes === 0) {
+      return `${hours} ساعة`;
+    }
+
+    return `${hours} ساعة و ${minutes} دقيقة`;
   }
 
   // ============================================================

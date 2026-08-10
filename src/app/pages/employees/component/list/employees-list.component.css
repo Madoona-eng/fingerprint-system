@@ -219,11 +219,28 @@
 }
 
 .export-excel-btn {
-    background: var(--excel-color) !important;
+    background-color: #107c41 !important;
+    color: white !important;
+    height: 42px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    /* رفع الزر لأعلى */
+    transform: translateY(-4px); 
+    
+    /* أو يمكنك استخدام margin سلبي إذا لزم الأمر */
+    /* margin-top: -4px; */
 }
 
 .export-excel-btn:hover {
-    background: var(--excel-color-hover) !important;
+    background-color: #0b5c30 !important;
+    /* الحفاظ على الرفع عند التمرير بالماوس */
+    transform: translateY(-6px); 
 }
 /*==================================
     Loading

@@ -77,12 +77,25 @@
 
         <div *ngIf="excelFileName" class="file-name">الملف المختار: {{ excelFileName }}</div>
 
-        <div *ngIf="excelSuccessMessage" class="success-message">
-          {{ excelSuccessMessage }}
-        </div>
+        <div *ngIf="excelSuccessMessage || excelErrorMessage || excelRowErrors.length > 0" class="upload-message-box">
+          <div class="message-summary">
+            <div *ngIf="excelSuccessMessage" class="success-message">
+              {{ excelSuccessMessage }}
+            </div>
 
-        <div *ngIf="excelErrorMessage" class="error-message">
-          {{ excelErrorMessage }}
+            <div *ngIf="excelErrorMessage" class="error-message">
+              {{ excelErrorMessage }}
+            </div>
+          </div>
+
+          <ul *ngIf="excelRowErrors.length > 0" class="row-errors">
+            <li *ngFor="let rowError of excelRowErrors | slice: 0 : 6">
+              {{ rowError }}
+            </li>
+            <li *ngIf="excelRowErrors.length > 6">
+              ويوجد {{ excelRowErrors.length - 6 }} أخطاء أخرى...
+            </li>
+          </ul>
         </div>
 
         <div *ngIf="missingDepartmentNames.length > 0" class="unknown-card">

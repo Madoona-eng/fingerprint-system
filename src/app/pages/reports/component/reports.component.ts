@@ -497,7 +497,7 @@ export class ReportsComponent implements OnInit {
       }
     ];
 
-    const fileName = `summary-${this.analyticsDateDisplay ? this.analyticsDateDisplay.replace(/\//g, '-') : 'report'}`;
+    const fileName = `ملخص-اليوم-${this.analyticsDateDisplay ? this.analyticsDateDisplay.replace(/\//g, '-') : 'تقرير'}`;
     exportToExcel(exportData, fileName, 'ملخص اليوم');
   }
 
@@ -516,7 +516,7 @@ export class ReportsComponent implements OnInit {
       'ترك عمل': row.earlyDeparture
     }));
 
-    const fileName = `departments-${this.analyticsDateDisplay ? this.analyticsDateDisplay.replace(/\//g, '-') : 'report'}`;
+    const fileName = `تحليل-الأقسام-${this.analyticsDateDisplay ? this.analyticsDateDisplay.replace(/\//g, '-') : 'تقرير'}`;
     exportToExcel(exportData, fileName, 'تحليل الأقسام');
   }
 

@@ -238,15 +238,30 @@
   transform: translateY(-2px);
 }
 
+.upload-message-box {
+  display: grid;
+  gap: 12px;
+  padding: 18px 22px;
+  border-radius: 22px;
+  background: rgba(248, 250, 252, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.message-summary {
+  display: grid;
+  gap: 10px;
+}
+
 .row-errors {
   margin: 0;
-  padding: 14px 28px;
+  padding: 14px 18px;
   border-radius: 16px;
-  color: #ffe1e1;
-  background: rgba(255, 68, 68, 0.09);
-  border: 1px solid rgba(255, 100, 100, 0.18);
+  color: #991b1b;
+  background: rgba(254, 226, 226, 0.95);
+  border: 1px solid rgba(252, 165, 165, 0.45);
   font-size: 13px;
   line-height: 1.9;
+  list-style-position: inside;
 }
 
 .excel-actions {
