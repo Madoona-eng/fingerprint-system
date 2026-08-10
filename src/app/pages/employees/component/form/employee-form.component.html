@@ -30,17 +30,17 @@
 
       <div class="form-group">
         <label>وقت الحضور</label>
-        <input type="text" formControlName="scheduleIn" placeholder="10:40:52.625Z" />
+        <input [type]="selectedEmployeeId !== null ? 'text' : 'time'" formControlName="scheduleIn" placeholder="10:40:52.625Z" />
       </div>
 
       <div class="form-group">
         <label>وقت الانصراف</label>
-        <input type="text" formControlName="scheduleOut" placeholder="10:40:52.625Z" />
+        <input [type]="selectedEmployeeId !== null ? 'text' : 'time'" formControlName="scheduleOut" placeholder="10:40:52.625Z" />
       </div>
 
       <div class="form-group">
         <label>وقت السماح</label>
-        <input type="text" formControlName="graceTime" placeholder="10:40:52.625Z" />
+        <input [type]="selectedEmployeeId !== null ? 'text' : 'time'" formControlName="graceTime" placeholder="10:40:52.625Z" />
       </div>
 
       <div *ngIf="selectedEmployeeId === null" class="form-group checkbox-group full-width-field">
