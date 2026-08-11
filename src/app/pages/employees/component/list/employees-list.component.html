@@ -169,7 +169,14 @@
           <td>{{ emp.graceTime }}</td>
           <td>
             <div class="employee-actions">
-              <button type="button" class="table-action-btn edit-action" (click)="editEmployee.emit(emp)">تعديل</button>
+              <button
+                type="button"
+                class="table-action-btn edit-action"
+                [disabled]="selectedLocationId === null"
+                (click)="selectedLocationId !== null && editEmployee.emit(emp)"
+              >
+                تعديل
+              </button>
               <button type="button" class="table-action-btn details-action" (click)="openDetails.emit(emp)">تفاصيل</button>
               <button type="button" class="table-action-btn note-action" (click)="openNote.emit(emp)">إضافة ملاحظة</button>
               <button type="button" class="table-action-btn delete-action" (click)="deleteEmployee.emit(emp)">حذف</button>
