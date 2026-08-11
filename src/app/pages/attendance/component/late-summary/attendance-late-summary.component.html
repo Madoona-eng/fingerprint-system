@@ -59,7 +59,7 @@
         placeholder="مثال: أحمد"
         [ngModel]="lateSummaryEmployeeSearch"
         [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="lateSummaryEmployeeSearchChange.emit($event)"
+        (ngModelChange)="lateSummaryEmployeeSearchChange.emit($event); lateSummarySearchInput.emit()"
       />
     </div>
 
@@ -81,6 +81,7 @@
         [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="lateSummaryDepartmentIdChange.emit($event)"
       >
+        <option [ngValue]="null">كل الأقسام</option>
         <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
       </select>
     </div>

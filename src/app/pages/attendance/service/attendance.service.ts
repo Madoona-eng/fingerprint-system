@@ -98,7 +98,7 @@ export class AttendanceService {
   getAttendanceSummary(date: string, locationId: number | null = null): Observable<any> {
     let params = new HttpParams().set('date', date);
 
-    if (locationId !== null && locationId !== undefined && locationId > 0) {
+    if (locationId !== null && locationId !== undefined) {
       params = params.set('locationId', String(locationId));
     }
 

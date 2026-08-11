@@ -12,6 +12,10 @@ import { getAttendanceStatusLabel } from '../../../../shared/utils/attendance-st
   styleUrls: ['./employee-details.component.css']
 })
 export class EmployeeDetailsComponent {
+  showNotesModal = false;
+  modalNotesTitle = 'الملاحظات';
+  modalNotes: Array<{ content: string; displayName?: string; createdAt?: string }> = [];
+
   @Input() selectedEmployeeForDetails: Employee | null = null;
   @Input() employeeDetailsRows: any[] = [];
   @Input() isLoadingEmployeeDetails = false;
@@ -73,12 +77,63 @@ export class EmployeeDetailsComponent {
     return `${hours}:${remainingMinutes.toString().padStart(2, '0')}`;
   }
 
+  openRowNotesModal(row: any): void {
+    const parsedNotes = this.extractRowNotes(row?.notes);
+
+    this.modalNotesTitle = `الملاحظات - ${row?.date || row?.attendanceDate || row?.from || 'السجل'}`;
+    this.modalNotes = parsedNotes;
+    this.showNotesModal = true;
+  }
+
   deleteEmployeeNoteById(noteId: number | string | undefined): void {
     if (noteId == null) {
       return;
     }
 
     this.deleteEmployeeNote.emit(noteId);
+  }
+
+  private extractRowNotes(notes: unknown): Array<{ content: string; displayName?: string; createdAt?: string }> {
+    if (Array.isArray(notes)) {
+      return notes
+        .map((item) => this.normalizeNoteEntry(item))
+        .filter((item): item is { content: string; displayName?: string; createdAt?: string } => Boolean(item?.content));
+    }
+
+    const singleNote = this.normalizeNoteValue(notes);
+    return singleNote ? [{ content: singleNote }] : [];
+  }
+
+  private normalizeNoteEntry(note: unknown): { content: string; displayName?: string; createdAt?: string } | null {
+    if (typeof note === 'string') {
+      const text = this.normalizeNoteValue(note);
+      return text ? { content: text } : null;
+    }
+
+    if (note && typeof note === 'object') {
+      const candidate = note as {
+        id?: number | string;
+        text?: string;
+        note?: string;
+        content?: string;
+        description?: string;
+        value?: string;
+        name?: string;
+        displayName?: string;
+        createdAt?: string;
+      };
+
+      const text = candidate.content || candidate.text || candidate.note || candidate.description || candidate.value || candidate.name;
+      if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeName(text)) {
+        return {
+          content: text.trim(),
+          displayName: candidate.displayName?.trim() || undefined,
+          createdAt: candidate.createdAt?.trim() || undefined,
+        };
+      }
+    }
+
+    return null;
   }
 
   private normalizeEmployeeNoteItem(note: unknown): { id?: number | string; content: string } | null {

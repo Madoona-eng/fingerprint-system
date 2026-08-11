@@ -22,7 +22,7 @@
   <b>الحضور والانصراف</b>
 </a>
 
-      <a routerLink="/dashboard/fingerprint-sheet" routerLinkActive="active">
+      <a *ngIf="!hideFingerprintSheet" routerLink="/dashboard/fingerprint-sheet" routerLinkActive="active">
         <span>🖨️</span>
         <b>شيت البصمة</b>
       </a>

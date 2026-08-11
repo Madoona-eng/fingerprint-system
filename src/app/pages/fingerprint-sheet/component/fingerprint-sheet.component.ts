@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { FingerprintSheetService } from '../service/fingerprint-sheet.service';
 import { RawPunchRecord } from '../model/models';
 import { exportToExcel } from '../../../shared/utils/excel.util';
@@ -9,7 +8,7 @@ import { exportToExcel } from '../../../shared/utils/excel.util';
 @Component({
   selector: 'app-fingerprint-sheet',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './fingerprint-sheet.component.html',
   styleUrls: ['./fingerprint-sheet.component.css']
 })
@@ -215,14 +214,22 @@ export class FingerprintSheetComponent implements OnInit {
     this.errorMessage = '';
 
     const { employeeCode, employeeName } = this.splitSearchTerm();
+    const shouldSearchAcrossPages = !!(employeeName || employeeCode);
 
-    this.fingerprintSheetService.getRawPunches(
-      this.date,
-      employeeCode,
-      employeeName,
-      this.pageNumber,
-      this.pageSize
-    ).subscribe({
+    if (shouldSearchAcrossPages) {
+      this.fingerprintSheetService.fetchAllRawPunches(this.date, employeeCode, employeeName, this.pageSize).then((allRecords) => {
+        this.records = allRecords;
+        this.totalCount = allRecords.length;
+        this.totalPages = Math.max(1, Math.ceil(this.totalCount / this.pageSize));
+        this.isLoading = false;
+      }).catch(() => {
+        this.errorMessage = 'فشل تحميل شيت البصمة';
+        this.isLoading = false;
+      });
+      return;
+    }
+
+    this.fingerprintSheetService.getRawPunches(this.date, '', '', this.pageNumber, this.pageSize).subscribe({
       next: (response: any) => {
         const data = response?.data ?? response;
         const items = Array.isArray(data) ? data : data?.items ?? [];

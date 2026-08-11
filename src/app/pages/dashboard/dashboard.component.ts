@@ -12,8 +12,13 @@ export class DashboardComponent {
   userName = localStorage.getItem('userName') || 'مستخدمة النظام';
   userRole = localStorage.getItem('userRole') || 'Admin';
   isSidebarCollapsed = false;
+  hideFingerprintSheet = this.isTechnicalAdminRole(this.userRole);
 
   constructor(private router: Router) {}
+
+  private isTechnicalAdminRole(role: string | null): boolean {
+    return (role || '').trim().toLowerCase() === 'technicaladmin';
+  }
 
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;

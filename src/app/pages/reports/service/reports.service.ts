@@ -16,7 +16,10 @@ export class ReportsService {
     departmentId: number | null = null,
     status: string = '',
     pageNumber: number = 1,
-    pageSize: number = 10000
+    pageSize: number = 10000,
+    route: string = '',
+    employeeName: string | null = null,
+    locationId: number | null = null
   ): Observable<any> {
     return this.attendanceService.getAttendanceByDateRange(
       from,
@@ -24,7 +27,10 @@ export class ReportsService {
       departmentId,
       status,
       pageNumber,
-      pageSize
+      pageSize,
+      route,
+      employeeName,
+      locationId
     );
   }
 }

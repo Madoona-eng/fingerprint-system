@@ -39,7 +39,7 @@
         </div>
       </div>
 
-      <div class="filter-field">
+      <div class="filter-field" *ngIf="isSuperAdminUser">
         <label>الموقع</label>
         <select
           [(ngModel)]="selectedLocationId"
@@ -52,6 +52,7 @@
           </option>
         </select>
       </div>
+
       <button
         type="button"
         class="apply-search-btn"

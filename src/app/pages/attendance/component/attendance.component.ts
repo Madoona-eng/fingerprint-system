@@ -385,11 +385,10 @@ export class AttendanceComponent implements OnInit {
     if (field === 'from') {
       this.lateSummaryFromDisplay = displayValue;
       this.lateSummaryFrom = apiDate;
-      return;
+    } else {
+      this.lateSummaryToDisplay = displayValue;
+      this.lateSummaryTo = apiDate;
     }
-
-    this.lateSummaryToDisplay = displayValue;
-    this.lateSummaryTo = apiDate;
   }
 
   // ============================================================
@@ -746,6 +745,25 @@ export class AttendanceComponent implements OnInit {
   }
 
   // ============================================================
+  // getAttendanceExportRow
+  // ============================================================
+  getAttendanceExportRow(row: any): any {
+    return {
+      الكود: row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-',
+      اسم_الموظف: row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
+      القسم: row.departmentName || row.employee?.departmentName || row.department?.name || '-',
+      التاريخ: row.date || row.attendanceDate || '-',
+      'معاد الحضور': row.scheduleIn || row.shift?.scheduleIn || row.shift?.inTime || row.schedule?.in || '-',
+      'معاد الانصراف': row.scheduleOut || row.shift?.scheduleOut || row.shift?.outTime || row.schedule?.out || '-',
+      الحضور: row.actualIn || '-',
+      الانصراف: row.actualOut || '-',
+      الحالة: this.getAttendanceStatusLabel(row.status),
+      'التأخير (د)': row.lateMinutes ?? '-',
+      'العمل (س)': this.formatWorkedHours(row.workedMinutes),
+    };
+  }
+
+  // ============================================================
   // exportAttendanceReportToExcel  --- USES getAttendanceByDateRange (paginated fetch-all)
   // ============================================================
   exportAttendanceReportToExcel(): void {
@@ -804,18 +822,7 @@ export class AttendanceComponent implements OnInit {
           return;
         }
 
-        const exportData = allRows.map((row: any) => ({
-          الكود: row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-',
-          اسم_الموظف:
-            row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
-          القسم: row.departmentName || row.employee?.departmentName || row.department?.name || '-',
-          التاريخ: row.date || row.attendanceDate || '-',
-          الحضور: row.actualIn || '-',
-          الانصراف: row.actualOut || '-',
-          الحالة: this.getAttendanceStatusLabel(row.status),
-          'التأخير (د)': row.lateMinutes ?? '-',
-          'العمل (س)': this.formatWorkedHours(row.workedMinutes),
-        }));
+        const exportData = allRows.map((row: any) => this.getAttendanceExportRow(row));
 
         exportToExcel(exportData, `تقرير-الحضور-${this.dateRangeFrom || 'تقرير'}`, 'تقرير الحضور');
       } catch (err) {
@@ -886,6 +893,7 @@ export class AttendanceComponent implements OnInit {
         const exportData = allRows.map((row: any) => ({
           كود_الموظف: row.employeeCode || '-',
           اسم_الموظف: row.employeeName || '-',
+          القسم: row.departmentName || '-',
           'من تاريخ': row.from || '-',
           'إلى تاريخ': row.to || '-',
           'إجمالي دقائق التأخير': row.totalLateMinutes || 0,
@@ -1546,7 +1554,24 @@ export class AttendanceComponent implements OnInit {
         this.successMessage = `تم الاستيراد: ${successCount} سجل اتحفظ، ${skippedCount} تم تخطيه، ${failedCount} فشل.`;
 
         if (failedCount > 0) {
-          this.errorMessage = `فشل حفظ ${failedCount} سجل حضور. راجعي Failed rows في Console لمعرفة السبب.`;
+          const failureDetails = failedRows
+            .map((item: any) => {
+              const message = item?.message || item?.errorMessage || item?.error || item?.details || item?.reason || item?.statusMessage || '';
+              const employeeCode = item?.employeeCode || item?.employee?.employeeCode || item?.employeeCode || '';
+              const rowNumber = item?.rowNumber || item?.row || item?.index;
+
+              const parts = [message, employeeCode ? `رمز الموظف: ${employeeCode}` : '', rowNumber ? `الصف: ${rowNumber}` : ''].filter(Boolean);
+              return parts.join(' | ');
+            })
+            .filter((item: string) => item && item.trim() !== '')
+            .slice(0, 6);
+
+          if (failureDetails.length > 0) {
+            this.rowErrors = [...this.rowErrors, ...failureDetails];
+            this.errorMessage = `فشل حفظ ${failedCount} سجل حضور. ${failureDetails.join(' | ')}`;
+          } else {
+            this.errorMessage = `فشل حفظ ${failedCount} سجل حضور.`;
+          }
         }
       },
       error: (err) => {
@@ -2098,14 +2123,11 @@ export class AttendanceComponent implements OnInit {
   // onLateSummarySearchInput --- debounced trigger for loadLateSummary
   // ============================================================
   onLateSummarySearchInput(): void {
-    if (this.lateSummarySearchTimer) {
-      clearTimeout(this.lateSummarySearchTimer);
-    }
-
     this.lateSummaryPageNumber = 1;
-    this.lateSummarySearchTimer = setTimeout(() => {
-      this.loadLateSummary();
-    }, 300);
+  }
+
+  onLateSummaryLocationOrDepartmentChange(): void {
+    this.lateSummaryPageNumber = 1;
   }
 
   // ============================================================
@@ -2129,73 +2151,75 @@ export class AttendanceComponent implements OnInit {
   }
 
   // ============================================================
-  // loadLateSummary  ★★★ getLateSummary call (main load, single page - NO client-side re-filter, unlike searchEmployee)
+  // loadLateSummary  ★★★ getLateSummary call (server-side filter + pagination)
   // ============================================================
   loadLateSummary(): void {
-    const fromApiDate = this.displayDateToApi(this.lateSummaryFromDisplay);
-    const toApiDate = this.displayDateToApi(this.lateSummaryToDisplay);
+    (async () => {
+      const fromApiDate = this.displayDateToApi(this.lateSummaryFromDisplay);
+      const toApiDate = this.displayDateToApi(this.lateSummaryToDisplay);
 
-    if (!fromApiDate || !toApiDate) {
-      this.lateSummaryErrorMessage = 'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
-      return;
-    }
+      if (!fromApiDate || !toApiDate) {
+        this.lateSummaryErrorMessage = 'من فضلك اكتب التاريخ بطريقة صحيحة مثل: 31/03/2026';
+        return;
+      }
 
-    this.isLoadingLateSummary = true;
-    this.lateSummaryErrorMessage = '';
-    this.lateSummarySuccessMessage = '';
+      this.isLoadingLateSummary = true;
+      this.lateSummaryErrorMessage = '';
+      this.lateSummarySuccessMessage = '';
 
-    this.lateSummaryFrom = fromApiDate;
-    this.lateSummaryTo = toApiDate;
-    this.lateSummaryFromDisplay = this.apiDateToDisplay(fromApiDate);
-    this.lateSummaryToDisplay = this.apiDateToDisplay(toApiDate);
+      this.lateSummaryFrom = fromApiDate;
+      this.lateSummaryTo = toApiDate;
+      this.lateSummaryFromDisplay = this.apiDateToDisplay(fromApiDate);
+      this.lateSummaryToDisplay = this.apiDateToDisplay(toApiDate);
 
-    this.attendanceService
-      .getLateSummary(
-        this.lateSummaryFrom,
-        this.lateSummaryTo,
-        this.lateSummaryEmployeeSearch || null,
-        this.lateSummaryDepartmentId,
-        this.lateSummaryPageNumber,
-        this.lateSummaryPageSize,
-        this.lateSummaryLocationId,
-      )
-      .subscribe({
-        next: (response: any) => {
-          this.isLoadingLateSummary = false;
+      try {
+        const response = await firstValueFrom(
+          this.attendanceService.getLateSummary(
+            this.lateSummaryFrom,
+            this.lateSummaryTo,
+            this.lateSummaryEmployeeSearch?.trim() || null,
+            this.lateSummaryDepartmentId,
+            this.lateSummaryPageNumber,
+            this.lateSummaryPageSize,
+            this.lateSummaryLocationId,
+          ),
+        );
 
-          const data = response?.data ?? response;
+        const data = response?.data ?? response;
 
-          if (Array.isArray(data?.items)) {
-            this.lateSummaryRows = data.items;
-            this.lateSummaryPageNumber = data.pageNumber || 1;
-            this.lateSummaryPageSize = data.pageSize || this.lateSummaryPageSize;
-            this.lateSummaryTotalCount = data.totalCount || 0;
-            this.lateSummaryTotalPages = data.totalPages || 0;
-          } else if (Array.isArray(data)) {
-            this.lateSummaryRows = data;
-            this.lateSummaryTotalCount = data.length;
-            this.lateSummaryTotalPages = 1;
-          } else {
-            this.lateSummaryRows = [];
-            this.lateSummaryTotalCount = 0;
-            this.lateSummaryTotalPages = 0;
-          }
-
-          this.lateSummaryData = this.lateSummaryRows;
-          this.lateSummarySuccessMessage = response?.message || 'تم عرض ملخص التأخير بنجاح';
-        },
-        error: (err: any) => {
-          this.isLoadingLateSummary = false;
-
-          this.lateSummaryErrorMessage = this.translateApiMessage(
-            err?.error?.message || err?.message || 'حدث خطأ أثناء جلب ملخص التأخير',
-            'حدث خطأ أثناء جلب ملخص التأخير',
-          );
-
-          this.lateSummaryData = null;
+        if (Array.isArray(data?.items)) {
+          this.lateSummaryRows = data.items;
+          this.lateSummaryPageNumber = data.pageNumber || this.lateSummaryPageNumber;
+          this.lateSummaryPageSize = data.pageSize || this.lateSummaryPageSize;
+          this.lateSummaryTotalCount = data.totalCount || 0;
+          this.lateSummaryTotalPages = data.totalPages || 0;
+        } else if (Array.isArray(data)) {
+          this.lateSummaryRows = data;
+          this.lateSummaryPageNumber = 1;
+          this.lateSummaryPageSize = this.lateSummaryPageSize;
+          this.lateSummaryTotalCount = data.length;
+          this.lateSummaryTotalPages = 1;
+        } else {
           this.lateSummaryRows = [];
-        },
-      });
+          this.lateSummaryTotalCount = 0;
+          this.lateSummaryTotalPages = 0;
+        }
+
+        this.isLoadingLateSummary = false;
+        this.lateSummaryData = this.lateSummaryRows;
+        this.lateSummarySuccessMessage = 'تم عرض ملخص التأخير بنجاح';
+      } catch (err: any) {
+        this.isLoadingLateSummary = false;
+
+        this.lateSummaryErrorMessage = this.translateApiMessage(
+          err?.error?.message || err?.message || 'حدث خطأ أثناء جلب ملخص التأخير',
+          'حدث خطأ أثناء جلب ملخص التأخير',
+        );
+
+        this.lateSummaryData = null;
+        this.lateSummaryRows = [];
+      }
+    })();
   }
 
   // ============================================================

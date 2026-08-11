@@ -58,6 +58,10 @@ export class ReportsComponent implements OnInit {
     this.loadAnalytics();
   }
 
+  get isSuperAdminUser(): boolean {
+    return this.authService.getUserRole()?.trim() === 'SuperAdmin';
+  }
+
   setTodayDate(): void {
     const today = new Date();
 
@@ -175,9 +179,12 @@ export class ReportsComponent implements OnInit {
         null,
         '',
         1,
-        10000
+        10000,
+        '',
+        null,
+        this.selectedLocationId ?? 0
       ),
-      summary: this.reportsService.getAttendanceSummary(this.analyticsDate, this.selectedLocationId)
+      summary: this.reportsService.getAttendanceSummary(this.analyticsDate, this.selectedLocationId ?? 0)
     }).subscribe({
       next: (result: any) => {
         const summaryData = result.summary?.data || result.summary;
@@ -520,16 +527,44 @@ export class ReportsComponent implements OnInit {
 
     const exportData = [
       {
-        'التاريخ': this.rawData?.date || this.analyticsDateDisplay || '',
-        'إجمالي الموظفين': this.pickNumber(this.rawData, ['total', 'totalEmployees', 'employeeCount', 'count']),
-        'حاضر': this.pickNumber(this.rawData, ['present', 'presentCount', 'totalPresent']),
-        'متأخر': this.pickNumber(this.rawData, ['late', 'lateCount', 'totalLate']),
-        'غائب': this.pickNumber(this.rawData, ['absent', 'absentCount', 'totalAbsent']),
-        'ترك عمل': this.pickNumber(this.rawData, ['earlyDeparture', 'earlyDepartureCount', 'totalEarlyDeparture']),
-        'إجازة شخصية': this.pickNumber(this.rawData, ['personalLeave', 'personalLeaveCount', 'totalPersonalLeave']),
-        'إجازة عمل': this.pickNumber(this.rawData, ['workLeave', 'workLeaveCount', 'totalWorkLeave']),
-        'مأمورية': this.pickNumber(this.rawData, ['mission', 'missionCount', 'totalMission']),
-        'رحلة قيادة': this.pickNumber(this.rawData, ['drivingRoute', 'drivingRouteCount', 'totalDrivingRoute'])
+        'الإحصائية': 'إجمالي الموظفين',
+        'القيمة': this.pickNumber(this.rawData, ['total', 'totalEmployees', 'employeeCount', 'count'])
+      },
+      {
+        'الإحصائية': 'حاضر',
+        'القيمة': this.pickNumber(this.rawData, ['present', 'presentCount', 'totalPresent'])
+      },
+      {
+        'الإحصائية': 'غائب',
+        'القيمة': this.pickNumber(this.rawData, ['absent', 'absentCount', 'totalAbsent'])
+      },
+      {
+        'الإحصائية': 'متأخر',
+        'القيمة': this.pickNumber(this.rawData, ['late', 'lateCount', 'totalLate'])
+      },
+      {
+        'الإحصائية': 'ترك عمل',
+        'القيمة': this.pickNumber(this.rawData, ['earlyDeparture', 'earlyDepartureCount', 'totalEarlyDeparture'])
+      },
+      {
+        'الإحصائية': 'أجازات',
+        'القيمة': this.leaveCount
+      },
+      {
+        'الإحصائية': 'مأمورية',
+        'القيمة': this.pickNumber(this.rawData, ['mission', 'missionCount', 'totalMission'])
+      },
+      {
+        'الإحصائية': 'خط سير',
+        'القيمة': this.pickNumber(this.rawData, ['drivingRoute', 'drivingRouteCount', 'totalDrivingRoute'])
+      },
+      {
+        'الإحصائية': 'أونلاين',
+        'القيمة': this.pickNumber(this.rawData, ['online', 'onlineCount', 'totalOnline'])
+      },
+      {
+        'الإحصائية': 'يحتاج مراجعة',
+        'القيمة': this.analyticsStats.needsReview
       }
     ];
 

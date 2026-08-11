@@ -37,6 +37,7 @@ export class AttendanceLateSummaryComponent {
   @Output() loadLateSummary = new EventEmitter<void>();
   @Output() clearLateSummary = new EventEmitter<void>();
   @Output() exportLateSummaryToExcel = new EventEmitter<void>();
+  @Output() lateSummarySearchInput = new EventEmitter<void>();
   @Output() onLocationChange = new EventEmitter<number | null>();
   @Output() openNativeDatePicker = new EventEmitter<HTMLInputElement>();
   @Output() nativeDatePicked = new EventEmitter<{ event: Event; field: 'from' | 'to' }>();

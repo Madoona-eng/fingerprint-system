@@ -24,7 +24,7 @@
     </div>
 
     <!-- قائمة اختر الموقع (SuperAdmin فقط) -->
-    <div class="custom-select-wrapper" *ngIf="isSuperAdmin">
+    <div class="custom-select-wrapper" *ngIf="shouldShowLocationSelector">
       <select
         class="filter-select"
         [ngModel]="selectedLocationId"
@@ -45,10 +45,10 @@
         [ngModel]="departmentId"
         (ngModelChange)="onDepartmentChange($event)"
         [ngModelOptions]="{ standalone: true }"
-        [disabled]="isSuperAdmin && selectedLocationId === null"
+        [disabled]="shouldDisableDepartments"
       >
         <option [ngValue]="null">
-          {{ (isSuperAdmin && selectedLocationId === null) ? 'اختر الموقع أولاً لعرض الأقسام' : 'كل الأقسام' }}
+          {{ shouldDisableDepartments ? 'اختر الموقع أولاً لعرض الأقسام' : 'كل الأقسام' }}
         </option>
         <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">
           {{ dep.name }}

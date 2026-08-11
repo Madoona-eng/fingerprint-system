@@ -37,6 +37,14 @@ export class EmployeesListComponent {
 
   confirmToggle = false;
 
+  get shouldShowLocationSelector(): boolean {
+    return this.isSuperAdmin && this.locationOptions.length > 1;
+  }
+
+  get shouldDisableDepartments(): boolean {
+    return this.isSuperAdmin && this.selectedLocationId === null && this.shouldShowLocationSelector;
+  }
+
   @Output() searchTermChange = new EventEmitter<string>();
   @Output() departmentIdChange = new EventEmitter<number | null>();
   @Output() selectedLocationIdChange = new EventEmitter<number | null>();

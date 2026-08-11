@@ -95,24 +95,40 @@
   <div class="employee-notes-card">
     <div class="section-title-row">
       <h2>ملاحظات الموظف</h2>
-      <span>{{ getEmployeeNotes().length }} ملاحظة</span>
-    </div>
-
-    <div *ngIf="getEmployeeNotes().length > 0" class="notes-list">
-      <div class="note-item" *ngFor="let noteItem of getEmployeeNoteItems()">
-        <span class="note-icon">•</span>
-        <span class="note-text">{{ noteItem.content }}</span>
-        <button
-          type="button"
-          class="table-action-btn delete-note-btn"
-          (click)="deleteEmployeeNoteById(noteItem.id)"
-        >
-          حذف
+      <div class="section-actions">
+        <span>{{ getEmployeeNotes().length }} ملاحظة</span>
+        <button type="button" class="details-main-btn notes-trigger-btn" (click)="showNotesModal = true" [disabled]="getEmployeeNotes().length === 0">
+          عرض الملاحظات
         </button>
       </div>
     </div>
 
     <div *ngIf="getEmployeeNotes().length === 0" class="details-empty">لا توجد ملاحظات لهذا الموظف.</div>
+  </div>
+
+  <div *ngIf="showNotesModal" class="notes-modal-backdrop" (click)="showNotesModal = false">
+    <div class="notes-modal" (click)="$event.stopPropagation()">
+      <div class="notes-modal-header">
+        <h3>{{ modalNotesTitle }}</h3>
+        <button type="button" class="close-modal-btn" (click)="showNotesModal = false">×</button>
+      </div>
+
+      <div class="notes-modal-body" *ngIf="modalNotes.length > 0">
+        <div class="note-item modal-note-item" *ngFor="let noteItem of modalNotes">
+          <span class="note-icon">•</span>
+          <div class="note-text">
+            <div class="note-meta" *ngIf="noteItem.createdAt || noteItem.displayName">
+              <span *ngIf="noteItem.createdAt">📅 {{ noteItem.createdAt | date:'yyyy/MM/dd HH:mm' }}</span>
+              <span *ngIf="noteItem.displayName">👤 {{ noteItem.displayName }}</span>
+            </div>
+            <div class="note-main-text">{{ noteItem.content }}</div>
+            
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="modalNotes.length === 0" class="details-empty empty-notes-state">لا توجد ملاحظات لهذا السجل.</div>
+    </div>
   </div>
 
   <div class="employee-details-table-card">
@@ -130,9 +146,10 @@
         <thead>
           <tr>
             <th>التاريخ</th>
+          
             <th>معاد الحضور</th>
             <th>معاد الانصراف</th>
-            <th>وقت الحضور</th>
+              <th>وقت الحضور</th>
             <th>وقت الانصراف</th>
             <th>وقت السماح</th>
             <th>ساعات العمل</th>
@@ -145,16 +162,25 @@
         <tbody>
           <tr *ngFor="let row of employeeDetailsRows">
             <td>{{ row.date || row.attendanceDate || row.from || '-' }}</td>
-            <td>{{ row.actualIn || row.checkIn || row.in || '-' }}</td>
-            <td>{{ row.actualOut || row.checkOut || row.out || '-' }}</td>
+           
             <td>{{ row.scheduleIn || row.attendanceScheduleIn || '-' }}</td>
             <td>{{ row.scheduleOut || row.attendanceScheduleOut || '-' }}</td>
+             <td>{{ row.actualIn || row.checkIn || row.in || '-' }}</td>
+            <td>{{ row.actualOut || row.checkOut || row.out || '-' }}</td>
             <td>{{ row.graceTime || row.attendanceGraceTime || '-' }}</td>
             <td>{{ formatMinutesToHours(row.workedMinutes) }}</td>
             <td>{{ row.lateMinutes != null ? row.lateMinutes : '-' }}</td>
             <td>{{ row.overtimeMinutes != null ? row.overtimeMinutes : '-' }}</td>
             <td>{{ getStatusLabel(row.status) }}</td>
-            <td>{{ getRowNotesLabel(row.notes) }}</td>
+            <td>
+              <button
+                type="button"
+                class="table-action-btn notes-cell-btn"
+                (click)="openRowNotesModal(row)"
+              >
+                عرض الملاحظات
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
