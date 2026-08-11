@@ -83,6 +83,7 @@ export class EmployeesComponent implements OnInit {
 
   selectedEmployeeId: number | null = null;
   isSuperAdmin = false;
+  isDepartmentSelectionEnabled = false;
 
   selectedEmployeeForDetails: Employee | null = null;
   employeeDetailsRows: any[] = [];
@@ -161,49 +162,7 @@ export class EmployeesComponent implements OnInit {
   locationOptions: { id: number; name: string }[] = [];
   selectedLocationId: number | null = null;
 
-  departmentOptions: { id: number; name: string }[] = [
-    { id: 1, name: 'إدارة الأزمات' },
-    { id: 2, name: 'الاتصال السياسي' },
-    { id: 3, name: 'الإدارة العامة للتنمية' },
-    { id: 4, name: 'الاستثمار' },
-    { id: 5, name: 'الإسكان' },
-    { id: 6, name: 'الاعلام' },
-    { id: 7, name: 'الإعلانات' },
-    { id: 8, name: 'الأمن' },
-    { id: 9, name: 'الأمومة والطفولة' },
-    { id: 10, name: 'التخطيط العمراني' },
-    { id: 11, name: 'التخطيط والمتابعة' },
-    { id: 12, name: 'التنمية الحضارية' },
-    { id: 13, name: 'التوريدات' },
-    { id: 14, name: 'الحجز الإداري' },
-    { id: 15, name: 'الحسابات' },
-    { id: 16, name: 'الحوكمة' },
-    { id: 17, name: 'الخزينة' },
-    { id: 18, name: 'الرصد الإعلامي' },
-    { id: 19, name: 'السياحة' },
-    { id: 20, name: 'الشؤون الإدارية' },
-    { id: 21, name: 'الشؤون القانونية' },
-    { id: 22, name: 'الشؤون المالية' },
-    { id: 23, name: 'الصندوق التأميني' },
-    { id: 24, name: 'العلاقات الدولية' },
-    { id: 25, name: 'العلاقات العامة' },
-    { id: 26, name: 'المتغيرات المكانية' },
-    { id: 27, name: 'المخازن' },
-    { id: 28, name: 'المركبات' },
-    { id: 29, name: 'المكتب الفني' },
-    { id: 30, name: 'الموارد البشرية' },
-    { id: 31, name: 'الهيئة الموازنية' },
-    { id: 32, name: 'ترشيد الطاقة' },
-    { id: 33, name: 'حساب الخدمات' },
-    { id: 34, name: 'خدمة المواطنين' },
-    { id: 35, name: 'شؤون المجالس' },
-    { id: 36, name: 'شؤون المقر' },
-    { id: 37, name: 'صندوق الخدمات' },
-    { id: 38, name: 'فض المنازعات' },
-    { id: 39, name: 'مكتب الإعلام' },
-    { id: 40, name: 'مكتب المستشار القضائي' },
-    { id: 41, name: 'مكتب مفوض الدولة' },
-  ];
+  departmentOptions: { id: number; name: string }[] = [];
   getDepartmentNameById(id: number | null | undefined): string {
     if (!id) {
       return '';
@@ -511,6 +470,7 @@ export class EmployeesComponent implements OnInit {
 
         if (normalizedRole === 'superadmin' || normalizedRole === 'technicaladmin') {
           this.selectedLocationId = userLocationId ?? null;
+          this.isDepartmentSelectionEnabled = this.selectedLocationId !== null;
           if (this.selectedLocationId !== null) {
             this.loadDepartmentOptions(this.selectedLocationId);
           } else {
@@ -518,9 +478,11 @@ export class EmployeesComponent implements OnInit {
           }
         } else if (locations.length > 0) {
           this.selectedLocationId = userLocationId ?? locations[0].id;
+          this.isDepartmentSelectionEnabled = this.selectedLocationId !== null;
           this.loadDepartmentOptions(this.selectedLocationId);
         } else {
           this.selectedLocationId = null;
+          this.isDepartmentSelectionEnabled = false;
           this.departmentOptions = [];
         }
       },
@@ -687,7 +649,12 @@ export class EmployeesComponent implements OnInit {
     this.selectedLocationId = locationId;
     this.departmentId = null;
     this.pageNumber = 1;
-    this.loadDepartmentOptions(locationId);
+    this.isDepartmentSelectionEnabled = locationId !== null;
+    if (locationId !== null) {
+      this.loadDepartmentOptions(locationId);
+    } else {
+      this.departmentOptions = [];
+    }
   }
 
   loadEmployees(): void {

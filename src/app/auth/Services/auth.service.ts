@@ -37,9 +37,11 @@ export class AuthService {
       tap(response => {
         // إذا كان الطلب ناجحاً، نقوم بتخزين البيانات الأساسية في الـ localStorage
         if (response.isSuccess && response.data) {
+          const role = response.data.role;
           localStorage.setItem('token', response.data.token);
           localStorage.setItem('userName', response.data.userName);
-          localStorage.setItem('role', response.data.role);
+          localStorage.setItem('role', role);
+          localStorage.setItem('userRole', role);
           localStorage.setItem('expiresAt', response.data.accessTokenExpiresAt);
         }
       })
@@ -53,7 +55,7 @@ export class AuthService {
 
   // ميثود لجلب صلاحية المستخدم الحالية (مثل SuperAdmin)
   getUserRole(): string | null {
-    const storedRole = localStorage.getItem('role');
+    const storedRole = localStorage.getItem('role') || localStorage.getItem('userRole');
 
     if (storedRole) {
       return storedRole.trim();

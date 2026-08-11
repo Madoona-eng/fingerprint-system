@@ -20,6 +20,7 @@ export class EmployeeFormComponent {
   @Input() departmentOptions: { id: number; name: string }[] = [];
   @Input() hideNotes = false;
   @Input() showPageShell = false;
+  @Input() isDepartmentSelectionEnabled = false;
 
   @Output() submitForm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();

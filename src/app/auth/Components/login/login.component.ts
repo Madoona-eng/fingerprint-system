@@ -46,6 +46,11 @@ export class LoginComponent implements OnInit {
         if (response.isSuccess) {
           console.log('Login successful:', response.message);
 
+          if (response.data?.role) {
+            localStorage.setItem('role', response.data.role);
+            localStorage.setItem('userRole', response.data.role);
+          }
+
           // توجيه جميع المستخدمين إلى لوحة التحكم الرئيسية.
           // إذا أردت تخصيص طريق حسب الدور، اضف هنا شرط آخر.
           this.router.navigate(['/dashboard']);

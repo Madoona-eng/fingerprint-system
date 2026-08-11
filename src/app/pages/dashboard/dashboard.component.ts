@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AuthService } from '../../auth/Services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -8,16 +9,26 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   userName = localStorage.getItem('userName') || 'مستخدمة النظام';
-  userRole = localStorage.getItem('userRole') || 'Admin';
   isSidebarCollapsed = false;
-  hideFingerprintSheet = this.isTechnicalAdminRole(this.userRole);
+  showFingerprintSheet = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
-  private isTechnicalAdminRole(role: string | null): boolean {
-    return (role || '').trim().toLowerCase() === 'technicaladmin';
+  ngOnInit(): void {
+    this.userName = this.authService.getUserName() || localStorage.getItem('userName') || 'مستخدمة النظام';
+    this.refreshRoleState();
+  }
+
+  get userRole(): string {
+    const role = localStorage.getItem('role') || localStorage.getItem('userRole') || this.authService.getUserRole() || 'Admin';
+    return (role || 'Admin').toString().trim();
+  }
+
+  private refreshRoleState(): void {
+    const role = this.userRole;
+    this.showFingerprintSheet = role.toLowerCase() === 'superadmin';
   }
 
   toggleSidebar(): void {

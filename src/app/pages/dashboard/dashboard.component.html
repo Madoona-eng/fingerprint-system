@@ -22,11 +22,12 @@
   <b>الحضور والانصراف</b>
 </a>
 
-      <a *ngIf="!hideFingerprintSheet" routerLink="/dashboard/fingerprint-sheet" routerLinkActive="active">
-        <span>🖨️</span>
-        <b>شيت البصمة</b>
-      </a>
-
+@if (userRole?.toLowerCase() === 'superadmin') {
+  <a routerLink="/dashboard/fingerprint-sheet" routerLinkActive="active">
+    <span>🖨️</span>
+    <b>شيت البصمة</b>
+  </a>
+}
       <a routerLink="/dashboard/reports" routerLinkActive="active">
         <span>📊</span>
         <b>عرض التقرير</b>

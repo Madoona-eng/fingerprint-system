@@ -22,8 +22,15 @@
 
       <div class="form-group full-width-field">
         <label>القسم / الإدارة <span class="required-mark">*</span></label>
-        <select formControlName="departmentId" class="department-select">
-          <option [ngValue]="null">قم بإختيار القسم</option>
+        <select
+          formControlName="departmentId"
+          class="department-select"
+          [disabled]="!isDepartmentSelectionEnabled"
+        >
+          <option [ngValue]="null" *ngIf="!isDepartmentSelectionEnabled || departmentOptions.length === 0">
+            {{ isDepartmentSelectionEnabled ? 'قم بإختيار القسم' : 'اختر الموقع أولاً لعرض الأقسام' }}
+          </option>
+          <option *ngIf="departmentOptions.length > 0" [ngValue]="null">قم بإختيار القسم</option>
           <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
         </select>
       </div>
