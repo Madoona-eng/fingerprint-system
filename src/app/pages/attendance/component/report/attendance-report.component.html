@@ -19,7 +19,11 @@
           (input)="dateRangeInputChange.emit({ value: $any($event.target).value, field: 'from' })"
         />
 
-        <button type="button" class="calendar-btn" (click)="openNativeDatePicker.emit(fromDatePicker)">
+        <button
+          type="button"
+          class="calendar-btn"
+          (click)="openNativeDatePicker.emit(fromDatePicker)"
+        >
           📅
         </button>
 
@@ -48,7 +52,11 @@
           (input)="dateRangeInputChange.emit({ value: $any($event.target).value, field: 'to' })"
         />
 
-        <button type="button" class="calendar-btn" (click)="openNativeDatePicker.emit(toDatePicker)">
+        <button
+          type="button"
+          class="calendar-btn"
+          (click)="openNativeDatePicker.emit(toDatePicker)"
+        >
           📅
         </button>
 
@@ -93,7 +101,11 @@
         [disabled]="isSuperAdmin && selectedLocationId === null"
       >
         <option [ngValue]="null">
-          {{ isSuperAdmin && selectedLocationId === null ? 'اختر الموقع أولاً لعرض الأقسام' : 'كل الأقسام' }}
+          {{
+            isSuperAdmin && selectedLocationId === null
+              ? 'اختر الموقع أولاً لعرض الأقسام'
+              : 'كل الأقسام'
+          }}
         </option>
         <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
       </select>
@@ -107,11 +119,11 @@
         (ngModelChange)="dateRangeStatusChange.emit($event)"
       >
         <option [ngValue]="''">كل الحالات</option>
-        <option *ngFor="let status of statusOptions" [ngValue]="status.value">{{ status.label }}</option>
+        <option *ngFor="let status of statusOptions" [ngValue]="status.value">
+          {{ status.label }}
+        </option>
       </select>
     </div>
-
-    
 
     <div class="filter-field">
       <label>يحتاج مراجعة</label>
@@ -128,7 +140,12 @@
   </div>
 
   <div class="filter-btns">
-    <button type="button" class="apply-search-btn" [disabled]="isLoadingDateRange" (click)="applyDateRangeFilter.emit()">
+    <button
+      type="button"
+      class="apply-search-btn"
+      [disabled]="isLoadingDateRange"
+      (click)="applyDateRangeFilter.emit()"
+    >
       {{ isLoadingDateRange ? 'جاري التحميل...' : 'تطبيق الفلتر' }}
     </button>
 
@@ -172,8 +189,18 @@
       </thead>
       <tbody>
         <tr *ngFor="let row of filteredDateRangeRows">
-          <td>{{ row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-' }}</td>
-          <td>{{ row.departmentName || row.employee?.departmentName || row.department?.name || '-' }}</td>
+          <td>
+            {{
+              row.employeeName ||
+                row.name ||
+                row.employee?.name ||
+                row.employee?.employeeName ||
+                '-'
+            }}
+          </td>
+          <td>
+            {{ row.departmentName || row.employee?.departmentName || row.department?.name || '-' }}
+          </td>
           <td>{{ row.date || row.attendanceDate || '-' }}</td>
           <td>
             <span class="status-badge" [ngClass]="getStatusClass(row.status)">
@@ -195,21 +222,26 @@
             </div>
           </td>
           <td>
-            <button
+            <span
               *ngIf="needsReview(row)"
-              type="button"
-              class="review-btn"
-              [disabled]="true"
+              class="review-badge"
+              title="اضغط على عرض الملاحظات للمراجعة"
             >
               يحتاج مراجعة
-            </button>
+            </span>
             <span *ngIf="isReviewed(row)" class="reviewed-badge">
               {{ isManuallyEdited(row) ? 'تم التعديل' : 'تمت المراجعة' }}
             </span>
             <span *ngIf="!needsReview(row) && !isReviewed(row)" class="no-review-needed">-</span>
           </td>
           <td>
-            <button type="button" class="edit-attendance-btn" (click)="openAttendanceEdit.emit(row)">تعديل</button>
+            <button
+              type="button"
+              class="edit-attendance-btn"
+              (click)="openAttendanceEdit.emit(row)"
+            >
+              تعديل
+            </button>
           </td>
         </tr>
       </tbody>
@@ -217,9 +249,21 @@
   </div>
 
   <div class="pagination-box">
-    <button type="button" (click)="previousDateRangePage.emit()" [disabled]="dateRangePageNumber === 1">السابق</button>
+    <button
+      type="button"
+      (click)="previousDateRangePage.emit()"
+      [disabled]="dateRangePageNumber === 1"
+    >
+      السابق
+    </button>
     <span> صفحة {{ dateRangePageNumber }} من {{ dateRangeTotalPages }} </span>
-    <button type="button" (click)="nextDateRangePage.emit()" [disabled]="dateRangePageNumber === dateRangeTotalPages">التالي</button>
+    <button
+      type="button"
+      (click)="nextDateRangePage.emit()"
+      [disabled]="dateRangePageNumber === dateRangeTotalPages"
+    >
+      التالي
+    </button>
   </div>
 </section>
 
@@ -235,7 +279,9 @@
           <div *ngFor="let note of notesModalEntries" class="notes-modal-item">
             <div class="notes-modal-meta" *ngIf="note.displayName || note.createdAt">
               <span class="notes-modal-user" *ngIf="note.displayName">{{ note.displayName }}</span>
-              <span class="notes-modal-time" *ngIf="note.createdAt">{{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+              <span class="notes-modal-time" *ngIf="note.createdAt">{{
+                note.createdAt | date: 'dd/MM/yyyy HH:mm'
+              }}</span>
             </div>
             <div class="notes-modal-text">{{ note.content }}</div>
           </div>
@@ -252,7 +298,9 @@
           [disabled]="reviewingAttendanceId === getAttendanceId(notesModalRow)"
           (click)="markAttendanceReviewed.emit(notesModalRow)"
         >
-          {{ reviewingAttendanceId === getAttendanceId(notesModalRow) ? 'جاري...' : 'يحتاج مراجعة' }}
+          {{
+            reviewingAttendanceId === getAttendanceId(notesModalRow) ? 'جاري...' : 'يحتاج مراجعة'
+          }}
         </button>
       </div>
     </div>

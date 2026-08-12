@@ -733,7 +733,7 @@
 }
 
 /* Review */
-.review-btn {
+/* .review-btn {
   min-width: 115px;
   height: 38px;
   border: none;
@@ -755,6 +755,22 @@
 .review-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+} */
+
+.review-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 115px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-weight: 900;
+  color: #7f1d1d;
+  background: linear-gradient(135deg, #fca5a5, #bd2a2a);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  white-space: nowrap;
+  cursor:  cursor;
 }
 
 .reviewed-badge {
