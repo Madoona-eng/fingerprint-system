@@ -1,8 +1,10 @@
 export interface RawPunchRecord {
+  id: number;
   employeeCode?: string;
   employeeName?: string;
-  date?: string;
-  time?: string;
-  punchTime?: string;
-  [key: string]: any;
+  departmentRaw?: string;
+  punchDate?: string;
+  inRaw?: string;
+  outRaw?: string;
+  importedAt?: string;
 }

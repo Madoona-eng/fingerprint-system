@@ -42,7 +42,7 @@
     </div>
 
     <div class="actions">
-      <button type="button" class="apply-search-btn" (click)="loadData()">تطبيق الفلتره</button>
+      <button type="button" class="apply-search-btn" (click)="applyFilters()">تطبيق الفلتره</button>
 
       <button type="button" class="clear-search-btn" (click)="clearFilters()">مسح الفلتر</button>
 
@@ -61,7 +61,9 @@
   <div *ngIf="errorMessage" class="status-box error">{{ errorMessage }}</div>
 
   <div *ngIf="!isLoading && !errorMessage" class="sheet-card">
-    <div *ngIf="records.length === 0" class="empty-message">لا توجد سجلات حضور مطابقة للفلتر المحدد.</div>
+    <div *ngIf="records.length === 0" class="empty-message">
+      لا توجد سجلات حضور مطابقة للفلتر المحدد.
+    </div>
 
     <div *ngIf="records.length > 0" class="table-wrapper">
       <table class="data-table">

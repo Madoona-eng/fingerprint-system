@@ -10,24 +10,16 @@ export class FingerprintSheetService {
 
   getRawPunches(
     date: string,
-    employeeCode: string = '',
-    employeeName: string = '',
+    search: string = '',
     pageNumber: number = 1,
     pageSize: number = 10
   ) {
-    return this.attendanceService.getRawPunches(
-      date,
-      employeeCode,
-      employeeName,
-      pageNumber,
-      pageSize
-    );
+    return this.attendanceService.getRawPunches(date, search, pageNumber, pageSize);
   }
 
   async fetchAllRawPunches(
     date: string,
-    employeeCode: string = '',
-    employeeName: string = '',
+    search: string = '',
     perPage: number = 1000
   ): Promise<any[]> {
     const allRecords: any[] = [];
@@ -36,7 +28,7 @@ export class FingerprintSheetService {
 
     while (page <= totalPages) {
       const resp: any = await firstValueFrom(
-        this.attendanceService.getRawPunches(date, employeeCode, employeeName, page, perPage)
+        this.attendanceService.getRawPunches(date, search, page, perPage)
       );
 
       const data = resp?.data ?? resp;

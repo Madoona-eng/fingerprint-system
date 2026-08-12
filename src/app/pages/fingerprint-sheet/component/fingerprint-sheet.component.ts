@@ -1,16 +1,16 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FingerprintSheetService } from '../service/fingerprint-sheet.service';
-import { RawPunchRecord } from '../model/models';
 import { exportToExcel } from '../../../shared/utils/excel.util';
+import { RawPunchRecord } from '../model/models';
+import { FingerprintSheetService } from '../service/fingerprint-sheet.service';
 
 @Component({
   selector: 'app-fingerprint-sheet',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './fingerprint-sheet.component.html',
-  styleUrls: ['./fingerprint-sheet.component.css']
+  styleUrls: ['./fingerprint-sheet.component.css'],
 })
 export class FingerprintSheetComponent implements OnInit {
   date = '';
@@ -84,7 +84,9 @@ export class FingerprintSheetComponent implements OnInit {
   formatDateDisplayWhileTyping(): void {
     let value = this.dateDisplay;
 
-    value = String(value || '').replace(/\D/g, '').slice(0, 8);
+    value = String(value || '')
+      .replace(/\D/g, '')
+      .slice(0, 8);
 
     if (value.length > 4) {
       value = `${value.slice(0, 2)}/${value.slice(2, 4)}/${value.slice(4)}`;
@@ -153,9 +155,7 @@ export class FingerprintSheetComponent implements OnInit {
 
     const date = new Date(year, month - 1, day);
     const isValidDate =
-      date.getFullYear() === year &&
-      date.getMonth() === month - 1 &&
-      date.getDate() === day;
+      date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 
     if (!isValidDate) {
       return '';
@@ -185,7 +185,9 @@ export class FingerprintSheetComponent implements OnInit {
       return `${day}/${month}/${year}`;
     }
 
-    const dateTimeMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?(?:Z|([+-]\d{2}:\d{2}))?$/);
+    const dateTimeMatch = raw.match(
+      /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?(?:Z|([+-]\d{2}:\d{2}))?$/,
+    );
     if (dateTimeMatch) {
       const [, year, month, day, hour, minute, second] = dateTimeMatch;
       const timePart = second ? `${hour}:${minute}:${second}` : `${hour}:${minute}`;
@@ -195,55 +197,32 @@ export class FingerprintSheetComponent implements OnInit {
     return raw;
   }
 
-  private splitSearchTerm(): { employeeCode: string; employeeName: string } {
-    const term = this.searchTerm.trim();
-
-    if (!term) {
-      return { employeeCode: '', employeeName: '' };
-    }
-
-    const isCodeOnly = /^\d+$/.test(term);
-
-    return isCodeOnly
-      ? { employeeCode: term, employeeName: '' }
-      : { employeeCode: '', employeeName: term };
-  }
-
   loadData(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    const { employeeCode, employeeName } = this.splitSearchTerm();
-    const shouldSearchAcrossPages = !!(employeeName || employeeCode);
+    this.fingerprintSheetService
+      .getRawPunches(this.date, this.searchTerm.trim(), this.pageNumber, this.pageSize)
+      .subscribe({
+        next: (response: any) => {
+          const data = response?.data ?? response;
+          const items = Array.isArray(data) ? data : (data?.items ?? []);
 
-    if (shouldSearchAcrossPages) {
-      this.fingerprintSheetService.fetchAllRawPunches(this.date, employeeCode, employeeName, this.pageSize).then((allRecords) => {
-        this.records = allRecords;
-        this.totalCount = allRecords.length;
-        this.totalPages = Math.max(1, Math.ceil(this.totalCount / this.pageSize));
-        this.isLoading = false;
-      }).catch(() => {
-        this.errorMessage = 'فشل تحميل شيت البصمة';
-        this.isLoading = false;
+          this.records = items;
+          this.totalCount = Number(data?.totalCount ?? data?.total ?? items.length ?? 0);
+          this.totalPages = Math.max(1, Math.ceil(this.totalCount / this.pageSize));
+          this.isLoading = false;
+        },
+        error: () => {
+          this.errorMessage = 'فشل تحميل شيت البصمة';
+          this.isLoading = false;
+        },
       });
-      return;
-    }
+  }
 
-    this.fingerprintSheetService.getRawPunches(this.date, '', '', this.pageNumber, this.pageSize).subscribe({
-      next: (response: any) => {
-        const data = response?.data ?? response;
-        const items = Array.isArray(data) ? data : data?.items ?? [];
-
-        this.records = items;
-        this.totalCount = Number(data?.totalCount ?? data?.total ?? items.length ?? 0);
-        this.totalPages = Math.max(1, Math.ceil(this.totalCount / this.pageSize));
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'فشل تحميل شيت البصمة';
-        this.isLoading = false;
-      }
-    });
+  applyFilters(): void {
+    this.pageNumber = 1;
+    this.loadData();
   }
 
   clearFilters(): void {
@@ -266,14 +245,11 @@ export class FingerprintSheetComponent implements OnInit {
     this.isExporting = true;
     this.errorMessage = '';
 
-    const { employeeCode, employeeName } = this.splitSearchTerm();
-
     try {
       const allRecords = await this.fingerprintSheetService.fetchAllRawPunches(
         this.date,
-        employeeCode,
-        employeeName,
-        1000
+        this.searchTerm.trim(),
+        1000,
       );
 
       if (!allRecords || allRecords.length === 0) {
@@ -292,13 +268,13 @@ export class FingerprintSheetComponent implements OnInit {
 
   private downloadExcel(records: RawPunchRecord[]): void {
     const rows = records.map((item) => ({
-      'الكود': item.employeeCode || '-',
-      'الموظف': item.employeeName || 'غير محدد',
-      'القسم': item['departmentRaw'] || '-',
-      'التاريخ': this.formatDisplayValue(item['punchDate'] || item.date || '-'),
-      'الدخول': item['inRaw'] || item.time || '-',
-      'الخروج': item['outRaw'] || item.punchTime || '-',
-      'وقت الاستيراد': this.formatDisplayValue(item['importedAt'] || '-')
+      الكود: item.employeeCode || '-',
+      الموظف: item.employeeName || 'غير محدد',
+      القسم: item.departmentRaw || '-',
+      التاريخ: this.formatDisplayValue(item.punchDate || '-'),
+      الدخول: item.inRaw || '-',
+      الخروج: item.outRaw || '-',
+      'وقت الاستيراد': this.formatDisplayValue(item.importedAt || '-'),
     }));
 
     // استدعاء دالة التصدير الموحدة التي تضمن RTL وتنسيق العناوين وحساب العرض

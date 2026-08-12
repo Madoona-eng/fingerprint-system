@@ -110,22 +110,20 @@ export class AttendanceService {
 
   getRawPunches(
     date: string,
-    employeeCode: string = '',
-    employeeName: string = '',
+    search: string = '',
     pageNumber: number = 1,
     pageSize: number = 10,
   ): Observable<any> {
     let params = new HttpParams()
-      .set('date', date)
       .set('pageNumber', String(pageNumber))
       .set('pageSize', String(pageSize));
 
-    if (employeeCode && employeeCode.trim() !== '') {
-      params = params.set('employeeCode', employeeCode.trim());
+    if (date && date.trim() !== '') {
+      params = params.set('date', date);
     }
 
-    if (employeeName && employeeName.trim() !== '') {
-      params = params.set('employeeName', employeeName.trim());
+    if (search && search.trim() !== '') {
+      params = params.set('search', search.trim());
     }
 
     return this.http.get<any>(`${this.apiUrl}/raw-punches`, {
