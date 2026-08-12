@@ -46,13 +46,27 @@ export class EmployeeDetailsComponent {
     return this.getEmployeeNoteItems().map((item) => item.content);
   }
 
-  getEmployeeNoteItems(): Array<{ id?: number | string; content: string }> {
+  openEmployeeNotesModal(): void {
+    const employeeNotes = this.getEmployeeNoteItems();
+
+    this.modalNotesTitle = 'ملاحظات الموظف';
+    this.modalNotes = employeeNotes.map((item) => ({
+      content: item.content,
+      displayName: item.displayName,
+      createdAt: item.createdAt,
+    }));
+    this.showNotesModal = true;
+  }
+
+  getEmployeeNoteItems(): Array<{ id?: number | string; content: string; displayName?: string; createdAt?: string }> {
     const notes = this.selectedEmployeeForDetails?.note ?? this.selectedEmployeeForDetails?.notes;
 
     if (Array.isArray(notes)) {
       return notes
         .map((item) => this.normalizeEmployeeNoteItem(item))
-        .filter((item): item is { id?: number | string; content: string } => Boolean(item?.content));
+        .filter(
+          (item): item is { id?: number | string; content: string; displayName?: string; createdAt?: string } => Boolean(item?.content),
+        );
     }
 
     const singleNote = this.normalizeNoteValue(notes);
@@ -115,15 +129,15 @@ export class EmployeeDetailsComponent {
         id?: number | string;
         text?: string;
         note?: string;
-        content?: string;
+        content?: string | object | unknown[];
         description?: string;
-        value?: string;
+        value?: string | object | unknown[];
         name?: string;
         displayName?: string;
         createdAt?: string;
       };
 
-      const text = candidate.content || candidate.text || candidate.note || candidate.description || candidate.value || candidate.name;
+      const text = this.findNoteText(candidate);
       if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeName(text)) {
         return {
           content: text.trim(),
@@ -136,7 +150,7 @@ export class EmployeeDetailsComponent {
     return null;
   }
 
-  private normalizeEmployeeNoteItem(note: unknown): { id?: number | string; content: string } | null {
+  private normalizeEmployeeNoteItem(note: unknown): { id?: number | string; content: string; displayName?: string; createdAt?: string } | null {
     if (typeof note === 'string') {
       const text = this.normalizeNoteValue(note);
       return text ? { content: text } : null;
@@ -145,19 +159,24 @@ export class EmployeeDetailsComponent {
     if (note && typeof note === 'object') {
       const candidate = note as {
         id?: number | string;
-        text?: string;
-        note?: string;
-        content?: string;
-        description?: string;
-        value?: string;
+        text?: string | object | unknown[];
+        note?: string | object | unknown[];
+        content?: string | object | unknown[];
+        description?: string | object | unknown[];
+        value?: string | object | unknown[];
         name?: string;
+        displayName?: string;
+        createdByUserName?: string;
+        createdAt?: string;
       };
 
-      const text = candidate.content || candidate.text || candidate.note || candidate.description || candidate.value || candidate.name;
+      const text = this.findNoteText(candidate);
       if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeName(text)) {
         return {
           id: candidate.id,
-          content: text.trim()
+          content: text.trim(),
+          displayName: candidate.displayName || candidate.createdByUserName || undefined,
+          createdAt: candidate.createdAt || undefined,
         };
       }
     }
@@ -199,22 +218,59 @@ export class EmployeeDetailsComponent {
       return text;
     }
 
+    if (Array.isArray(note)) {
+      return note
+        .map((item) => this.extractNoteText(item))
+        .filter((item) => Boolean(item))
+        .join(', ');
+    }
+
     if (note && typeof note === 'object') {
-      const candidate = note as {
-        text?: string;
-        note?: string;
-        content?: string;
-        description?: string;
-        value?: string;
-        name?: string;
-      };
-      const text = candidate.text || candidate.note || candidate.content || candidate.description || candidate.value || candidate.name;
+      const text = this.findNoteText(note);
       if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeName(text)) {
         return text.trim();
       }
     }
 
     return '';
+  }
+
+  private findNoteText(note: unknown): string | undefined {
+    if (typeof note === 'string') {
+      const text = note.trim();
+      return text && !this.isFrameworkTypeName(text) ? text : undefined;
+    }
+
+    if (Array.isArray(note)) {
+      const joined = note
+        .map((item) => this.findNoteText(item))
+        .filter((item): item is string => Boolean(item))
+        .join(', ');
+
+      return joined || undefined;
+    }
+
+    if (note && typeof note === 'object') {
+      const candidate = note as Record<string, unknown>;
+
+      const directKeys = ['content', 'text', 'note', 'description', 'value', 'body', 'message', 'comment', 'remark', 'remarks', 'title', 'summary', 'name'];
+
+      for (const key of directKeys) {
+        const found = this.findNoteText(candidate[key]);
+        if (found) {
+          return found;
+        }
+      }
+
+      for (const value of Object.values(candidate)) {
+        const found = this.findNoteText(value);
+        if (found) {
+          return found;
+        }
+      }
+    }
+
+    return undefined;
   }
 
   private isFrameworkTypeName(value: string): boolean {

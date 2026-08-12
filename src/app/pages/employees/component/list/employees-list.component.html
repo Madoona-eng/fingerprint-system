@@ -172,8 +172,7 @@
               <button
                 type="button"
                 class="table-action-btn edit-action"
-                [disabled]="selectedLocationId === null"
-                (click)="selectedLocationId !== null && editEmployee.emit(emp)"
+                (click)="editEmployee.emit(emp)"
               >
                 تعديل
               </button>

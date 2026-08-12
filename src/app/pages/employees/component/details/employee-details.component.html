@@ -97,9 +97,19 @@
       <h2>ملاحظات الموظف</h2>
       <div class="section-actions">
         <span>{{ getEmployeeNotes().length }} ملاحظة</span>
-        <button type="button" class="details-main-btn notes-trigger-btn" (click)="showNotesModal = true" [disabled]="getEmployeeNotes().length === 0">
-          عرض الملاحظات
-        </button>
+      </div>
+    </div>
+
+    <div *ngIf="getEmployeeNotes().length > 0" class="notes-list-inline">
+      <div class="note-item modal-note-item" *ngFor="let noteItem of getEmployeeNoteItems()">
+        <span class="note-icon">•</span>
+        <div class="note-text">
+          <div class="note-meta" *ngIf="noteItem.createdAt || noteItem.displayName">
+            <span *ngIf="noteItem.createdAt">📅 {{ noteItem.createdAt | date:'yyyy/MM/dd HH:mm' }}</span>
+            <span *ngIf="noteItem.displayName">👤 {{ noteItem.displayName }}</span>
+          </div>
+          <div class="note-main-text">{{ noteItem.content }}</div>
+        </div>
       </div>
     </div>
 

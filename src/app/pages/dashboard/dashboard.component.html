@@ -22,7 +22,7 @@
   <b>الحضور والانصراف</b>
 </a>
 
-@if (userRole?.toLowerCase() === 'superadmin') {
+@if (userRole.toLowerCase() === 'superadmin') {
   <a routerLink="/dashboard/fingerprint-sheet" routerLinkActive="active">
     <span>🖨️</span>
     <b>شيت البصمة</b>

@@ -66,6 +66,7 @@ export class AttendanceComponent implements OnInit {
   notesModalOpen = false;
   notesModalTitle = '';
   notesModalEntries: Array<{ content: string; displayName?: string; createdAt?: string }> = [];
+  notesModalRow: any = null;
 
   attendanceEditId: number | null = null;
   attendanceEditEmployeeCode = '';
@@ -927,6 +928,11 @@ export class AttendanceComponent implements OnInit {
   // ============================================================
   // isReviewed
   // ============================================================
+  isManuallyEdited(row: any): boolean {
+    const value = row?.isManualOverride ?? row?.manualOverride;
+    return value === true || value === 1 || value === 'true' || value === 'True';
+  }
+
   isReviewed(row: any): boolean {
     const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
 
@@ -938,6 +944,7 @@ export class AttendanceComponent implements OnInit {
     ].some((value) => value === true);
 
     return (
+      this.isManuallyEdited(row) ||
       reviewFlag ||
       normalizedNotes.includes('تمت المراجعة') ||
       normalizedNotes.includes('تمت مراجعه') ||
@@ -977,7 +984,7 @@ export class AttendanceComponent implements OnInit {
   // needsReview
   // ============================================================
   needsReview(row: any): boolean {
-    if (this.isReviewed(row)) {
+    if (this.isManuallyEdited(row) || this.isReviewed(row)) {
       return false;
     }
 
@@ -1041,8 +1048,9 @@ export class AttendanceComponent implements OnInit {
         row.notes = this.appendReviewNoteToNotes(row.notes);
         row.isReviewed = true;
 
-        if (this.notesModalOpen) {
+        if (this.notesModalOpen && this.notesModalRow === row) {
           this.notesModalEntries = this.getAttendanceNotes(row.notes);
+          this.notesModalRow = row;
         }
 
         this.dateRangeSuccessMessage = 'تم اعتماد مراجعة السجل بنجاح';
@@ -1869,6 +1877,7 @@ export class AttendanceComponent implements OnInit {
   openNotesModal(row: any): void {
     this.notesModalTitle = row?.employeeName || row?.name || row?.employee?.name || 'الملاحظات';
     this.notesModalEntries = this.getAttendanceNotes(row?.notes);
+    this.notesModalRow = row;
     this.notesModalOpen = true;
   }
 
@@ -1879,6 +1888,7 @@ export class AttendanceComponent implements OnInit {
     this.notesModalOpen = false;
     this.notesModalTitle = '';
     this.notesModalEntries = [];
+    this.notesModalRow = null;
   }
 
   // ============================================================

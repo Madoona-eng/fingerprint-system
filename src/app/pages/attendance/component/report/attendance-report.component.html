@@ -199,12 +199,13 @@
               *ngIf="needsReview(row)"
               type="button"
               class="review-btn"
-              [disabled]="reviewingAttendanceId === getAttendanceId(row)"
-              (click)="markAttendanceReviewed.emit(row)"
+              [disabled]="true"
             >
-              {{ reviewingAttendanceId === getAttendanceId(row) ? 'جاري...' : 'يحتاج الي المراجعة' }}
+              يحتاج مراجعة
             </button>
-            <span *ngIf="isReviewed(row)" class="reviewed-badge"> تمت المراجعة </span>
+            <span *ngIf="isReviewed(row)" class="reviewed-badge">
+              {{ isManuallyEdited(row) ? 'تم التعديل' : 'تمت المراجعة' }}
+            </span>
             <span *ngIf="!needsReview(row) && !isReviewed(row)" class="no-review-needed">-</span>
           </td>
           <td>
@@ -243,6 +244,17 @@
       <ng-template #noNotesModal>
         <div class="notes-modal-empty">لا توجد ملاحظات</div>
       </ng-template>
+
+      <div class="notes-modal-actions" *ngIf="notesModalRow && needsReview(notesModalRow)">
+        <button
+          type="button"
+          class="review-btn"
+          [disabled]="reviewingAttendanceId === getAttendanceId(notesModalRow)"
+          (click)="markAttendanceReviewed.emit(notesModalRow)"
+        >
+          {{ reviewingAttendanceId === getAttendanceId(notesModalRow) ? 'جاري...' : 'يحتاج مراجعة' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

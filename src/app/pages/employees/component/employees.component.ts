@@ -647,6 +647,7 @@ export class EmployeesComponent implements OnInit {
 
   onLocationChanged(locationId: number | null): void {
     this.selectedLocationId = locationId;
+    this.employeeForm.patchValue({ locationId, departmentId: null }, { emitEvent: false });
     this.departmentId = null;
     this.pageNumber = 1;
     this.isDepartmentSelectionEnabled = locationId !== null;
@@ -1414,7 +1415,12 @@ export class EmployeesComponent implements OnInit {
         }
 
         this.successMessage = response?.message || 'تمت إضافة الملاحظة بنجاح';
-        this.loadEmployees();
+
+        if (this.activeEmployeePage === 'details' && this.selectedEmployeeForDetails?.id === id) {
+          this.loadEmployeeDetails();
+        } else {
+          this.loadEmployees();
+        }
       },
       error: (err) => {
         this.isSaving = false;
@@ -1678,11 +1684,13 @@ export class EmployeesComponent implements OnInit {
 
     this.employeeForm.controls['employeeCode'].enable();
 
+    const employeeLocationId = employee.locationId != null ? Number(employee.locationId) : null;
+
     this.employeeForm.patchValue({
       employeeCode: employee.employeeCode,
       name: employee.name,
       departmentId: departmentId || null,
-      locationId: employee.locationId != null ? employee.locationId : null,
+      locationId: employeeLocationId,
       scheduleIn: employee.scheduleIn || '',
       scheduleOut: employee.scheduleOut || '',
       graceTime: employee.graceTime || '',
@@ -1690,12 +1698,21 @@ export class EmployeesComponent implements OnInit {
       note: employee.note ?? (employee as any).notes ?? '',
     });
 
+    this.selectedLocationId = employeeLocationId;
+    this.isDepartmentSelectionEnabled = employeeLocationId !== null;
+    if (employeeLocationId !== null) {
+      this.loadDepartmentOptions(employeeLocationId);
+    } else {
+      this.departmentOptions = [];
+    }
+
     this.successMessage = '';
     this.errorMessage = '';
 
     console.log('Editing Employee:', employee);
     console.log('Selected Employee ID:', this.selectedEmployeeId);
     console.log('Resolved Department ID:', departmentId);
+    console.log('Selected Location ID:', this.selectedLocationId);
 
     this.activeEmployeePage = 'edit';
     this.employeeForm.controls['employeeCode'].disable();
@@ -2529,6 +2546,20 @@ export class EmployeesComponent implements OnInit {
   }
 
   private isValidTimeString(value: string): boolean {
+    if (value === null || value === undefined) {
+      return false;
+    }
+
+    const text = String(value).trim();
+    if (!text) {
+      return false;
+    }
+
+    if (/^\d+$/.test(text)) {
+      const minutes = Number(text);
+      return Number.isFinite(minutes) && minutes >= 0 && minutes <= 1439;
+    }
+
     const normalized = this.normalizeExcelTime(value);
 
     if (!normalized) {
@@ -2555,6 +2586,13 @@ export class EmployeesComponent implements OnInit {
 
     if (!text) {
       return '';
+    }
+
+    if (/^\d+$/.test(text)) {
+      const minutes = Number(text);
+      if (Number.isFinite(minutes) && minutes >= 0) {
+        return this.secondsToTime(minutes * 60);
+      }
     }
 
     if (/Z$/i.test(text) || /[+-]\d{2}:?\d{2}$/.test(text)) {

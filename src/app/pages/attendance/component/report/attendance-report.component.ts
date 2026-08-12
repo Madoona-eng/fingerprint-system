@@ -61,6 +61,7 @@ export class AttendanceReportComponent {
   @Input() notesModalOpen = false;
   @Input() notesModalTitle = '';
   @Input() notesModalEntries: Array<{ content: string; displayName?: string; createdAt?: string }> = [];
+  @Input() notesModalRow: any = null;
   @Input() reviewingAttendanceId: number | null = null;
   @Input() isSuperAdmin = false;
   @Input() locations: { id: number; name: string }[] = [];
@@ -137,6 +138,11 @@ export class AttendanceReportComponent {
     return '';
   }
 
+  isManuallyEdited(row: any): boolean {
+    const value = row?.isManualOverride ?? row?.manualOverride;
+    return value === true || value === 1 || value === 'true' || value === 'True';
+  }
+
   isReviewed(row: any): boolean {
     const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
     const reviewFlag = [row?.isReviewed, row?.reviewed, row?.isReviewCompleted, row?.hasBeenReviewed].some(
@@ -144,6 +150,7 @@ export class AttendanceReportComponent {
     );
 
     return (
+      this.isManuallyEdited(row) ||
       reviewFlag ||
       normalizedNotes.includes('تمت المراجعة') ||
       normalizedNotes.includes('تمت مراجعه') ||
@@ -152,7 +159,7 @@ export class AttendanceReportComponent {
   }
 
   needsReview(row: any): boolean {
-    if (this.isReviewed(row)) {
+    if (this.isManuallyEdited(row) || this.isReviewed(row)) {
       return false;
     }
 

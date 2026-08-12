@@ -17,6 +17,7 @@
 
     <button
       type="button"
+      [disabled]="false"
       [class.active]="
         activeEmployeePage === 'list' ||
         activeEmployeePage === 'details' ||
@@ -230,6 +231,11 @@
         [successMessage]="successMessage"
         [errorMessage]="errorMessage"
         [departmentOptions]="departmentOptions"
+        [isDepartmentSelectionEnabled]="isDepartmentSelectionEnabled"
+        [locationOptions]="locationOptions"
+        [selectedLocationId]="selectedLocationId"
+        [showLocationSelector]="isSuperAdmin"
+        (locationChanged)="onLocationChanged($event)"
         (submitForm)="saveEmployee()"
         (cancel)="cancelEdit()"
       ></app-employee-edit>

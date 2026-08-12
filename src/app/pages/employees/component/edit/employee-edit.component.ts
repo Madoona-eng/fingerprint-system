@@ -19,7 +19,12 @@ export class EmployeeEditComponent {
   @Input() successMessage = '';
   @Input() errorMessage = '';
   @Input() departmentOptions: { id: number; name: string }[] = [];
+  @Input() isDepartmentSelectionEnabled = false;
+  @Input() locationOptions: Array<{ id: number; name: string }> = [];
+  @Input() selectedLocationId: number | null = null;
+  @Input() showLocationSelector = false;
 
   @Output() submitForm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
+  @Output() locationChanged = new EventEmitter<number | null>();
 }

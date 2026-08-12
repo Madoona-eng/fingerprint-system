@@ -23,13 +23,13 @@
       <div class="form-group full-width-field" *ngIf="showLocationSelector">
         <label>الموقع <span class="required-mark">*</span></label>
         <select
+          #locationSelect
           class="department-select"
-          [ngModel]="selectedLocationId"
-          (ngModelChange)="locationChanged.emit($event)"
-          [ngModelOptions]="{ standalone: true }"
+          [value]="selectedLocationId ?? ''"
+          (change)="onLocationSelectChanged($event)"
         >
-          <option [ngValue]="null">اختر الموقع</option>
-          <option *ngFor="let loc of locationOptions" [ngValue]="loc.id">{{ loc.name }}</option>
+          <option value="">اختر الموقع</option>
+          <option *ngFor="let loc of locationOptions" [value]="loc.id">{{ loc.name }}</option>
         </select>
       </div>
 
@@ -60,7 +60,14 @@
 
       <div class="form-group">
         <label>وقت السماح</label>
-        <input [type]="selectedEmployeeId !== null ? 'text' : 'time'" formControlName="graceTime" placeholder="10:40:52.625Z" />
+        <input
+          type="text"
+          formControlName="graceTime"
+          inputmode="numeric"
+          placeholder="00:30"
+          pattern="^(?:[01]\d|2[0-3]):[0-5]\d$"
+        />
+        <small class="readonly-note">أدخل الوقت بصيغة 24 ساعة مثل 00:30 أو 01:15 ولا يتم تحويله إلى 12:30.</small>
       </div>
 
       <div *ngIf="selectedEmployeeId === null" class="form-group checkbox-group full-width-field">

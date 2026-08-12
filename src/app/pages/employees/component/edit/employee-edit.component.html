@@ -15,6 +15,11 @@
         [errorMessage]="errorMessage"
         [departmentOptions]="departmentOptions"
         [hideNotes]="true"
+        [isDepartmentSelectionEnabled]="isDepartmentSelectionEnabled"
+        [locationOptions]="locationOptions"
+        [selectedLocationId]="selectedLocationId"
+        [showLocationSelector]="showLocationSelector"
+        (locationChanged)="locationChanged.emit($event)"
         (submitForm)="submitForm.emit()"
         (cancel)="cancel.emit()"
       ></app-employee-form>

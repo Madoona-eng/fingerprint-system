@@ -29,6 +29,12 @@ export class EmployeeFormComponent implements OnChanges {
   @Output() cancel = new EventEmitter<void>();
   @Output() locationChanged = new EventEmitter<number | null>();
 
+  onLocationSelectChanged(event: Event): void {
+    const target = event.target as HTMLSelectElement | null;
+    const rawValue = target?.value ?? '';
+    this.locationChanged.emit(rawValue === '' ? null : Number(rawValue));
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['employeeForm'] || changes['isDepartmentSelectionEnabled'] || changes['selectedLocationId']) {
       this.syncDepartmentControlState();
