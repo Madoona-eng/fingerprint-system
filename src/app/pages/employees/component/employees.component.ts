@@ -1676,55 +1676,60 @@ export class EmployeesComponent implements OnInit {
     }
 
     this.selectedEmployeeId = employee.id;
-
-    const departmentId =
-      employee.departmentId && employee.departmentId > 0
-        ? employee.departmentId
-        : this.getDepartmentIdFromMapOnly(employee.departmentName || '');
-
     this.employeeForm.controls['employeeCode'].enable();
-
-    const employeeLocationId = employee.locationId != null ? Number(employee.locationId) : null;
-    const activeLocationId = this.selectedLocationId ?? employeeLocationId;
-
-    this.employeeForm.patchValue({
-      employeeCode: employee.employeeCode,
-      name: employee.name,
-      departmentId: departmentId || null,
-      locationId: activeLocationId,
-      scheduleIn: employee.scheduleIn || '',
-      scheduleOut: employee.scheduleOut || '',
-      graceTime: employee.graceTime || '',
-      isChristian: employee.isChristian ?? false,
-      note: employee.note ?? (employee as any).notes ?? '',
-    });
-
-    this.selectedLocationId = activeLocationId;
-    this.isDepartmentSelectionEnabled = activeLocationId !== null;
-    if (activeLocationId !== null) {
-      this.loadDepartmentOptions(activeLocationId);
-    } else {
-      this.departmentOptions = [];
-    }
-
-    this.successMessage = '';
-    this.errorMessage = '';
-
-    console.log('Editing Employee:', employee);
-    console.log('Selected Employee ID:', this.selectedEmployeeId);
-    console.log('Resolved Department ID:', departmentId);
-    console.log('Selected Location ID:', this.selectedLocationId);
-
     this.activeEmployeePage = 'edit';
-    this.employeeForm.controls['employeeCode'].disable();
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        page: 'edit',
-        id: employee.id,
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.employeesService.getEmployeeById(employee.id, '', '', 1, 1).subscribe({
+      next: (response: any) => {
+        const data = response?.data || response;
+        const fullEmployee = this.normalizeEmployeeBooleans(data);
+
+        const departmentId = fullEmployee.departmentId || 0;
+        const employeeLocationId =
+          fullEmployee.locationId != null ? Number(fullEmployee.locationId) : null;
+        const activeLocationId = employeeLocationId ?? this.selectedLocationId;
+
+        this.employeeForm.patchValue({
+          employeeCode: fullEmployee.employeeCode,
+          name: fullEmployee.name,
+          departmentId: departmentId || null,
+          locationId: activeLocationId,
+          scheduleIn: fullEmployee.scheduleIn || '',
+          scheduleOut: fullEmployee.scheduleOut || '',
+          graceTime: fullEmployee.graceTime || '',
+          isChristian: fullEmployee.isChristian ?? false,
+          note: fullEmployee.note ?? (fullEmployee as any).notes ?? '',
+        });
+
+        this.selectedLocationId = activeLocationId;
+        this.isDepartmentSelectionEnabled = activeLocationId !== null;
+
+        if (activeLocationId !== null) {
+          this.loadDepartmentOptions(activeLocationId);
+        } else {
+          this.departmentOptions = [];
+        }
+
+        this.employeeForm.controls['employeeCode'].disable();
+
+        console.log('Editing Employee (full):', fullEmployee);
+        console.log('Resolved Department ID:', departmentId);
+        console.log('Selected Location ID:', this.selectedLocationId);
+
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { page: 'edit', id: employee.id },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
       },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
+      error: (err) => {
+        this.errorMessage =
+          err?.error?.message || err?.message || 'حدث خطأ أثناء تحميل بيانات الموظف';
+        this.activeEmployeePage = 'list';
+      },
     });
   }
 
@@ -2455,7 +2460,9 @@ export class EmployeesComponent implements OnInit {
 
     const text = String(value).trim();
 
-    const isoTimeMatch = text.match(/^(?:\d{4}-\d{2}-\d{2}[T ]?)?(\d{1,2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/);
+    const isoTimeMatch = text.match(
+      /^(?:\d{4}-\d{2}-\d{2}[T ]?)?(\d{1,2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/,
+    );
     if (isoTimeMatch) {
       const hours = Number(isoTimeMatch[1]);
       const minutes = Number(isoTimeMatch[2]);
