@@ -1685,12 +1685,13 @@ export class EmployeesComponent implements OnInit {
     this.employeeForm.controls['employeeCode'].enable();
 
     const employeeLocationId = employee.locationId != null ? Number(employee.locationId) : null;
+    const activeLocationId = this.selectedLocationId ?? employeeLocationId;
 
     this.employeeForm.patchValue({
       employeeCode: employee.employeeCode,
       name: employee.name,
       departmentId: departmentId || null,
-      locationId: employeeLocationId,
+      locationId: activeLocationId,
       scheduleIn: employee.scheduleIn || '',
       scheduleOut: employee.scheduleOut || '',
       graceTime: employee.graceTime || '',
@@ -1698,10 +1699,10 @@ export class EmployeesComponent implements OnInit {
       note: employee.note ?? (employee as any).notes ?? '',
     });
 
-    this.selectedLocationId = employeeLocationId;
-    this.isDepartmentSelectionEnabled = employeeLocationId !== null;
-    if (employeeLocationId !== null) {
-      this.loadDepartmentOptions(employeeLocationId);
+    this.selectedLocationId = activeLocationId;
+    this.isDepartmentSelectionEnabled = activeLocationId !== null;
+    if (activeLocationId !== null) {
+      this.loadDepartmentOptions(activeLocationId);
     } else {
       this.departmentOptions = [];
     }

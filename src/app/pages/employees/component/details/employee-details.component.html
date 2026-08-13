@@ -110,6 +110,14 @@
           </div>
           <div class="note-main-text">{{ noteItem.content }}</div>
         </div>
+        <button
+          *ngIf="noteItem.id != null"
+          type="button"
+          class="delete-note-btn"
+          (click)="deleteEmployeeNoteById(noteItem.id)"
+        >
+          حذف
+        </button>
       </div>
     </div>
 
@@ -132,8 +140,15 @@
               <span *ngIf="noteItem.displayName">👤 {{ noteItem.displayName }}</span>
             </div>
             <div class="note-main-text">{{ noteItem.content }}</div>
-            
           </div>
+          <button
+            *ngIf="noteItem.id != null"
+            type="button"
+            class="delete-note-btn"
+            (click)="deleteEmployeeNoteById(noteItem.id)"
+          >
+            حذف
+          </button>
         </div>
       </div>
 

@@ -45,6 +45,10 @@ export class EmployeesListComponent {
     return this.isSuperAdmin && this.selectedLocationId === null && this.shouldShowLocationSelector;
   }
 
+  get shouldDisableEditAction(): boolean {
+    return this.isSuperAdmin && this.selectedLocationId === null && this.shouldShowLocationSelector;
+  }
+
   @Output() searchTermChange = new EventEmitter<string>();
   @Output() departmentIdChange = new EventEmitter<number | null>();
   @Output() selectedLocationIdChange = new EventEmitter<number | null>();
@@ -72,6 +76,13 @@ export class EmployeesListComponent {
   onDepartmentChange(value: number | null): void {
     this.departmentId = value;
     this.departmentIdChange.emit(value);
+  }
+
+  onEditEmployee(employee: Employee): void {
+    if (this.shouldDisableEditAction) {
+      return;
+    }
+    this.editEmployee.emit(employee);
   }
 
   onLocationChange(value: number | null): void {

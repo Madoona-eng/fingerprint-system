@@ -172,7 +172,10 @@
               <button
                 type="button"
                 class="table-action-btn edit-action"
-                (click)="editEmployee.emit(emp)"
+                [disabled]="shouldDisableEditAction"
+                [attr.title]="shouldDisableEditAction ? 'يرجى اختيار الموقع أولاً' : 'تعديل'"
+                [class.tooltip-disabled]="shouldDisableEditAction"
+                (click)="onEditEmployee(emp)"
               >
                 تعديل
               </button>

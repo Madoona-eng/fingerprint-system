@@ -14,7 +14,7 @@ import { getAttendanceStatusLabel } from '../../../../shared/utils/attendance-st
 export class EmployeeDetailsComponent {
   showNotesModal = false;
   modalNotesTitle = 'الملاحظات';
-  modalNotes: Array<{ content: string; displayName?: string; createdAt?: string }> = [];
+  modalNotes: Array<{ id?: number | string; content: string; displayName?: string; createdAt?: string }> = [];
 
   @Input() selectedEmployeeForDetails: Employee | null = null;
   @Input() employeeDetailsRows: any[] = [];
@@ -51,6 +51,7 @@ export class EmployeeDetailsComponent {
 
     this.modalNotesTitle = 'ملاحظات الموظف';
     this.modalNotes = employeeNotes.map((item) => ({
+      id: item.id,
       content: item.content,
       displayName: item.displayName,
       createdAt: item.createdAt,
