@@ -448,7 +448,7 @@ export class EmployeesComponent implements OnInit {
       locationId: [null],
       scheduleIn: ['', Validators.required],
       scheduleOut: ['', Validators.required],
-      graceTime: ['', Validators.required],
+      graceTime: [''],
       isChristian: [false],
       note: [''],
     });
@@ -1581,7 +1581,7 @@ export class EmployeesComponent implements OnInit {
       return;
     }
 
-    if (!this.isValidTimeString(employee.graceTime)) {
+    if (employee.graceTime && !this.isValidTimeString(employee.graceTime)) {
       this.errorMessage = 'وقت السماح غير صحيح';
       this.isSaving = false;
       return;
@@ -2113,7 +2113,7 @@ export class EmployeesComponent implements OnInit {
       missing.push('موعد الانصراف');
     }
 
-    if (!employee.graceTime || !this.isValidTimeString(employee.graceTime)) {
+    if (employee.graceTime && !this.isValidTimeString(employee.graceTime)) {
       missing.push('وقت السماح');
     }
 
@@ -2146,7 +2146,7 @@ export class EmployeesComponent implements OnInit {
       (employee) =>
         !this.isValidTimeString(employee.scheduleIn) ||
         !this.isValidTimeString(employee.scheduleOut) ||
-        !this.isValidTimeString(employee.graceTime),
+        (employee.graceTime && !this.isValidTimeString(employee.graceTime)),
     );
 
     if (invalidTimes.length > 0) {
@@ -2176,7 +2176,7 @@ export class EmployeesComponent implements OnInit {
       (employee) =>
         !this.isValidTimeString(employee.scheduleIn) ||
         !this.isValidTimeString(employee.scheduleOut) ||
-        !this.isValidTimeString(employee.graceTime),
+        (employee.graceTime && !this.isValidTimeString(employee.graceTime)),
     );
 
     if (invalidTimes.length > 0) {
@@ -2604,11 +2604,19 @@ export class EmployeesComponent implements OnInit {
       }
     }
 
+    if (/^\d{1,2}:\d{2}$/.test(text)) {
+      const [hours, minutes] = text.split(':').map(Number);
+      if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+        return this.secondsToTime((hours * 60 + minutes) * 60);
+      }
+    }
+
     if (/Z$/i.test(text) || /[+-]\d{2}:?\d{2}$/.test(text)) {
       return text;
     }
 
-    return this.normalizeExcelTime(value);
+    const normalized = this.normalizeExcelTime(value);
+    return normalized || text;
   }
 
   timeForInput(value: string): string {
