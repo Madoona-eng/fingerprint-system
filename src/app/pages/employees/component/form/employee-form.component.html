@@ -64,10 +64,9 @@
           type="text"
           formControlName="graceTime"
           inputmode="numeric"
-          placeholder="00:30"
-          pattern="^(?:[01]\d|2[0-3]):[0-5]\d$"
+          placeholder="00:30 أو 00:30:00"
         />
-        <small class="readonly-note">قم بإدخال الفتره بالدقائق مثل : 00:30 تعني ان فتره السماح 30 دقيقه </small>
+        <small class="readonly-note">يمكن إدخال القيمة بشكل طبيعي مثل 00:30 أو 00:30:00 أو أي صيغة زمنية مقبولة.</small>
       </div>
 
       <div *ngIf="selectedEmployeeId === null" class="form-group checkbox-group full-width-field">
