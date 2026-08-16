@@ -394,11 +394,8 @@ export class EmployeesComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     const role = this.authService.getUserRole();
-    this.isSuperAdmin = ['superadmin', 'technicaladmin'].includes(
-      (role || '').trim().toLowerCase(),
-    );
+    this.isSuperAdmin = (role || '').trim().toLowerCase() === 'superadmin';
     this.loadLocations();
-    this.loadDepartmentOptions();
     this.route.queryParams.subscribe((params) => {
       const requestedPage = String(params['page'] || 'list') as EmployeePage;
       const requestedId = Number(params['id'] || 0);
@@ -413,7 +410,6 @@ export class EmployeesComponent implements OnInit {
     this.loadEmployees();
     this.loadSystemSettings();
   }
-
   openEmployeePage(page: EmployeePage, id: number | null = null): void {
     if (page === 'form') {
       this.selectedEmployeeId = null;
@@ -459,30 +455,35 @@ export class EmployeesComponent implements OnInit {
   }
 
   private loadLocations(): void {
+    const role = this.authService.getUserRole();
+    const normalizedRole = role?.trim().toLowerCase();
+    const userLocationId = this.authService.getUserLocationId();
+    const isSuperAdminOnly = normalizedRole === 'superadmin';
+
+    if (!isSuperAdminOnly) {
+      this.locationOptions = [];
+      this.selectedLocationId = userLocationId ?? null;
+      this.isDepartmentSelectionEnabled = this.selectedLocationId !== null;
+
+      if (this.selectedLocationId !== null) {
+        this.loadDepartmentOptions(this.selectedLocationId);
+      } else {
+        this.departmentOptions = [];
+      }
+      return;
+    }
+
     this.employeesService.getLocations().subscribe({
       next: (response: any) => {
         const locations = this.mapLocationOptions(response);
         this.locationOptions = locations;
 
-        const role = this.authService.getUserRole();
-        const normalizedRole = role?.trim().toLowerCase();
-        const userLocationId = this.authService.getUserLocationId();
+        this.selectedLocationId = userLocationId ?? null;
+        this.isDepartmentSelectionEnabled = this.selectedLocationId !== null;
 
-        if (normalizedRole === 'superadmin' || normalizedRole === 'technicaladmin') {
-          this.selectedLocationId = userLocationId ?? null;
-          this.isDepartmentSelectionEnabled = this.selectedLocationId !== null;
-          if (this.selectedLocationId !== null) {
-            this.loadDepartmentOptions(this.selectedLocationId);
-          } else {
-            this.departmentOptions = [];
-          }
-        } else if (locations.length > 0) {
-          this.selectedLocationId = userLocationId ?? locations[0].id;
-          this.isDepartmentSelectionEnabled = this.selectedLocationId !== null;
+        if (this.selectedLocationId !== null) {
           this.loadDepartmentOptions(this.selectedLocationId);
         } else {
-          this.selectedLocationId = null;
-          this.isDepartmentSelectionEnabled = false;
           this.departmentOptions = [];
         }
       },

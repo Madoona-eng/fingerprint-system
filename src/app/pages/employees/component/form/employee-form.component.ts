@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Employee } from '../../model/models';
@@ -11,7 +11,7 @@ import { Employee } from '../../model/models';
   templateUrl: './employee-form.component.html',
   styleUrls: ['./employee-form.component.css']
 })
-export class EmployeeFormComponent implements OnChanges {
+export class EmployeeFormComponent {
   @Input() employeeForm!: FormGroup;
   @Input() selectedEmployeeId: number | null = null;
   @Input() isSaving = false;
@@ -33,33 +33,5 @@ export class EmployeeFormComponent implements OnChanges {
     const target = event.target as HTMLSelectElement | null;
     const rawValue = target?.value ?? '';
     this.locationChanged.emit(rawValue === '' ? null : Number(rawValue));
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['employeeForm'] || changes['isDepartmentSelectionEnabled'] || changes['selectedLocationId']) {
-      this.syncDepartmentControlState();
-    }
-  }
-
-  private syncDepartmentControlState(): void {
-    if (!this.employeeForm) {
-      return;
-    }
-
-    const departmentControl = this.employeeForm.get('departmentId');
-
-    if (!departmentControl) {
-      return;
-    }
-
-    const shouldEnable = this.isDepartmentSelectionEnabled && this.selectedLocationId !== null;
-
-    if (shouldEnable) {
-      departmentControl.enable({ emitEvent: false });
-      return;
-    }
-
-    departmentControl.disable({ emitEvent: false });
-    departmentControl.setValue(null, { emitEvent: false });
   }
 }
