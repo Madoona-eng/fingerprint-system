@@ -2,22 +2,29 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { read, utils, WorkBook, WorkSheet } from 'xlsx';
+import { WorkBook, WorkSheet, read, utils } from 'xlsx';
 import { AuthService } from '../../../auth/Services/auth.service';
 import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
 import { exportToExcel } from '../../../shared/utils/excel.util';
 import { EmployeesService } from '../../employees/service/employees.service';
 import { AttendancePayload, FingerprintPunch } from '../model/models';
 import { AttendanceService } from '../service/attendance.service';
-import { AttendanceImportComponent } from './import/attendance-import.component';
-import { AttendanceReportComponent } from './report/attendance-report.component';
-import { AttendanceLateSummaryComponent } from './late-summary/attendance-late-summary.component';
 import { AttendanceEditComponent } from './edit/attendance-edit.component';
+import { AttendanceImportComponent } from './import/attendance-import.component';
+import { AttendanceLateSummaryComponent } from './late-summary/attendance-late-summary.component';
+import { AttendanceReportComponent } from './report/attendance-report.component';
 
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule, AttendanceImportComponent, AttendanceReportComponent, AttendanceLateSummaryComponent, AttendanceEditComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    AttendanceImportComponent,
+    AttendanceReportComponent,
+    AttendanceLateSummaryComponent,
+    AttendanceEditComponent,
+  ],
   templateUrl: './attendance.component.html',
   styleUrls: ['./attendance.component.css'],
 })
@@ -118,7 +125,7 @@ export class AttendanceComponent implements OnInit {
     'Mission',
     'DrivingRoute',
     'OnLeave',
-    'Online'
+    'Online',
   ];
 
   get statusOptions(): { value: string; label: string }[] {
@@ -751,11 +758,14 @@ export class AttendanceComponent implements OnInit {
   getAttendanceExportRow(row: any): any {
     return {
       الكود: row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-',
-      اسم_الموظف: row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
+      اسم_الموظف:
+        row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
       القسم: row.departmentName || row.employee?.departmentName || row.department?.name || '-',
       التاريخ: row.date || row.attendanceDate || '-',
-      'معاد الحضور': row.scheduleIn || row.shift?.scheduleIn || row.shift?.inTime || row.schedule?.in || '-',
-      'معاد الانصراف': row.scheduleOut || row.shift?.scheduleOut || row.shift?.outTime || row.schedule?.out || '-',
+      'معاد الحضور':
+        row.scheduleIn || row.shift?.scheduleIn || row.shift?.inTime || row.schedule?.in || '-',
+      'معاد الانصراف':
+        row.scheduleOut || row.shift?.scheduleOut || row.shift?.outTime || row.schedule?.out || '-',
       الحضور: row.actualIn || '-',
       الانصراف: row.actualOut || '-',
       الحالة: this.getAttendanceStatusLabel(row.status),
@@ -1223,7 +1233,7 @@ export class AttendanceComponent implements OnInit {
 
       this.sheetPreviewHeaders = this.getSheetPreviewHeaders(this.sheetPreviewRows);
 
-      this.successMessage = `تم استخراج ${this.attendanceRows.length} سجل حضور من الملف`;
+      // this.successMessage = `تم استخراج ${this.attendanceRows.length} سجل حضور من الملف`;
 
       console.log('Attendance JSON:', this.attendanceRows);
       console.log('Attendance Row Errors:', this.rowErrors);
@@ -1510,7 +1520,8 @@ export class AttendanceComponent implements OnInit {
 
     this.isImporting = true;
     this.errorMessage = '';
-    this.successMessage = 'جاري حفظ بيانات الحضور في السيستم...';
+    // this.successMessage = 'جاري حفظ بيانات الحضور في السيستم...';
+    this.successMessage = '';
 
     console.log('Final Attendance Payload:', this.attendanceRows);
 
@@ -1519,8 +1530,15 @@ export class AttendanceComponent implements OnInit {
         console.log('Bulk Attendance Response:', response);
         console.log('Bulk Attendance Response JSON:', JSON.stringify(response, null, 2));
 
-        this.hasImportedCurrentSheet = true;
         this.isImporting = false;
+
+        if (response?.isSuccess === false) {
+          this.errorMessage = this.translateApiMessage(response?.message, 'فشل استيراد الشيت');
+          this.hasImportedCurrentSheet = false;
+          return;
+        }
+
+        this.hasImportedCurrentSheet = true;
 
         const responseData = response?.data || response;
 
@@ -1564,11 +1582,23 @@ export class AttendanceComponent implements OnInit {
         if (failedCount > 0) {
           const failureDetails = failedRows
             .map((item: any) => {
-              const message = item?.message || item?.errorMessage || item?.error || item?.details || item?.reason || item?.statusMessage || '';
-              const employeeCode = item?.employeeCode || item?.employee?.employeeCode || item?.employeeCode || '';
+              const message =
+                item?.message ||
+                item?.errorMessage ||
+                item?.error ||
+                item?.details ||
+                item?.reason ||
+                item?.statusMessage ||
+                '';
+              const employeeCode =
+                item?.employeeCode || item?.employee?.employeeCode || item?.employeeCode || '';
               const rowNumber = item?.rowNumber || item?.row || item?.index;
 
-              const parts = [message, employeeCode ? `رمز الموظف: ${employeeCode}` : '', rowNumber ? `الصف: ${rowNumber}` : ''].filter(Boolean);
+              const parts = [
+                message,
+                employeeCode ? `رمز الموظف: ${employeeCode}` : '',
+                rowNumber ? `الصف: ${rowNumber}` : '',
+              ].filter(Boolean);
               return parts.join(' | ');
             })
             .filter((item: string) => item && item.trim() !== '')
