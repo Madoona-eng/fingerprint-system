@@ -16,7 +16,12 @@ describe('AttendanceComponent export', () => {
     );
   });
 
-  it('includes schedule in/out columns in attendance export rows', () => {
+  it('includes from/to date columns in attendance export rows', () => {
+    component.dateRangeFrom = '2026-08-10';
+    component.dateRangeTo = '2026-08-12';
+    component.dateRangeFromDisplay = '10/08/2026';
+    component.dateRangeToDisplay = '12/08/2026';
+
     const row = {
       employeeCode: 'E1',
       employeeName: 'Ali',
@@ -33,6 +38,8 @@ describe('AttendanceComponent export', () => {
 
     const exportRow = (component as any).getAttendanceExportRow(row);
 
+    expect(exportRow['التاريخ من']).toBe('10/08/2026');
+    expect(exportRow['التاريخ إلى']).toBe('12/08/2026');
     expect(exportRow['معاد الحضور']).toBe('08:00');
     expect(exportRow['معاد الانصراف']).toBe('17:00');
   });

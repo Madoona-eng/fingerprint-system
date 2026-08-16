@@ -756,16 +756,18 @@ export class AttendanceComponent implements OnInit {
   // getAttendanceExportRow
   // ============================================================
   getAttendanceExportRow(row: any): any {
+    const fromDate = this.dateRangeFromDisplay || this.formatDateToDisplay(this.dateRangeFrom ? new Date(this.dateRangeFrom) : new Date());
+    const toDate = this.dateRangeToDisplay || this.formatDateToDisplay(this.dateRangeTo ? new Date(this.dateRangeTo) : new Date());
+
     return {
       الكود: row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-',
       اسم_الموظف:
         row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
       القسم: row.departmentName || row.employee?.departmentName || row.department?.name || '-',
-      التاريخ: row.date || row.attendanceDate || '-',
-      'معاد الحضور':
-        row.scheduleIn || row.shift?.scheduleIn || row.shift?.inTime || row.schedule?.in || '-',
-      'معاد الانصراف':
-        row.scheduleOut || row.shift?.scheduleOut || row.shift?.outTime || row.schedule?.out || '-',
+      'التاريخ من': fromDate || '-',
+      'التاريخ إلى': toDate || '-',
+      'معاد الحضور': row.scheduleIn || row.shift?.scheduleIn || row.shift?.inTime || row.schedule?.in || '-',
+      'معاد الانصراف': row.scheduleOut || row.shift?.scheduleOut || row.shift?.outTime || row.schedule?.out || '-',
       الحضور: row.actualIn || '-',
       الانصراف: row.actualOut || '-',
       الحالة: this.getAttendanceStatusLabel(row.status),
