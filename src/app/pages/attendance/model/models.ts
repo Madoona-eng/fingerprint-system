@@ -43,3 +43,42 @@ export interface EmployeeLateSummaryRow {
   totalLateMinutes: number;
   exceedsThreshold: boolean;
 }
+
+export interface AttendanceNoteDto {
+  id: number;
+  content: string;
+  displayName: string;
+  createdAt: string;
+}
+
+export interface AttendanceNoteEntry {
+  content: string;
+  displayName?: string;
+  createdAt?: string;
+}
+
+export interface DailyAttendanceRowDto {
+  id: number;
+  date: string;
+  employeeCode: string;
+  employeeName: string;
+  departmentName: string | null;
+  status: string;
+  scheduleIn: string;
+  scheduleOut: string;
+  graceTime: string;
+  actualIn: string | null;
+  actualOut: string | null;
+  lateMinutes: number | null;
+  overtimeMinutes: number | null;
+  workedMinutes: number | null;
+  isManualOverride: boolean;
+  needsReview: boolean;
+  isReviewed: boolean;
+  reviewedByUserName: string | null;
+  notesCount: number;
+  createdByUserName: string | null;
+  lastModifiedByUserName: string | null;
+  lastModifiedAt: string | null;
+  reviewedAt: string | null;
+}

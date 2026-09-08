@@ -17,7 +17,7 @@
    منطقة الهيرو (العنوان وبطاقة الفلتر)
    ========================================== */
 .employee-details-hero {
-   background: var(--main-color);
+  background: var(--main-color);
   border-radius: 16px;
   padding: 32px;
   color: #ffffff;
@@ -36,7 +36,7 @@
 .details-back-btn {
   align-self: flex-start;
   background-color: var(--main-color);
-  color: #ffffff !important; 
+  color: #ffffff !important;
   border: 1px solid #d8dee8;
   padding: 10px 20px;
   border-radius: 8px;
@@ -49,7 +49,7 @@
 
 .details-back-btn:hover {
   background-color: var(--main-color-hover);
-  color: #ffffff !important; 
+  color: #ffffff !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
 }
@@ -274,18 +274,18 @@
 .notes-cell-btn {
   padding: 7px 12px;
   font-size: 0.85rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #65e4e9, #2dd4bf);
   color: #ffffff;
   border: none;
   border-radius: 999px;
   font-weight: 700;
   box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
   transition: all 0.2s ease;
+  cursor: pointer !important;
 }
 
 .notes-cell-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.28);
 }
 
 .notes-cell-btn:disabled {
@@ -361,12 +361,13 @@
 
 .modal-note-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 12px 14px;
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  margin: 1em 0;
 }
 
 .modal-note-item .note-text {
@@ -473,22 +474,20 @@
   gap: 16px;
 }
 
-
 .export-excel-btn {
-    background: var(--excel-color) !important;
-    color: #fff !important;
-    border: 1px solid var(--excel-color) !important;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
+  background: var(--excel-color) !important;
+  color: #fff !important;
+  border: 1px solid var(--excel-color) !important;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
 .export-excel-btn:hover {
-    background: var(--excel-color-hover) !important;
-     color: #ffffff;
-
+  background: var(--excel-color-hover) !important;
+  color: #ffffff;
 }
 
 /* تعديل حاوية الجدول لإخفاء السكرول */
@@ -532,17 +531,39 @@ tr:hover td {
 }
 
 /* تحديد توزيع عرض الأعمدة الذكي (مجموع النسب = 100%) */
-table th:nth-child(1)  { width: 11%; } /* التاريخ */
-table th:nth-child(2)  { width: 9%; }  /* وقت الحضور */
-table th:nth-child(3)  { width: 9%; }  /* وقت الانصراف */
-table th:nth-child(4)  { width: 9%; }  /* معاد الحضور */
-table th:nth-child(5)  { width: 9%; }  /* معاد الانصراف */
-table th:nth-child(6)  { width: 9%; }  /* وقت السماح */
-table th:nth-child(7)  { width: 9%; }  /* ساعات العمل */
-table th:nth-child(8)  { width: 9%; }  /* دقائق التأخير */
-table th:nth-child(9)  { width: 9%; }  /* دقائق الإضافي */
-table th:nth-child(10) { width: 8%; }  /* الحالة */
-table th:nth-child(11) { width: 11%; } /* ملاحظات */
+table th:nth-child(1) {
+  width: 11%;
+} /* التاريخ */
+table th:nth-child(2) {
+  width: 9%;
+} /* وقت الحضور */
+table th:nth-child(3) {
+  width: 9%;
+} /* وقت الانصراف */
+table th:nth-child(4) {
+  width: 9%;
+} /* معاد الحضور */
+table th:nth-child(5) {
+  width: 9%;
+} /* معاد الانصراف */
+table th:nth-child(6) {
+  width: 9%;
+} /* وقت السماح */
+table th:nth-child(7) {
+  width: 9%;
+} /* ساعات العمل */
+table th:nth-child(8) {
+  width: 9%;
+} /* دقائق التأخير */
+table th:nth-child(9) {
+  width: 9%;
+} /* دقائق الإضافي */
+table th:nth-child(10) {
+  width: 8%;
+} /* الحالة */
+table th:nth-child(11) {
+  width: 11%;
+} /* ملاحظات */
 
 /* ==========================================
    التجاوب مع الحالات الخاصة (فارغ / تحميل)
@@ -612,21 +633,22 @@ table th:nth-child(11) { width: 11%; } /* ملاحظات */
   .employee-details-hero {
     padding: 20px;
   }
-  
+
   .hero-title h1 {
     font-size: 1.5rem;
   }
-  
+
   .details-filter-card {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .filter-field {
     width: 100%;
   }
 
-  .details-main-btn, .details-secondary-btn {
+  .details-main-btn,
+  .details-secondary-btn {
     width: 100%;
   }
 }
@@ -638,7 +660,7 @@ table th:nth-child(11) { width: 11%; } /* ملاحظات */
 /* 2. لتغيير لون النص المؤقت (Placeholder) مثل "07/07/2026" الظاهر بالصورة */
 .date-text-input::placeholder {
   color: #4a5568 !important; /* لون رمادي داكن واضح بدلاً من الأبيض الباهت */
-  opacity: 1 !important;       /* إلغاء أي شفافية افتراضية يضعها المتصفح */
+  opacity: 1 !important; /* إلغاء أي شفافية افتراضية يضعها المتصفح */
 }
 
 /* لضمان التوافق مع متصفحات Chrome و Safari و Firefox */

@@ -190,26 +190,20 @@
       <tbody>
         <tr *ngFor="let row of filteredDateRangeRows">
           <td>
-            {{
-              row.employeeName ||
-                row.name ||
-                row.employee?.name ||
-                row.employee?.employeeName ||
-                '-'
-            }}
+            {{ row.employeeName || '-' }}
           </td>
           <td>
-            {{ row.departmentName || row.employee?.departmentName || row.department?.name || '-' }}
+            {{ row.departmentName || '-' }}
           </td>
-          <td>{{ row.date || row.attendanceDate || '-' }}</td>
+          <td>{{ row.date || '-' }}</td>
           <td>
             <span class="status-badge" [ngClass]="getStatusClass(row.status)">
               {{ getAttendanceStatusLabel(row.status) }}
             </span>
           </td>
-          <td>{{ row.scheduleIn || row.shift?.scheduleIn || '-' }}</td>
-          <td>{{ row.scheduleOut || row.shift?.scheduleOut || '-' }}</td>
-          <td>{{ row.graceTime || row.allowance || row.grace || '-' }}</td>
+          <td>{{ row.scheduleIn || '-' }}</td>
+          <td>{{ row.scheduleOut || '-' }}</td>
+          <td>{{ row.graceTime || '-' }}</td>
           <td>{{ row.actualIn || '-' }}</td>
           <td>{{ row.actualOut || '-' }}</td>
           <td>{{ row.lateMinutes ?? '-' }}</td>
@@ -217,7 +211,7 @@
           <td>
             <div class="attendance-notes-cell">
               <button type="button" class="notes-view-btn" (click)="openNotesModal.emit(row)">
-                {{ getAttendanceNotes(row.notes).length > 0 ? 'عرض الملاحظات' : 'لا توجد ملاحظات' }}
+                {{ row.notesCount > 0 ? 'عرض الملاحظات' : 'لا توجد ملاحظات' }}
               </button>
             </div>
           </td>
@@ -229,10 +223,17 @@
             >
               يحتاج مراجعة
             </span>
-            <span *ngIf="isReviewed(row)" class="reviewed-badge">
-              {{ isManuallyEdited(row) ? 'تم التعديل' : 'تمت المراجعة' }}
+            <span *ngIf="!needsReview(row) && isLatestActionReview(row)" class="reviewed-badge">
+              تمت المراجعة
             </span>
-            <span *ngIf="!needsReview(row) && !isReviewed(row)" class="no-review-needed">-</span>
+            <span *ngIf="!needsReview(row) && isLatestActionManualEdit(row)" class="reviewed-badge">
+              تم التعديل
+            </span>
+            <span
+              *ngIf="!needsReview(row) && !isReviewed(row) && !isManuallyEdited(row)"
+              class="no-review-needed"
+              >-</span
+            >
           </td>
           <td>
             <button

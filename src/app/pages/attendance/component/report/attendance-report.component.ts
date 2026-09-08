@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { getAttendanceStatusLabel } from '../../../../shared/utils/attendance-status.util';
+import { AttendanceNoteEntry, DailyAttendanceRowDto } from '../../model/models';
 
 @Component({
   selector: 'app-attendance-report',
@@ -51,7 +52,7 @@ export class AttendanceReportComponent {
         }));
   }
 
-  @Input() filteredDateRangeRows: any[] = [];
+  @Input() filteredDateRangeRows: DailyAttendanceRowDto[] = [];
   @Input() dateRangePageNumber = 1;
   @Input() dateRangeTotalPages = 0;
   @Input() dateRangeTotalCount = 0;
@@ -60,8 +61,8 @@ export class AttendanceReportComponent {
   @Input() dateRangeSuccessMessage = '';
   @Input() notesModalOpen = false;
   @Input() notesModalTitle = '';
-  @Input() notesModalEntries: Array<{ content: string; displayName?: string; createdAt?: string }> = [];
-  @Input() notesModalRow: any = null;
+  @Input() notesModalEntries: AttendanceNoteEntry[] = [];
+  @Input() notesModalRow: DailyAttendanceRowDto | null = null;
   @Input() reviewingAttendanceId: number | null = null;
   @Input() isSuperAdmin = false;
   @Input() locations: { id: number; name: string }[] = [];
@@ -114,93 +115,20 @@ export class AttendanceReportComponent {
     }
   }
 
-  private normalizeNotesValue(notes: unknown): string {
-    if (!notes) {
-      return '';
-    }
-
-    if (typeof notes === 'string') {
-      return notes.trim();
-    }
-
-    if (Array.isArray(notes)) {
-      return notes
-        .map((note) => (typeof note === 'string' ? note : String((note as any).content || '')))
-        .filter(Boolean)
-        .join(', ');
-    }
-
-    if (typeof notes === 'object' && notes !== null) {
-      const candidate = notes as { content?: string; note?: string; text?: string };
-      return String(candidate.content || candidate.note || candidate.text || '').trim();
-    }
-
-    return '';
+  isManuallyEdited(row: DailyAttendanceRowDto): boolean {
+    return row?.isManualOverride === true;
   }
 
-  isManuallyEdited(row: any): boolean {
-    const value = row?.isManualOverride ?? row?.manualOverride;
-    return value === true || value === 1 || value === 'true' || value === 'True';
+  isReviewed(row: DailyAttendanceRowDto): boolean {
+    return row?.isReviewed === true;
   }
 
-  isReviewed(row: any): boolean {
-    const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
-    const reviewFlag = [row?.isReviewed, row?.reviewed, row?.isReviewCompleted, row?.hasBeenReviewed].some(
-      (value) => value === true,
-    );
-
-    return (
-      this.isManuallyEdited(row) ||
-      reviewFlag ||
-      normalizedNotes.includes('تمت المراجعة') ||
-      normalizedNotes.includes('تمت مراجعه') ||
-      normalizedNotes.includes('reviewed')
-    );
+  needsReview(row: DailyAttendanceRowDto): boolean {
+    return row?.needsReview === true;
   }
 
-  needsReview(row: any): boolean {
-    if (this.isManuallyEdited(row) || this.isReviewed(row)) {
-      return false;
-    }
-
-    const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
-    const status = String(row?.status || '').trim();
-    const explicitReviewFlag = [row?.needsReview, row?.requiresReview, row?.reviewRequired].some(
-      (value) => value === true,
-    );
-
-    return (
-      explicitReviewFlag ||
-      normalizedNotes.includes('needs review') ||
-      normalizedNotes.includes('يحتاج مراجعة') ||
-      normalizedNotes.includes('يحتاج مراجعه') ||
-      normalizedNotes.includes('checkin without checkout') ||
-      normalizedNotes.includes('checkout without checkin') ||
-      status === 'Incomplete' ||
-      status === 'MissingIn' ||
-      status === 'MissingOut'
-    );
-  }
-
-  getAttendanceNotes(notes: unknown): string[] {
-    const normalized = this.normalizeNotesValue(notes);
-    if (!normalized) {
-      return [];
-    }
-
-    return normalized
-      .split(/[,،;]/)
-      .map((note) => note.trim())
-      .filter(Boolean);
-  }
-
-  getAttendanceId(row: any): number | null {
-    const id = row?.id || row?.attendanceId || row?.attendanceRecordId;
-    if (!id) {
-      return null;
-    }
-    const numberId = Number(id);
-    return Number.isFinite(numberId) && numberId > 0 ? numberId : null;
+  getAttendanceId(row: DailyAttendanceRowDto): number | null {
+    return Number.isFinite(row?.id) && row.id > 0 ? row.id : null;
   }
 
   formatMinutesToHoursLabel(value: number | string | null | undefined): string {
@@ -226,5 +154,25 @@ export class AttendanceReportComponent {
     }
 
     return `${wholeHours}:${remainingMinutes.toString().padStart(2, '0')}`;
+  }
+
+  isLatestActionReview(row: DailyAttendanceRowDto): boolean {
+    if (!row?.isReviewed) return false;
+    if (!row?.isManualOverride) return true;
+
+    const reviewedAt = row.reviewedAt ? new Date(row.reviewedAt).getTime() : 0;
+    const modifiedAt = row.lastModifiedAt ? new Date(row.lastModifiedAt).getTime() : 0;
+
+    return reviewedAt >= modifiedAt;
+  }
+
+  isLatestActionManualEdit(row: DailyAttendanceRowDto): boolean {
+    if (!row?.isManualOverride) return false;
+    if (!row?.isReviewed) return true;
+
+    const reviewedAt = row.reviewedAt ? new Date(row.reviewedAt).getTime() : 0;
+    const modifiedAt = row.lastModifiedAt ? new Date(row.lastModifiedAt).getTime() : 0;
+
+    return modifiedAt > reviewedAt;
   }
 }

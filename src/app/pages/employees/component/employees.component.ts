@@ -102,14 +102,7 @@ export class EmployeesComponent implements OnInit {
   employeeDetailsTotalCount = 0;
   employeeDetailsTotalPages = 0;
   employeeDetailsStatusFilter = '';
-  employeeDetailsStatusOptions = [
-    { value: '', label: 'كل الحالات' },
-    { value: 'present', label: 'حاضر' },
-    { value: 'absent', label: 'غائب' },
-    { value: 'late', label: 'متأخر' },
-    { value: 'earlydeparture', label: 'انصراف مبكر' },
-    { value: 'ontime', label: 'في الميعاد' },
-  ];
+
   private employeeDetailsAllRows: any[] = [];
 
   activeEmployeePage: EmployeePage = 'upload';
@@ -448,7 +441,7 @@ export class EmployeesComponent implements OnInit {
       locationId: [null],
       scheduleIn: ['', Validators.required],
       scheduleOut: ['', Validators.required],
-      graceTime: [''],
+      graceTime: ['', Validators.required],
       isChristian: [false],
       note: [''],
     });
@@ -1581,8 +1574,8 @@ export class EmployeesComponent implements OnInit {
       return;
     }
 
-    if (employee.graceTime && !this.isValidTimeString(employee.graceTime)) {
-      this.errorMessage = 'وقت السماح غير صحيح';
+    if (!this.isValidTimeString(employee.graceTime)) {
+      this.errorMessage = 'وقت السماح مطلوب ويجب أن يكون بصيغة صحيحة';
       this.isSaving = false;
       return;
     }

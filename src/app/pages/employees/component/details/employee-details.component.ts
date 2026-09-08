@@ -1,23 +1,33 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Employee } from '../../model/models';
 import { getAttendanceStatusLabel } from '../../../../shared/utils/attendance-status.util';
+import { AttendanceService } from '../../../attendance/service/attendance.service';
+import { AttendanceBasicRow, Employee } from '../../model/models';
+
+interface NoteItem {
+  id?: number | string;
+  content: string;
+  displayName?: string;
+  createdAt?: string;
+}
 
 @Component({
   selector: 'app-employee-details',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './employee-details.component.html',
-  styleUrls: ['./employee-details.component.css']
+  styleUrls: ['./employee-details.component.css'],
 })
 export class EmployeeDetailsComponent {
+  // ---- Modal state (shared between employee notes & attendance-row notes) ----
   showNotesModal = false;
   modalNotesTitle = 'الملاحظات';
-  modalNotes: Array<{ id?: number | string; content: string; displayName?: string; createdAt?: string }> = [];
+  modalNotes: NoteItem[] = [];
+  isLoadingRowNotes = false;
 
   @Input() selectedEmployeeForDetails: Employee | null = null;
-  @Input() employeeDetailsRows: any[] = [];
+  @Input() employeeDetailsRows: AttendanceBasicRow[] = [];
   @Input() isLoadingEmployeeDetails = false;
   @Input() employeeDetailsPageNumber = 1;
   @Input() employeeDetailsTotalPages = 0;
@@ -38,45 +48,10 @@ export class EmployeeDetailsComponent {
   @Output() dateInputChanged = new EventEmitter<{ field: 'from' | 'to'; value: string }>();
   @Output() deleteEmployeeNote = new EventEmitter<number | string>();
 
+  constructor(private attendanceService: AttendanceService) {}
+
   getStatusLabel(status: unknown): string {
     return getAttendanceStatusLabel(status);
-  }
-
-  getEmployeeNotes(): string[] {
-    return this.getEmployeeNoteItems().map((item) => item.content);
-  }
-
-  openEmployeeNotesModal(): void {
-    const employeeNotes = this.getEmployeeNoteItems();
-
-    this.modalNotesTitle = 'ملاحظات الموظف';
-    this.modalNotes = employeeNotes.map((item) => ({
-      id: item.id,
-      content: item.content,
-      displayName: item.displayName,
-      createdAt: item.createdAt,
-    }));
-    this.showNotesModal = true;
-  }
-
-  getEmployeeNoteItems(): Array<{ id?: number | string; content: string; displayName?: string; createdAt?: string }> {
-    const notes = this.selectedEmployeeForDetails?.note ?? this.selectedEmployeeForDetails?.notes;
-
-    if (Array.isArray(notes)) {
-      return notes
-        .map((item) => this.normalizeEmployeeNoteItem(item))
-        .filter(
-          (item): item is { id?: number | string; content: string; displayName?: string; createdAt?: string } => Boolean(item?.content),
-        );
-    }
-
-    const singleNote = this.normalizeNoteValue(notes);
-    return singleNote ? [{ content: singleNote }] : [];
-  }
-
-  getRowNotesLabel(notes: unknown): string {
-    const normalized = this.normalizeNoteValue(notes);
-    return normalized || '-';
   }
 
   formatMinutesToHours(value: unknown): string {
@@ -92,11 +67,34 @@ export class EmployeeDetailsComponent {
     return `${hours}:${remainingMinutes.toString().padStart(2, '0')}`;
   }
 
-  openRowNotesModal(row: any): void {
-    const parsedNotes = this.extractRowNotes(row?.notes);
+  // =========================================================
+  // Employee notes (EmployeeDetailsDto.Notes -> EmployeeNoteDto[])
+  // =========================================================
 
-    this.modalNotesTitle = `الملاحظات - ${row?.date || row?.attendanceDate || row?.from || 'السجل'}`;
-    this.modalNotes = parsedNotes;
+  getEmployeeNoteItems(): NoteItem[] {
+    const notes = this.selectedEmployeeForDetails?.notes;
+
+    if (!Array.isArray(notes)) {
+      return [];
+    }
+
+    return notes
+      .filter((n) => Boolean(n?.content))
+      .map((n) => ({
+        id: n.id,
+        content: n.content,
+        displayName: n.createdByUserName,
+        createdAt: n.createdAt,
+      }));
+  }
+
+  getEmployeeNotes(): string[] {
+    return this.getEmployeeNoteItems().map((item) => item.content);
+  }
+
+  openEmployeeNotesModal(): void {
+    this.modalNotesTitle = 'ملاحظات الموظف';
+    this.modalNotes = this.getEmployeeNoteItems();
     this.showNotesModal = true;
   }
 
@@ -108,173 +106,39 @@ export class EmployeeDetailsComponent {
     this.deleteEmployeeNote.emit(noteId);
   }
 
-  private extractRowNotes(notes: unknown): Array<{ content: string; displayName?: string; createdAt?: string }> {
-    if (Array.isArray(notes)) {
-      return notes
-        .map((item) => this.normalizeNoteEntry(item))
-        .filter((item): item is { content: string; displayName?: string; createdAt?: string } => Boolean(item?.content));
+  // =========================================================
+  // Attendance row notes (GET /Attendance/{id}/notes -> AttendanceNoteDto[])
+  // =========================================================
+
+  openRowNotesModal(row: AttendanceBasicRow): void {
+    this.modalNotesTitle = `الملاحظات - ${row?.date || 'السجل'}`;
+    this.modalNotes = [];
+    this.showNotesModal = true;
+
+    if (!row?.id) {
+      console.warn('Row is missing attendance id, cannot fetch notes.', row);
+      return;
     }
 
-    const singleNote = this.normalizeNoteValue(notes);
-    return singleNote ? [{ content: singleNote }] : [];
-  }
+    this.isLoadingRowNotes = true;
 
-  private normalizeNoteEntry(note: unknown): { content: string; displayName?: string; createdAt?: string } | null {
-    if (typeof note === 'string') {
-      const text = this.normalizeNoteValue(note);
-      return text ? { content: text } : null;
-    }
+    this.attendanceService.getAttendanceNotes(row.id).subscribe({
+      next: (response) => {
+        this.isLoadingRowNotes = false;
 
-    if (note && typeof note === 'object') {
-      const candidate = note as {
-        id?: number | string;
-        text?: string;
-        note?: string;
-        content?: string | object | unknown[];
-        description?: string;
-        value?: string | object | unknown[];
-        name?: string;
-        displayName?: string;
-        createdAt?: string;
-      };
-
-      const text = this.findNoteText(candidate);
-      if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeName(text)) {
-        return {
-          content: text.trim(),
-          displayName: candidate.displayName?.trim() || undefined,
-          createdAt: candidate.createdAt?.trim() || undefined,
-        };
-      }
-    }
-
-    return null;
-  }
-
-  private normalizeEmployeeNoteItem(note: unknown): { id?: number | string; content: string; displayName?: string; createdAt?: string } | null {
-    if (typeof note === 'string') {
-      const text = this.normalizeNoteValue(note);
-      return text ? { content: text } : null;
-    }
-
-    if (note && typeof note === 'object') {
-      const candidate = note as {
-        id?: number | string;
-        text?: string | object | unknown[];
-        note?: string | object | unknown[];
-        content?: string | object | unknown[];
-        description?: string | object | unknown[];
-        value?: string | object | unknown[];
-        name?: string;
-        displayName?: string;
-        createdByUserName?: string;
-        createdAt?: string;
-      };
-
-      const text = this.findNoteText(candidate);
-      if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeName(text)) {
-        return {
-          id: candidate.id,
-          content: text.trim(),
-          displayName: candidate.displayName || candidate.createdByUserName || undefined,
-          createdAt: candidate.createdAt || undefined,
-        };
-      }
-    }
-
-    return null;
-  }
-
-  private normalizeNoteValue(note: unknown): string {
-    if (Array.isArray(note)) {
-      return note
-        .map((item) => this.extractNoteText(item))
-        .filter((item): item is string => Boolean(item))
-        .join(', ');
-    }
-
-    if (typeof note === 'string') {
-      const text = note.trim();
-      if (!text || this.isFrameworkTypeName(text)) {
-        return '';
-      }
-
-      return text;
-    }
-
-    if (note && typeof note === 'object') {
-      return this.extractNoteText(note);
-    }
-
-    return '';
-  }
-
-  private extractNoteText(note: unknown): string {
-    if (typeof note === 'string') {
-      const text = note.trim();
-      if (!text || this.isFrameworkTypeName(text)) {
-        return '';
-      }
-
-      return text;
-    }
-
-    if (Array.isArray(note)) {
-      return note
-        .map((item) => this.extractNoteText(item))
-        .filter((item) => Boolean(item))
-        .join(', ');
-    }
-
-    if (note && typeof note === 'object') {
-      const text = this.findNoteText(note);
-      if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeName(text)) {
-        return text.trim();
-      }
-    }
-
-    return '';
-  }
-
-  private findNoteText(note: unknown): string | undefined {
-    if (typeof note === 'string') {
-      const text = note.trim();
-      return text && !this.isFrameworkTypeName(text) ? text : undefined;
-    }
-
-    if (Array.isArray(note)) {
-      const joined = note
-        .map((item) => this.findNoteText(item))
-        .filter((item): item is string => Boolean(item))
-        .join(', ');
-
-      return joined || undefined;
-    }
-
-    if (note && typeof note === 'object') {
-      const candidate = note as Record<string, unknown>;
-
-      const directKeys = ['content', 'text', 'note', 'description', 'value', 'body', 'message', 'comment', 'remark', 'remarks', 'title', 'summary', 'name'];
-
-      for (const key of directKeys) {
-        const found = this.findNoteText(candidate[key]);
-        if (found) {
-          return found;
+        if (response?.isSuccess && Array.isArray(response.data)) {
+          this.modalNotes = response.data.map((n) => ({
+            id: n.id,
+            content: n.content,
+            displayName: n.displayName,
+            createdAt: n.createdAt,
+          }));
         }
-      }
-
-      for (const value of Object.values(candidate)) {
-        const found = this.findNoteText(value);
-        if (found) {
-          return found;
-        }
-      }
-    }
-
-    return undefined;
-  }
-
-  private isFrameworkTypeName(value: string): boolean {
-    return /(System\.Collections\.Generic\.(HashSet|List)|HashSet`|ICollection|IEnumerable)/i.test(value);
+      },
+      error: (err) => {
+        this.isLoadingRowNotes = false;
+        console.error('Failed to load attendance notes:', err);
+      },
+    });
   }
 }

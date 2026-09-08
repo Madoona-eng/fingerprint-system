@@ -1,7 +1,7 @@
 :host {
   display: block;
   min-height: 100vh;
-  font-family: "Cairo", "Segoe UI", Tahoma, sans-serif;
+  font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
 }
 
 .dashboard-layout {
@@ -25,7 +25,9 @@
   flex-direction: column;
   position: sticky;
   top: 0;
-  transition: width 0.25s ease, padding 0.25s ease;
+  transition:
+    width 0.25s ease,
+    padding 0.25s ease;
   overflow: hidden;
 }
 
@@ -38,10 +40,11 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px;
+  padding: 22px;
   margin-bottom: 28px;
   border-radius: 22px;
   background: rgba(56, 189, 248, 0.12);
+  justify-content: space-between;
 }
 
 .sidebar-toggle {
@@ -62,7 +65,11 @@
 
 .sidebar.collapsed .sidebar-menu a {
   justify-content: center;
-  padding: 0;
+  padding: 13px 0;
+  width: 80%;
+  height: 22px;
+  margin: 0 auto;
+  border-radius: 12px;
 }
 
 .sidebar.collapsed .sidebar-logo {
@@ -96,12 +103,13 @@
 
 .sidebar-menu {
   display: grid;
-  gap: 10px;
+  gap: 2em;
   overflow: hidden;
 }
 
 .sidebar-menu a {
-  height: 54px;
+  height: 60px;
+  width: 85%;
   padding: 0 16px;
   border-radius: 16px;
   display: flex;
@@ -295,4 +303,43 @@
   .topbar h2 {
     font-size: 19px;
   }
+}
+/* تنسيق الـ Material tooltip عشان يتماشى مع تصميم السايدبار */
+::ng-deep .mat-mdc-tooltip {
+  --mdc-plain-tooltip-container-color: #22d3ee;
+  --mdc-plain-tooltip-supporting-text-color: #0f172a;
+  font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+}
+
+::ng-deep .mat-mdc-tooltip .mdc-tooltip__surface {
+  font-size: 14px !important;
+  padding: 8px 14px !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+}
+
+/* لما يبقى collapsed، إخفاء النص للأيقونات والـ logout معا */
+.sidebar.collapsed .sidebar-menu a b,
+.sidebar.collapsed .logout-btn b {
+  display: none;
+}
+
+/* توسيط العناصر في وضع الـ collapsed */
+.sidebar.collapsed .sidebar-menu a,
+.sidebar.collapsed .logout-btn {
+  justify-content: center;
+}
+
+/* تنسيق زر الخروج الخاص في وضع الـ collapsed */
+.sidebar.collapsed .logout-btn {
+  display: flex;
+  align-items: center;
+  width: 80%;
+  height: 50px;
+  margin: auto auto 0 auto;
+  border-radius: 12px;
+}
+
+.sidebar.collapsed .logout-btn span {
+  font-size: 20px;
 }

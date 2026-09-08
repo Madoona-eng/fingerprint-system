@@ -1,50 +1,81 @@
 <div class="dashboard-layout" dir="rtl">
   <aside class="sidebar" [class.collapsed]="isSidebarCollapsed">
     <div class="sidebar-logo">
-      <button type="button" class="sidebar-toggle" (click)="toggleSidebar()" aria-label="Toggle sidebar">
-        {{ isSidebarCollapsed ? '➡️' : '⬅️' }}
-      </button>
-      <div class="logo-icon">🆔</div>
       <div class="sidebar-title">
         <h2>نظام البصمة</h2>
         <p>لوحة التحكم</p>
       </div>
+      <button
+        type="button"
+        class="sidebar-toggle"
+        (click)="toggleSidebar()"
+        aria-label="Toggle sidebar"
+        [matTooltip]="isSidebarCollapsed ? 'اضغط للفتح' : 'اضغط للقفل'"
+        matTooltipPosition="below"
+      >
+        {{ isSidebarCollapsed ? '⬅️' : '➡️' }}
+      </button>
     </div>
 
     <nav class="sidebar-menu">
-      <a routerLink="/dashboard/employees" routerLinkActive="active">
+      <a
+        routerLink="/dashboard/employees"
+        routerLinkActive="active"
+        [matTooltip]="isSidebarCollapsed ? 'الموظفين' : ''"
+        matTooltipPosition="left"
+      >
         <span>👥</span>
         <b>الموظفين</b>
       </a>
 
-     <a routerLink="/dashboard/attendance" routerLinkActive="active">
-  <span>📅</span>
-  <b>الحضور والانصراف</b>
-</a>
+      <a
+        routerLink="/dashboard/attendance"
+        routerLinkActive="active"
+        [matTooltip]="isSidebarCollapsed ? 'الحضور والانصراف' : ''"
+        matTooltipPosition="left"
+      >
+        <span>⏱️</span>
+        <b>الحضور والانصراف</b>
+      </a>
 
-@if (userRole.toLowerCase() === 'superadmin') {
-  <a routerLink="/dashboard/fingerprint-sheet" routerLinkActive="active">
-    <span>🖨️</span>
-    <b>شيت البصمة</b>
-  </a>
-}
-      <a routerLink="/dashboard/reports" routerLinkActive="active">
+      @if (userRole.toLowerCase() === 'superadmin') {
+        <a
+          routerLink="/dashboard/fingerprint-sheet"
+          routerLinkActive="active"
+          [matTooltip]="isSidebarCollapsed ? 'شيت البصمة' : ''"
+          matTooltipPosition="left"
+        >
+          <span>🖨️</span>
+          <b>شيت البصمة</b>
+        </a>
+      }
+
+      <a
+        routerLink="/dashboard/reports"
+        routerLinkActive="active"
+        [matTooltip]="isSidebarCollapsed ? 'عرض التقرير' : ''"
+        matTooltipPosition="left"
+      >
         <span>📊</span>
         <b>عرض التقرير</b>
       </a>
-
-    
     </nav>
 
-    <button class="logout-btn" (click)="logout()">
-      🚪 تسجيل الخروج
+   <button
+      class="logout-btn"
+      (click)="logout()"
+      [matTooltip]="isSidebarCollapsed ? 'تسجيل الخروج' : ''"
+      matTooltipPosition="left"
+    >
+      <span> ➜] </span>
+      <b>تسجيل الخروج</b>
     </button>
   </aside>
 
   <section class="main-area">
     <header class="topbar">
       <div>
-        <h2>مرحباً بك  {{ userName }} 👋</h2>
+        <h2>مرحباً بك {{ userName }} 👋</h2>
         <p>إدارة نظام البصمة الإلكتروني</p>
       </div>
 
@@ -52,9 +83,7 @@
     </header>
 
     <main class="page-content">
-      <section class="dashboard-overview" aria-label="عرض شيت البصمة">
-       
-      </section>
+      <section class="dashboard-overview" aria-label="عرض شيت البصمة"></section>
 
       <router-outlet></router-outlet>
     </main>

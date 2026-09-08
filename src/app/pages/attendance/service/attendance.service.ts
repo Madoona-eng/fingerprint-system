@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   ApiResponse,
+  AttendanceNoteDto,
   AttendancePayload,
   AttendanceStatusPayload,
   AttendanceTimePayload,
@@ -177,8 +178,14 @@ export class AttendanceService {
     });
   }
 
-  reviewAttendance(id: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}/review`, null, {
+  markAttendanceAsReviewed(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}/mark-as-reviewed`, null, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  getAttendanceNotes(attendanceId: number): Observable<ApiResponse<AttendanceNoteDto[]>> {
+    return this.http.get<ApiResponse<AttendanceNoteDto[]>>(`${this.apiUrl}/${attendanceId}/notes`, {
       headers: this.getHeaders(),
     });
   }

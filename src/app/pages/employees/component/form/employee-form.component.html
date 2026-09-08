@@ -40,8 +40,13 @@
           class="department-select"
           [disabled]="!isDepartmentSelectionEnabled || selectedLocationId === null"
         >
-          <option [ngValue]="null" *ngIf="!isDepartmentSelectionEnabled || departmentOptions.length === 0">
-            {{ isDepartmentSelectionEnabled ? 'قم بإختيار القسم' : 'اختر الموقع أولاً لعرض الأقسام' }}
+          <option
+            [ngValue]="null"
+            *ngIf="!isDepartmentSelectionEnabled || departmentOptions.length === 0"
+          >
+            {{
+              isDepartmentSelectionEnabled ? 'قم بإختيار القسم' : 'اختر الموقع أولاً لعرض الأقسام'
+            }}
           </option>
           <option *ngIf="departmentOptions.length > 0" [ngValue]="null">قم بإختيار القسم</option>
           <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
@@ -50,23 +55,33 @@
 
       <div class="form-group">
         <label>وقت الحضور</label>
-        <input [type]="selectedEmployeeId !== null ? 'text' : 'time'" formControlName="scheduleIn" placeholder="10:40:52.625Z" />
+        <input
+          [type]="selectedEmployeeId !== null ? 'text' : 'time'"
+          formControlName="scheduleIn"
+          placeholder="10:40:52.625Z"
+        />
       </div>
 
       <div class="form-group">
         <label>وقت الانصراف</label>
-        <input [type]="selectedEmployeeId !== null ? 'text' : 'time'" formControlName="scheduleOut" placeholder="10:40:52.625Z" />
+        <input
+          [type]="selectedEmployeeId !== null ? 'text' : 'time'"
+          formControlName="scheduleOut"
+          placeholder="10:40:52.625Z"
+        />
       </div>
 
       <div class="form-group">
-        <label>وقت السماح</label>
+        <label>وقت السماح <span class="required-mark">*</span></label>
         <input
           type="text"
           formControlName="graceTime"
           inputmode="numeric"
           placeholder="00:30 أو 00:30:00"
         />
-        <small class="readonly-note">يمكن إدخال القيمة بشكل طبيعي مثل 00:30 أو 00:30:00 أو أي صيغة زمنية مقبولة.</small>
+        <small class="readonly-note"
+          >يمكن إدخال القيمة مثل 00:30 أو 00:30:00 </small
+        >
       </div>
 
       <div *ngIf="selectedEmployeeId === null" class="form-group checkbox-group full-width-field">
@@ -93,8 +108,8 @@
           type="submit"
           class="save-btn"
           [disabled]="isSaving || employeeForm.invalid"
-          [style.opacity]="(isSaving || employeeForm.invalid) ? '0.6' : '1'"
-          [style.cursor]="(isSaving || employeeForm.invalid) ? 'not-allowed' : 'pointer'"
+          [style.opacity]="isSaving || employeeForm.invalid ? '0.6' : '1'"
+          [style.cursor]="isSaving || employeeForm.invalid ? 'not-allowed' : 'pointer'"
         >
           {{ isSaving ? 'جاري الحفظ...' : selectedEmployeeId ? 'حفظ التعديل' : 'حفظ الموظف' }}
         </button>

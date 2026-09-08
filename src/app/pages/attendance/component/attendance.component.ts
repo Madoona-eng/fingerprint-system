@@ -7,7 +7,7 @@ import { AuthService } from '../../../auth/Services/auth.service';
 import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
 import { exportToExcel } from '../../../shared/utils/excel.util';
 import { EmployeesService } from '../../employees/service/employees.service';
-import { AttendancePayload, FingerprintPunch } from '../model/models';
+import { AttendancePayload, DailyAttendanceRowDto, FingerprintPunch } from '../model/models';
 import { AttendanceService } from '../service/attendance.service';
 import { AttendanceEditComponent } from './edit/attendance-edit.component';
 import { AttendanceImportComponent } from './import/attendance-import.component';
@@ -49,7 +49,8 @@ export class AttendanceComponent implements OnInit {
 
   activeAttendancePage: 'import' | 'report' | 'lateSummary' | 'edit' = 'import';
 
-  dateRangeRows: any[] = [];
+  dateRangeRows: DailyAttendanceRowDto[] = [];
+
   dateRangeFrom = '';
   dateRangeTo = '';
   dateRangeDepartmentId: number | null = null;
@@ -111,8 +112,6 @@ export class AttendanceComponent implements OnInit {
   locations: { id: number; name: string }[] = [];
   selectedLocationId: number | null = null;
   lateSummaryLocationId: number | null = null;
-
-  private lateSummarySearchTimer: any = null;
 
   departmentOptions: { id: number; name: string }[] = [];
 
@@ -748,26 +747,29 @@ export class AttendanceComponent implements OnInit {
   // ============================================================
   // filteredDateRangeRows (getter) - SERVER-SIDE filtered rows only
   // ============================================================
-  get filteredDateRangeRows(): any[] {
+  get filteredDateRangeRows(): DailyAttendanceRowDto[] {
     return this.dateRangeRows;
   }
 
   // ============================================================
   // getAttendanceExportRow
   // ============================================================
-  getAttendanceExportRow(row: any): any {
-    const fromDate = this.dateRangeFromDisplay || this.formatDateToDisplay(this.dateRangeFrom ? new Date(this.dateRangeFrom) : new Date());
-    const toDate = this.dateRangeToDisplay || this.formatDateToDisplay(this.dateRangeTo ? new Date(this.dateRangeTo) : new Date());
+  getAttendanceExportRow(row: DailyAttendanceRowDto): any {
+    const fromDate =
+      this.dateRangeFromDisplay ||
+      this.formatDateToDisplay(this.dateRangeFrom ? new Date(this.dateRangeFrom) : new Date());
+    const toDate =
+      this.dateRangeToDisplay ||
+      this.formatDateToDisplay(this.dateRangeTo ? new Date(this.dateRangeTo) : new Date());
 
     return {
-      الكود: row.employeeCode || row.employee?.employeeCode || row.employee?.code || '-',
-      اسم_الموظف:
-        row.employeeName || row.name || row.employee?.name || row.employee?.employeeName || '-',
-      القسم: row.departmentName || row.employee?.departmentName || row.department?.name || '-',
+      الكود: row.employeeCode || '-',
+      اسم_الموظف: row.employeeName || '-',
+      القسم: row.departmentName || '-',
       'التاريخ من': fromDate || '-',
       'التاريخ إلى': toDate || '-',
-      'معاد الحضور': row.scheduleIn || row.shift?.scheduleIn || row.shift?.inTime || row.schedule?.in || '-',
-      'معاد الانصراف': row.scheduleOut || row.shift?.scheduleOut || row.shift?.outTime || row.schedule?.out || '-',
+      'معاد الحضور': row.scheduleIn || '-',
+      'معاد الانصراف': row.scheduleOut || '-',
       الحضور: row.actualIn || '-',
       الانصراف: row.actualOut || '-',
       الحالة: this.getAttendanceStatusLabel(row.status),
@@ -925,43 +927,15 @@ export class AttendanceComponent implements OnInit {
   // ============================================================
   // getAttendanceId
   // ============================================================
-  getAttendanceId(row: any): number | null {
-    const id = row?.id || row?.attendanceId || row?.attendanceRecordId;
-
-    if (!id) {
-      return null;
-    }
-
-    const numberId = Number(id);
-
-    return Number.isFinite(numberId) && numberId > 0 ? numberId : null;
+  getAttendanceId(row: DailyAttendanceRowDto): number | null {
+    return Number.isFinite(row?.id) && row.id > 0 ? row.id : null;
   }
 
   // ============================================================
   // isReviewed
   // ============================================================
-  isManuallyEdited(row: any): boolean {
-    const value = row?.isManualOverride ?? row?.manualOverride;
-    return value === true || value === 1 || value === 'true' || value === 'True';
-  }
-
-  isReviewed(row: any): boolean {
-    const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
-
-    const reviewFlag = [
-      row?.isReviewed,
-      row?.reviewed,
-      row?.isReviewCompleted,
-      row?.hasBeenReviewed,
-    ].some((value) => value === true);
-
-    return (
-      this.isManuallyEdited(row) ||
-      reviewFlag ||
-      normalizedNotes.includes('تمت المراجعة') ||
-      normalizedNotes.includes('تمت مراجعه') ||
-      normalizedNotes.includes('reviewed')
-    );
+  isManuallyEdited(row: DailyAttendanceRowDto): boolean {
+    return row?.isManualOverride === true;
   }
 
   // ============================================================
@@ -993,36 +967,9 @@ export class AttendanceComponent implements OnInit {
   }
 
   // ============================================================
-  // needsReview
+  // markAttendanceReviewed
   // ============================================================
-  needsReview(row: any): boolean {
-    if (this.isManuallyEdited(row) || this.isReviewed(row)) {
-      return false;
-    }
-
-    const normalizedNotes = this.normalizeNotesValue(row?.notes).toLowerCase();
-    const status = String(row?.status || '').trim();
-    const explicitReviewFlag = [row?.needsReview, row?.requiresReview, row?.reviewRequired].some(
-      (value) => value === true,
-    );
-
-    return (
-      explicitReviewFlag ||
-      normalizedNotes.includes('needs review') ||
-      normalizedNotes.includes('يحتاج مراجعة') ||
-      normalizedNotes.includes('يحتاج مراجعه') ||
-      normalizedNotes.includes('checkin without checkout') ||
-      normalizedNotes.includes('checkout without checkin') ||
-      status === 'Incomplete' ||
-      status === 'MissingIn' ||
-      status === 'MissingOut'
-    );
-  }
-
-  // ============================================================
-  // markAttendanceReviewed  --- calls updateAttendanceStatus
-  // ============================================================
-  markAttendanceReviewed(row: any): void {
+  markAttendanceReviewed(row: DailyAttendanceRowDto): void {
     const attendanceId = this.getAttendanceId(row);
 
     if (!attendanceId) {
@@ -1030,21 +977,11 @@ export class AttendanceComponent implements OnInit {
       return;
     }
 
-    if (!row.status) {
-      this.dateRangeErrorMessage = 'لا يمكن اعتماد المراجعة لأن حالة السجل غير موجودة';
-      return;
-    }
-
     this.reviewingAttendanceId = attendanceId;
     this.dateRangeErrorMessage = '';
     this.dateRangeSuccessMessage = '';
 
-    const payload = {
-      status: row.status,
-      note: 'تمت المراجعة',
-    };
-
-    this.attendanceService.updateAttendanceStatus(attendanceId, payload).subscribe({
+    this.attendanceService.markAttendanceAsReviewed(attendanceId).subscribe({
       next: (response: any) => {
         console.log('Mark Attendance Reviewed Response:', response);
 
@@ -1057,12 +994,12 @@ export class AttendanceComponent implements OnInit {
           return;
         }
 
-        row.notes = this.appendReviewNoteToNotes(row.notes);
         row.isReviewed = true;
+        row.needsReview = false;
+        row.reviewedAt = new Date().toISOString();
 
         if (this.notesModalOpen && this.notesModalRow === row) {
-          this.notesModalEntries = this.getAttendanceNotes(row.notes);
-          this.notesModalRow = row;
+          this.openNotesModal(row);
         }
 
         this.dateRangeSuccessMessage = 'تم اعتماد مراجعة السجل بنجاح';
@@ -1907,10 +1844,31 @@ export class AttendanceComponent implements OnInit {
   // openNotesModal
   // ============================================================
   openNotesModal(row: any): void {
+    const attendanceId = this.getAttendanceId(row);
+
     this.notesModalTitle = row?.employeeName || row?.name || row?.employee?.name || 'الملاحظات';
-    this.notesModalEntries = this.getAttendanceNotes(row?.notes);
     this.notesModalRow = row;
     this.notesModalOpen = true;
+    this.notesModalEntries = [];
+
+    if (!attendanceId) {
+      return;
+    }
+
+    this.attendanceService.getAttendanceNotes(attendanceId).subscribe({
+      next: (response: any) => {
+        if (response?.isSuccess && Array.isArray(response.data)) {
+          this.notesModalEntries = response.data.map((n: any) => ({
+            content: n.content,
+            displayName: n.displayName,
+            createdAt: n.createdAt,
+          }));
+        }
+      },
+      error: (err) => {
+        console.log('Failed to load attendance notes:', err);
+      },
+    });
   }
 
   // ============================================================
@@ -1980,7 +1938,7 @@ export class AttendanceComponent implements OnInit {
   }
 
   // ============================================================
-  // saveAttendanceEdit --- calls updateAttendanceTime then updateAttendanceStatus
+  // saveAttendanceEdit --- calls updateAttendanceStatus
   // ============================================================
   saveAttendanceEdit(): void {
     if (!this.attendanceEditId) {
@@ -1988,138 +1946,53 @@ export class AttendanceComponent implements OnInit {
       return;
     }
 
-    const originalActualIn = this.normalizeTimeForApi(this.selectedAttendanceForEdit?.actualIn);
-    const originalActualOut = this.normalizeTimeForApi(this.selectedAttendanceForEdit?.actualOut);
-
-    const sourceActualIn = this.normalizeTimeForApi(
-      this.attendanceEditActualIn || this.selectedAttendanceForEdit?.actualIn,
-    );
-    const sourceActualOut = this.normalizeTimeForApi(
-      this.attendanceEditActualOut || this.selectedAttendanceForEdit?.actualOut,
-    );
+    const finalStatus = String(this.attendanceEditStatus || '').trim();
     const notes = String(this.attendanceEditNotes || '').trim();
 
-    let finalStatus = String(this.attendanceEditStatus || '').trim();
-
-    const explicitAbsentStatuses = ['Absent', 'غائب'];
-    const shouldPreserveExplicitAbsentStatus = explicitAbsentStatuses.includes(finalStatus);
-
-    if (
-      !shouldPreserveExplicitAbsentStatus &&
-      sourceActualIn &&
-      sourceActualOut &&
-      (finalStatus === '' ||
-        finalStatus === 'MissingIn' ||
-        finalStatus === 'MissingOut' ||
-        finalStatus === 'Incomplete')
-    ) {
-      finalStatus = 'Present';
-    }
-
     if (!finalStatus) {
-      this.attendanceEditErrorMessage = 'من فضلك قم بإختيار الحالة أو أدخل وقت الحضور والانصراف';
+      this.attendanceEditErrorMessage = 'من فضلك قم بإختيار الحالة';
       return;
     }
 
-    const timePayload = {
-      actualIn: sourceActualIn,
-      actualOut: sourceActualOut,
-      note: '',
-    };
+    const originalStatus = String(this.selectedAttendanceForEdit?.status || '').trim();
+    const hasStatusChange = finalStatus !== originalStatus;
+    const hasNotesChange = notes.length > 0;
+
+    if (!hasStatusChange && !hasNotesChange) {
+      this.attendanceEditErrorMessage = 'لم يتم إجراء أي تعديل';
+      return;
+    }
 
     const statusPayload = {
       status: finalStatus,
       note: notes,
     };
 
-    console.log('Attendance Edit ID:', this.attendanceEditId);
-    console.log('Time Payload:', timePayload);
-    console.log('Status Payload:', statusPayload);
-
     this.isSavingAttendanceEdit = true;
     this.attendanceEditErrorMessage = '';
     this.attendanceEditSuccessMessage = '';
 
-    const finishStatusSave = () => {
-      this.attendanceService
-        .updateAttendanceStatus(this.attendanceEditId!, statusPayload)
-        .subscribe({
-          next: (statusResponse: any) => {
-            console.log('Update Attendance Status Response:', statusResponse);
+    this.attendanceService.updateAttendanceStatus(this.attendanceEditId, statusPayload).subscribe({
+      next: (statusResponse: any) => {
+        console.log('Update Attendance Status Response:', statusResponse);
 
-            if (statusResponse?.isSuccess === false) {
-              this.attendanceEditErrorMessage =
-                statusResponse?.message || 'تم تعديل الوقت ولكن فشل تعديل الحالة';
-              this.isSavingAttendanceEdit = false;
-              return;
-            }
-
-            this.attendanceEditStatus = finalStatus;
-            this.attendanceEditSuccessMessage = 'تم تعديل سجل الحضور بنجاح';
-
-            this.selectedAttendanceForEdit = {
-              ...this.selectedAttendanceForEdit,
-              status: finalStatus,
-              notes: notes || this.selectedAttendanceForEdit?.notes,
-            };
-
-            this.dateRangeRows = this.dateRangeRows.map((row: any) => {
-              const rowId = row.id || row.attendanceId;
-              if (rowId === this.attendanceEditId) {
-                return {
-                  ...row,
-                  status: finalStatus,
-                  notes: notes || row.notes || this.selectedAttendanceForEdit?.notes,
-                };
-              }
-
-              return row;
-            });
-
-            this.isSavingAttendanceEdit = false;
-
-            this.activeAttendancePage = 'report';
-            this.loadAttendanceByDateRange();
-          },
-          error: (err: any) => {
-            console.log('Update attendance status error:', err);
-
-            this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
-            this.isSavingAttendanceEdit = false;
-          },
-        });
-    };
-
-    const hasTimeChange =
-      sourceActualIn !== originalActualIn || sourceActualOut !== originalActualOut;
-
-    const shouldUpdateTime = hasTimeChange;
-
-    if (shouldUpdateTime) {
-      this.attendanceService.updateAttendanceTime(this.attendanceEditId, timePayload).subscribe({
-        next: (timeResponse: any) => {
-          console.log('Update Attendance Time Response:', timeResponse);
-
-          if (timeResponse?.isSuccess === false) {
-            this.attendanceEditErrorMessage =
-              timeResponse?.message || 'فشل تعديل وقت الحضور والانصراف';
-            this.isSavingAttendanceEdit = false;
-            return;
-          }
-
-          finishStatusSave();
-        },
-        error: (err: any) => {
-          console.log('Update attendance time error:', err);
-
-          this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
+        if (statusResponse?.isSuccess === false) {
+          this.attendanceEditErrorMessage = statusResponse?.message || 'فشل تعديل الحالة';
           this.isSavingAttendanceEdit = false;
-        },
-      });
-      return;
-    }
+          return;
+        }
 
-    finishStatusSave();
+        this.attendanceEditSuccessMessage = 'تم تعديل سجل الحضور بنجاح';
+        this.isSavingAttendanceEdit = false;
+        this.activeAttendancePage = 'report';
+        this.loadAttendanceByDateRange();
+      },
+      error: (err: any) => {
+        console.log('Update attendance status error:', err);
+        this.attendanceEditErrorMessage = this.getApiErrorMessage(err);
+        this.isSavingAttendanceEdit = false;
+      },
+    });
   }
 
   // ============================================================
@@ -2684,7 +2557,7 @@ export class AttendanceComponent implements OnInit {
   }
 
   // ============================================================
-  // getStatusClass
+  // getStatusClass to return CSS class based on attendance status (for color coding)
   // ============================================================
   getStatusClass(status: string | null | undefined): string {
     const value = String(status || '').trim();
@@ -2714,418 +2587,418 @@ export class AttendanceComponent implements OnInit {
         return 'status-default';
     }
   }
-
-  // ============================================================
-  // getNotesList --- NOTES TRANSLATION AREA #1
-  // ============================================================
-  getNotesList(notes: unknown): string[] {
-    const normalized = this.normalizeNotesValue(notes);
-    return normalized
-      ? normalized
-          .split(/[,،;]/)
-          .map((note) => note.trim())
-          .filter(Boolean)
-      : [];
-  }
-
-  // ============================================================
-  // getAttendanceNotes --- NOTES TRANSLATION AREA #2 (structured entries for modal)
-  // ============================================================
-  getAttendanceNotes(
-    notes: unknown,
-  ): Array<{ content: string; displayName?: string; createdAt?: string }> {
-    type NoteEntry = { content: string; displayName?: string; createdAt?: string };
-
-    if (Array.isArray(notes)) {
-      const entries: NoteEntry[] = notes.reduce((acc, note) => {
-        if (!note || typeof note !== 'object') {
-          return acc;
-        }
-
-        const candidate = note as {
-          content?: string;
-          text?: string;
-          note?: string;
-          displayName?: string;
-          createdBy?: string;
-          createdAt?: string;
-          createdOn?: string;
-        };
-
-        const content = this.normalizeNoteText(
-          candidate.content || candidate.text || candidate.note,
-        );
-        if (!content) {
-          return acc;
-        }
-
-        acc.push({
-          content,
-          displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
-          createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
-        });
-
-        return acc;
-      }, [] as NoteEntry[]);
-
-      if (entries.length === 0) {
-        return [];
-      }
-
-      return this.attachReviewMetadata(entries);
-    }
-
-    if (typeof notes === 'string') {
-      return this.parseNotesString(notes);
-    }
-
-    if (typeof notes === 'object' && notes !== null) {
-      const candidate = notes as {
-        content?: string;
-        text?: string;
-        note?: string;
-        displayName?: string;
-        createdBy?: string;
-        createdAt?: string;
-        createdOn?: string;
-      };
-
-      const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
-      if (!content) {
-        return [];
-      }
-
-      return this.attachReviewMetadata([
-        {
-          content,
-          displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
-          createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
-        },
-      ]);
-    }
-
-    return [];
-  }
-
-  // ============================================================
-  // parseNotesString (private) --- NOTES TRANSLATION AREA #3 (isReviewMarker check)
-  // ============================================================
-  private parseNotesString(
-    notes: string,
-  ): Array<{ content: string; displayName?: string; createdAt?: string }> {
-    const normalized = this.normalizeNotesValue(notes);
-    if (!normalized) {
-      return [];
-    }
-
-    const parts = normalized
-      .split(/[,،؛;]/)
-      .map((part) => part.trim())
-      .filter(Boolean);
-
-    const entries: Array<{ content: string; displayName?: string; createdAt?: string }> = [];
-
-    for (const part of parts) {
-      if (this.isReviewMarker(part)) {
-        if (entries.length > 0) {
-          entries[entries.length - 1].displayName = this.getReviewNoteAuthor();
-          entries[entries.length - 1].createdAt = new Date().toISOString();
-        }
-        continue;
-      }
-
-      entries.push({ content: part });
-    }
-
-    return entries.length > 0 ? entries : [];
-  }
-
-  // ============================================================
-  // attachReviewMetadata (private)
-  // ============================================================
-  private attachReviewMetadata(
-    entries: Array<{ content: string; displayName?: string; createdAt?: string }>,
-  ) {
-    return entries.map((entry) => {
-      if (this.isReviewMarker(entry.content)) {
-        return {
-          content: entry.content,
-          displayName: this.getReviewNoteAuthor(),
-          createdAt: new Date().toISOString(),
-        };
-      }
-      return entry;
-    });
-  }
-
-  // ============================================================
-  // getReviewNoteAuthor (private)
-  // ============================================================
-  private getReviewNoteAuthor(): string {
-    return this.authService.getUserName() || 'المستخدم';
-  }
-
-  // ============================================================
-  // isReviewMarker (private)
-  // ============================================================
-  private isReviewMarker(text: string): boolean {
-    return /^(تمت المراجعة|reviewed)$/i.test(text.trim());
-  }
-
-  // ============================================================
-  // getNotesLabel --- NOTES TRANSLATION AREA #4 (biggest one: reuses translateApiMessage + its OWN notesMap + its OWN includes() checks)
-  // ============================================================
-  getNotesLabel(notes: unknown): string {
-    const value = this.normalizeNotesValue(notes);
-
-    if (!value) {
-      return 'لا توجد ملاحظات';
-    }
-
-    const translated = this.translateApiMessage(value, value);
-    const lowerValue = translated.toLowerCase();
-
-    if (
-      lowerValue.includes('تمت المراجعة') ||
-      lowerValue.includes('تمت مراجعه') ||
-      lowerValue.includes('reviewed')
-    ) {
-      return 'تمت المراجعة';
-    }
-
-    if (
-      lowerValue.includes('دخول بدون خروج') ||
-      lowerValue.includes('حضور بدون انصراف') ||
-      lowerValue.includes('checkin without checkout') ||
-      lowerValue.includes('check-in without check-out') ||
-      lowerValue.includes('check in without check out')
-    ) {
-      return 'حضور بدون انصراف - يحتاج مراجعة';
-    }
-
-    if (
-      lowerValue.includes('خروج بدون دخول') ||
-      lowerValue.includes('انصراف بدون حضور') ||
-      lowerValue.includes('checkout without checkin') ||
-      lowerValue.includes('check-out without check-in') ||
-      lowerValue.includes('check out without check in')
-    ) {
-      return 'انصراف بدون حضور - يحتاج مراجعة';
-    }
-
-    if (lowerValue.includes('يحتاج مراجعة')) {
-      return 'يحتاج مراجعة';
-    }
-
-    const notesMap: Record<string, string> = {
-      'Checkin without checkout - needs review': 'حضور بدون انصراف - يحتاج مراجعة',
-      'Checkout without checkin - needs review': 'انصراف بدون حضور - يحتاج مراجعة',
-      'checkin without checkout - needs review': 'حضور بدون انصراف - يحتاج مراجعة',
-      'checkout without checkin - needs review': 'انصراف بدون حضور - يحتاج مراجعة',
-      'Missing checkin': 'حضور ناقص',
-      'Missing checkout': 'انصراف ناقص',
-      'No checkin': 'لا يوجد حضور',
-      'No checkout': 'لا يوجد انصراف',
-      'Manual update': 'تعديل يدوي',
-      'Approved manually': 'تم الاعتماد يدويًا',
-      'needs review': 'يحتاج مراجعة',
-      'needs revision': 'يحتاج مراجعة',
-      reviewed: 'تمت المراجعة',
-    };
-
-    return translated || notesMap[value] || value;
-  }
-
-  // ============================================================
-  // normalizeNotesForEditor (private) --- UNUSED? not called anywhere in this file
-  // ============================================================
-  private normalizeNotesForEditor(notes: unknown): string {
-    return this.normalizeNotesValue(notes) || '';
-  }
-
-  // ============================================================
-  // appendReviewNoteToNotes (private) --- adds "تمت المراجعة" marker; handles array/object/string shapes
-  // ============================================================
-  private appendReviewNoteToNotes(notes: unknown): unknown {
-    const reviewNoteContent = 'تمت المراجعة';
-    const normalized = this.normalizeNotesValue(notes);
-
-    if (Array.isArray(notes)) {
-      const existingNotes: Array<{ content: string; displayName?: string; createdAt?: string }> =
-        notes.reduce(
-          (acc, note) => {
-            if (!note || typeof note !== 'object') {
-              return acc;
-            }
-
-            const candidate = note as {
-              content?: string;
-              text?: string;
-              note?: string;
-              displayName?: string;
-              createdBy?: string;
-              createdAt?: string;
-              createdOn?: string;
-            };
-
-            const content = this.normalizeNoteText(
-              candidate.content || candidate.text || candidate.note,
-            );
-            if (!content) {
-              return acc;
-            }
-
-            acc.push({
-              content,
-              displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
-              createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
-            });
-
-            return acc;
-          },
-          [] as Array<{ content: string; displayName?: string; createdAt?: string }>,
-        );
-
-      if (
-        existingNotes.some(
-          (note) =>
-            note.content.includes(reviewNoteContent) ||
-            note.content.toLowerCase().includes('reviewed'),
-        )
-      ) {
-        return notes;
-      }
-
-      return [
-        ...existingNotes,
-        { content: reviewNoteContent, createdAt: new Date().toISOString() },
-      ];
-    }
-
-    if (typeof notes === 'object' && notes !== null) {
-      const candidate = notes as {
-        content?: string;
-        text?: string;
-        note?: string;
-        displayName?: string;
-        createdBy?: string;
-        createdAt?: string;
-        createdOn?: string;
-      };
-
-      const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
-      const noteObject = content
-        ? {
-            content,
-            displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
-            createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
-          }
-        : null;
-
-      if (
-        noteObject &&
-        (noteObject.content.includes(reviewNoteContent) ||
-          noteObject.content.toLowerCase().includes('reviewed'))
-      ) {
-        return notes;
-      }
-
-      return noteObject
-        ? [noteObject, { content: reviewNoteContent, createdAt: new Date().toISOString() }]
-        : reviewNoteContent;
-    }
-
-    if (!normalized) {
-      return reviewNoteContent;
-    }
-
-    if (normalized.includes(reviewNoteContent) || normalized.toLowerCase().includes('reviewed')) {
-      return normalized;
-    }
-
-    return `${normalized}، ${reviewNoteContent}`;
-  }
-
-  // ============================================================
-  // normalizeNoteText (private)
-  // ============================================================
-  private normalizeNoteText(value: unknown): string {
-    if (typeof value !== 'string') {
-      return '';
-    }
-
-    const text = value.trim();
-    return text && !this.isFrameworkTypeValue(text) ? text : '';
-  }
-
-  // ============================================================
-  // normalizeNotesValue (private)
-  // ============================================================
-  private normalizeNotesValue(notes: unknown): string {
-    if (Array.isArray(notes)) {
-      return notes
-        .map((note) => this.extractNoteContent(note))
-        .filter((note): note is string => Boolean(note))
-        .join(', ');
-    }
-
-    if (typeof notes === 'string') {
-      const value = notes.trim();
-
-      if (!value || this.isFrameworkTypeValue(value)) {
-        return '';
-      }
-
-      return value;
-    }
-
-    if (notes && typeof notes === 'object') {
-      return this.extractNoteContent(notes);
-    }
-
-    return '';
-  }
-
-  // ============================================================
-  // extractNoteContent (private)
-  // ============================================================
-  private extractNoteContent(note: unknown): string {
-    if (typeof note === 'string') {
-      const value = note.trim();
-      return value && !this.isFrameworkTypeValue(value) ? value : '';
-    }
-
-    if (note && typeof note === 'object') {
-      const candidate = note as {
-        text?: string;
-        note?: string;
-        content?: string;
-        description?: string;
-        value?: string;
-        name?: string;
-      };
-
-      const text =
-        candidate.text ||
-        candidate.note ||
-        candidate.content ||
-        candidate.description ||
-        candidate.value ||
-        candidate.name;
-      if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeValue(text)) {
-        return text.trim();
-      }
-    }
-
-    return '';
-  }
-
-  // ============================================================
-  // isFrameworkTypeValue (private) --- guards against leaked .NET type strings (e.g. "System.Collections.Generic.HashSet`1[...]")
-  // ============================================================
-  private isFrameworkTypeValue(value: string): boolean {
-    return /(System\.Collections\.Generic\.(HashSet|List)|HashSet`|ICollection|IEnumerable)/i.test(
-      value,
-    );
-  }
 }
+
+// // ============================================================
+// // getNotesList --- NOTES TRANSLATION AREA #1
+// // ============================================================
+// getNotesList(notes: unknown): string[] {
+//   const normalized = this.normalizeNotesValue(notes);
+//   return normalized
+//     ? normalized
+//         .split(/[,،;]/)
+//         .map((note) => note.trim())
+//         .filter(Boolean)
+//     : [];
+// }
+
+// ============================================================
+// getAttendanceNotes --- NOTES TRANSLATION AREA #2 (structured entries for modal)
+// ============================================================
+// getAttendanceNotes(
+//   notes: unknown,
+// ): Array<{ content: string; displayName?: string; createdAt?: string }> {
+//   type NoteEntry = { content: string; displayName?: string; createdAt?: string };
+
+//   if (Array.isArray(notes)) {
+//     const entries: NoteEntry[] = notes.reduce((acc, note) => {
+//       if (!note || typeof note !== 'object') {
+//         return acc;
+//       }
+
+//       const candidate = note as {
+//         content?: string;
+//         text?: string;
+//         note?: string;
+//         displayName?: string;
+//         createdBy?: string;
+//         createdAt?: string;
+//         createdOn?: string;
+//       };
+
+//       const content = this.normalizeNoteText(
+//         candidate.content || candidate.text || candidate.note,
+//       );
+//       if (!content) {
+//         return acc;
+//       }
+
+//       acc.push({
+//         content,
+//         displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+//         createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
+//       });
+
+//       return acc;
+//     }, [] as NoteEntry[]);
+
+//     if (entries.length === 0) {
+//       return [];
+//     }
+
+//     return this.attachReviewMetadata(entries);
+//   }
+
+//   if (typeof notes === 'string') {
+//     return this.parseNotesString(notes);
+//   }
+
+//   if (typeof notes === 'object' && notes !== null) {
+//     const candidate = notes as {
+//       content?: string;
+//       text?: string;
+//       note?: string;
+//       displayName?: string;
+//       createdBy?: string;
+//       createdAt?: string;
+//       createdOn?: string;
+//     };
+
+//     const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
+//     if (!content) {
+//       return [];
+//     }
+
+//     return this.attachReviewMetadata([
+//       {
+//         content,
+//         displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+//         createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
+//       },
+//     ]);
+//   }
+
+//   return [];
+// }
+
+// ============================================================
+// parseNotesString (private) --- NOTES TRANSLATION AREA #3 (isReviewMarker check)
+// ============================================================
+// private parseNotesString(
+//   notes: string,
+// ): Array<{ content: string; displayName?: string; createdAt?: string }> {
+//   const normalized = this.normalizeNotesValue(notes);
+//   if (!normalized) {
+//     return [];
+//   }
+
+//   const parts = normalized
+//     .split(/[,،؛;]/)
+//     .map((part) => part.trim())
+//     .filter(Boolean);
+
+//   const entries: Array<{ content: string; displayName?: string; createdAt?: string }> = [];
+
+//   for (const part of parts) {
+//     if (this.isReviewMarker(part)) {
+//       if (entries.length > 0) {
+//         entries[entries.length - 1].displayName = this.getReviewNoteAuthor();
+//         entries[entries.length - 1].createdAt = new Date().toISOString();
+//       }
+//       continue;
+//     }
+
+//     entries.push({ content: part });
+//   }
+
+//   return entries.length > 0 ? entries : [];
+// }
+
+// ============================================================
+// attachReviewMetadata (private)
+// ============================================================
+// private attachReviewMetadata(
+//   entries: Array<{ content: string; displayName?: string; createdAt?: string }>,
+// ) {
+//   return entries.map((entry) => {
+//     if (this.isReviewMarker(entry.content)) {
+//       return {
+//         content: entry.content,
+//         displayName: this.getReviewNoteAuthor(),
+//         createdAt: new Date().toISOString(),
+//       };
+//     }
+//     return entry;
+//   });
+// }
+
+// ============================================================
+// getReviewNoteAuthor (private)
+// ============================================================
+// private getReviewNoteAuthor(): string {
+//   return this.authService.getUserName() || 'المستخدم';
+// }
+
+// ============================================================
+// isReviewMarker (private)
+// ============================================================
+// private isReviewMarker(text: string): boolean {
+//   return /^(تمت المراجعة|reviewed)$/i.test(text.trim());
+// }
+
+// // ============================================================
+// // getNotesLabel --- NOTES TRANSLATION AREA #4 (biggest one: reuses translateApiMessage + its OWN notesMap + its OWN includes() checks)
+// // ============================================================
+// getNotesLabel(notes: unknown): string {
+//   const value = this.normalizeNotesValue(notes);
+
+//   if (!value) {
+//     return 'لا توجد ملاحظات';
+//   }
+
+//   const translated = this.translateApiMessage(value, value);
+//   const lowerValue = translated.toLowerCase();
+
+//   if (
+//     lowerValue.includes('تمت المراجعة') ||
+//     lowerValue.includes('تمت مراجعه') ||
+//     lowerValue.includes('reviewed')
+//   ) {
+//     return 'تمت المراجعة';
+//   }
+
+//   if (
+//     lowerValue.includes('دخول بدون خروج') ||
+//     lowerValue.includes('حضور بدون انصراف') ||
+//     lowerValue.includes('checkin without checkout') ||
+//     lowerValue.includes('check-in without check-out') ||
+//     lowerValue.includes('check in without check out')
+//   ) {
+//     return 'حضور بدون انصراف - يحتاج مراجعة';
+//   }
+
+//   if (
+//     lowerValue.includes('خروج بدون دخول') ||
+//     lowerValue.includes('انصراف بدون حضور') ||
+//     lowerValue.includes('checkout without checkin') ||
+//     lowerValue.includes('check-out without check-in') ||
+//     lowerValue.includes('check out without check in')
+//   ) {
+//     return 'انصراف بدون حضور - يحتاج مراجعة';
+//   }
+
+//   if (lowerValue.includes('يحتاج مراجعة')) {
+//     return 'يحتاج مراجعة';
+//   }
+
+//   const notesMap: Record<string, string> = {
+//     'Checkin without checkout - needs review': 'حضور بدون انصراف - يحتاج مراجعة',
+//     'Checkout without checkin - needs review': 'انصراف بدون حضور - يحتاج مراجعة',
+//     'checkin without checkout - needs review': 'حضور بدون انصراف - يحتاج مراجعة',
+//     'checkout without checkin - needs review': 'انصراف بدون حضور - يحتاج مراجعة',
+//     'Missing checkin': 'حضور ناقص',
+//     'Missing checkout': 'انصراف ناقص',
+//     'No checkin': 'لا يوجد حضور',
+//     'No checkout': 'لا يوجد انصراف',
+//     'Manual update': 'تعديل يدوي',
+//     'Approved manually': 'تم الاعتماد يدويًا',
+//     'needs review': 'يحتاج مراجعة',
+//     'needs revision': 'يحتاج مراجعة',
+//     reviewed: 'تمت المراجعة',
+//   };
+
+//   return translated || notesMap[value] || value;
+// }
+
+// ============================================================
+// normalizeNotesForEditor (private) --- UNUSED? not called anywhere in this file
+// ============================================================
+// private normalizeNotesForEditor(notes: unknown): string {
+//   return this.normalizeNotesValue(notes) || '';
+// }
+
+// ============================================================
+// appendReviewNoteToNotes (private) --- adds "تمت المراجعة" marker; handles array/object/string shapes
+// ============================================================
+// private appendReviewNoteToNotes(notes: unknown): unknown {
+//   const reviewNoteContent = 'تمت المراجعة';
+//   const normalized = this.normalizeNotesValue(notes);
+
+//   if (Array.isArray(notes)) {
+//     const existingNotes: Array<{ content: string; displayName?: string; createdAt?: string }> =
+//       notes.reduce(
+//         (acc, note) => {
+//           if (!note || typeof note !== 'object') {
+//             return acc;
+//           }
+
+//           const candidate = note as {
+//             content?: string;
+//             text?: string;
+//             note?: string;
+//             displayName?: string;
+//             createdBy?: string;
+//             createdAt?: string;
+//             createdOn?: string;
+//           };
+
+//           const content = this.normalizeNoteText(
+//             candidate.content || candidate.text || candidate.note,
+//           );
+//           if (!content) {
+//             return acc;
+//           }
+
+//           acc.push({
+//             content,
+//             displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+//             createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
+//           });
+
+//           return acc;
+//         },
+//         [] as Array<{ content: string; displayName?: string; createdAt?: string }>,
+//       );
+
+//     if (
+//       existingNotes.some(
+//         (note) =>
+//           note.content.includes(reviewNoteContent) ||
+//           note.content.toLowerCase().includes('reviewed'),
+//       )
+//     ) {
+//       return notes;
+//     }
+
+//     return [
+//       ...existingNotes,
+//       { content: reviewNoteContent, createdAt: new Date().toISOString() },
+//     ];
+//   }
+
+//   if (typeof notes === 'object' && notes !== null) {
+//     const candidate = notes as {
+//       content?: string;
+//       text?: string;
+//       note?: string;
+//       displayName?: string;
+//       createdBy?: string;
+//       createdAt?: string;
+//       createdOn?: string;
+//     };
+
+//     const content = this.normalizeNoteText(candidate.content || candidate.text || candidate.note);
+//     const noteObject = content
+//       ? {
+//           content,
+//           displayName: this.normalizeNoteText(candidate.displayName || candidate.createdBy),
+//           createdAt: this.normalizeNoteText(candidate.createdAt || candidate.createdOn),
+//         }
+//       : null;
+
+//     if (
+//       noteObject &&
+//       (noteObject.content.includes(reviewNoteContent) ||
+//         noteObject.content.toLowerCase().includes('reviewed'))
+//     ) {
+//       return notes;
+//     }
+
+//     return noteObject
+//       ? [noteObject, { content: reviewNoteContent, createdAt: new Date().toISOString() }]
+//       : reviewNoteContent;
+//   }
+
+//   if (!normalized) {
+//     return reviewNoteContent;
+//   }
+
+//   if (normalized.includes(reviewNoteContent) || normalized.toLowerCase().includes('reviewed')) {
+//     return normalized;
+//   }
+
+//   return `${normalized}، ${reviewNoteContent}`;
+// }
+
+// ============================================================
+// normalizeNoteText (private)
+// ============================================================
+// private normalizeNoteText(value: unknown): string {
+//   if (typeof value !== 'string') {
+//     return '';
+//   }
+
+//   const text = value.trim();
+//   return text && !this.isFrameworkTypeValue(text) ? text : '';
+// }
+
+// ============================================================
+// normalizeNotesValue (private)
+// ============================================================
+// private normalizeNotesValue(notes: unknown): string {
+//   if (Array.isArray(notes)) {
+//     return notes
+//       .map((note) => this.extractNoteContent(note))
+//       .filter((note): note is string => Boolean(note))
+//       .join(', ');
+//   }
+
+//   if (typeof notes === 'string') {
+//     const value = notes.trim();
+
+//     if (!value || this.isFrameworkTypeValue(value)) {
+//       return '';
+//     }
+
+//     return value;
+//   }
+
+//   if (notes && typeof notes === 'object') {
+//     return this.extractNoteContent(notes);
+//   }
+
+//   return '';
+// }
+
+// ============================================================
+// extractNoteContent (private)
+// ============================================================
+// private extractNoteContent(note: unknown): string {
+//   if (typeof note === 'string') {
+//     const value = note.trim();
+//     return value && !this.isFrameworkTypeValue(value) ? value : '';
+//   }
+
+//   if (note && typeof note === 'object') {
+//     const candidate = note as {
+//       text?: string;
+//       note?: string;
+//       content?: string;
+//       description?: string;
+//       value?: string;
+//       name?: string;
+//     };
+
+//     const text =
+//       candidate.text ||
+//       candidate.note ||
+//       candidate.content ||
+//       candidate.description ||
+//       candidate.value ||
+//       candidate.name;
+//     if (typeof text === 'string' && text.trim() && !this.isFrameworkTypeValue(text)) {
+//       return text.trim();
+//     }
+//   }
+
+//   return '';
+// }
+
+// ============================================================
+// isFrameworkTypeValue (private) --- guards against leaked .NET type strings (e.g. "System.Collections.Generic.HashSet`1[...]")
+// ============================================================
+// private isFrameworkTypeValue(value: string): boolean {
+//   return /(System\.Collections\.Generic\.(HashSet|List)|HashSet`|ICollection|IEnumerable)/i.test(
+//     value,
+//   );
+// }
