@@ -144,6 +144,10 @@ export class EmployeesComponent implements OnInit {
   bulkImportErrors: any[] = [];
   missingDepartmentNames: string[] = [];
 
+  bulkImportAdded: { code: string; name: string }[] = [];
+  bulkImportUpdated: { code: string; name: string }[] = [];
+  bulkImportMissing: string[] = [];
+
   unknownDepartments: UnknownDepartment[] = [];
 
   departmentMap: Record<string, number> = {
@@ -2229,6 +2233,24 @@ export class EmployeesComponent implements OnInit {
 
         this.missingDepartmentNames = this.extractMissingDepartmentNames(this.bulkImportErrors);
 
+        // جديد - استخراج الإضافة/التعديل من نفس bulkImportResults
+        this.bulkImportAdded = this.bulkImportResults
+          .filter(
+            (item: any) => String(item?.status || '').toLowerCase() === 'success' && !item?.reason,
+          )
+          .map((item: any) => ({ code: item.employeeCode, name: item.name }));
+
+        this.bulkImportUpdated = this.bulkImportResults
+          .filter(
+            (item: any) =>
+              String(item?.status || '').toLowerCase() === 'success' &&
+              item?.reason === 'تم تحديث المواعيد/الإدارة',
+          )
+          .map((item: any) => ({ code: item.employeeCode, name: item.name }));
+
+        // جديد - الأكواد اللي اختفت من الشيت (من الـ DTO الجديد)
+        this.bulkImportMissing = data?.missingEmployeeCodes || [];
+
         console.log('Missing Departments From API Response:');
         console.table(this.missingDepartmentNames);
 
@@ -2238,13 +2260,28 @@ export class EmployeesComponent implements OnInit {
         if (successCount === 0 && skippedCount === 0 && failedCount === 0) {
           this.excelSuccessMessage = `تم إرسال ${payload.length} موظف للسيستم، لكن السيرفر لم يرجع أرقام الحفظ بوضوح. راجعي Response في Console.`;
         } else {
-          this.excelSuccessMessage = `تم الاستيراد: ${successCount} تم حفظهم، ${skippedCount} تم تخطيهم، ${failedCount} فشل حفظهم.`;
+          // استخدام الرسالة الجاهزة من الباك إند (فيها تفصيل إضافة/تعديل)
+          this.excelSuccessMessage =
+            responseAny?.message ||
+            `تم الاستيراد: ${successCount} تم حفظهم، ${skippedCount} تم تخطيهم، ${failedCount} فشل حفظهم.`;
         }
 
         if (failedCount > 0 || this.bulkImportErrors.length > 0) {
-          this.excelErrorMessage = `فشل حفظ ${failedCount || this.bulkImportErrors.length} موظف. السبب غالبًا أن أسماء الإدارات غير موجودة أو غير مطابقة في قاعدة البيانات.`;
-        }
+          const uniqueReasons = Array.from(
+            new Set(
+              this.bulkImportErrors
+                .map((item: any) => item?.reason)
+                .filter((reason: string) => !!reason && reason.trim() !== ''),
+            ),
+          );
 
+          const reasonsText =
+            uniqueReasons.length > 0
+              ? uniqueReasons.map((reason) => `• ${reason}`).join('\n')
+              : 'راجعي تفاصيل الأخطاء أدناه';
+
+          this.excelErrorMessage = `فشل حفظ ${failedCount || this.bulkImportErrors.length} موظف.\n${reasonsText}`;
+        }
         this.loadEmployees();
       },
       error: (err) => {
@@ -2433,6 +2470,11 @@ export class EmployeesComponent implements OnInit {
     this.bulkImportResults = [];
     this.bulkImportErrors = [];
     this.missingDepartmentNames = [];
+
+    this.bulkImportAdded = [];
+    this.bulkImportUpdated = [];
+    this.bulkImportMissing = [];
+
     this.unknownDepartments = [];
     this.hasImportedCurrentSheet = false;
   }

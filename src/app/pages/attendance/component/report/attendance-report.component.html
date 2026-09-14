@@ -178,6 +178,8 @@
           <th>معاد الحضور</th>
           <th>معاد الانصراف</th>
           <th>فترة السماح</th>
+          <th>البصمة الخام (دخول)</th>
+          <th>البصمة الخام (خروج)</th>
           <th>وقت الحضور</th>
           <th>وقت الانصراف</th>
           <th>التأخير (د)</th>
@@ -204,6 +206,8 @@
           <td>{{ row.scheduleIn || '-' }}</td>
           <td>{{ row.scheduleOut || '-' }}</td>
           <td>{{ row.graceTime || '-' }}</td>
+          <td >{{ row.rawIn || '-' }}</td>
+          <td >{{ row.rawOut || '-' }}</td>
           <td>{{ row.actualIn || '-' }}</td>
           <td>{{ row.actualOut || '-' }}</td>
           <td>{{ row.lateMinutes ?? '-' }}</td>

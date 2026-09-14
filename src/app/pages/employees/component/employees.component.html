@@ -1,10 +1,4 @@
 <div class="employees-page" dir="rtl">
-  <section class="employees-title">
-    <div>
-      <h1>إدارة الموظفين</h1>
-      <p>رفع شيت الحضور، استخراج الموظفين بدون تكرار، أو إضافة وتعديل بيانات الموظفين يدويًا.</p>
-    </div>
-  </section>
 
   <section class="employee-page-tabs">
     <button
@@ -83,7 +77,9 @@
 
         <div *ngIf="excelFileName" class="file-name">الملف المختار: {{ excelFileName }}</div>
 
-        <div *ngIf="excelSuccessMessage || excelErrorMessage || excelRowErrors.length > 0" class="upload-message-box">
+        <div
+          *ngIf="excelSuccessMessage || excelErrorMessage || excelRowErrors.length > 0"
+        >
           <div class="message-summary">
             <div *ngIf="excelSuccessMessage" class="success-message">
               {{ excelSuccessMessage }}
@@ -106,7 +102,7 @@
 
         <div *ngIf="missingDepartmentNames.length > 0" class="unknown-card">
           <h4>إدارات غير موجودة أو غير مطابقة</h4>
-          <p>راجعي الأسماء التالية وأضيفيها في قاعدة البيانات أو في aliases.</p>
+          <p>قم بمراجعة الأسماء التالية وأضيفيها في قاعدة البيانات</p>
           <ul>
             <li *ngFor="let dep of missingDepartmentNames">
               {{ dep }}
@@ -148,7 +144,7 @@
           </li>
         </ul>
 
-        <div class="excel-actions" *ngIf="excelEmployees.length > 0">
+        <div *ngIf="excelEmployees.length > 0">
           <button
             type="button"
             class="import-btn"
@@ -159,8 +155,33 @@
             {{ isImporting ? 'جاري الحفظ...' : 'استيراد الموظفين للسيستم' }}
           </button>
 
-          <div *ngIf="hasImportedCurrentSheet" class="success-banner">
-            ✅ تم الحفظ في السيستم بنجاح
+          <div class="import-status">
+            <div *ngIf="bulkImportAdded.length > 0" class="information-message">
+              <span class="header-information-message">تمت إضافة {{ bulkImportAdded.length }} موظف جديد</span>
+              <ul>
+                <li *ngFor="let emp of bulkImportAdded">{{ emp.code }} - {{ emp.name }}</li>
+              </ul>
+            </div>
+
+            <div *ngIf="bulkImportUpdated.length > 0" class="information-message">
+              <span class="header-information-message">تم تعديل {{ bulkImportUpdated.length }} موظف</span>
+              <ul>
+                <li *ngFor="let emp of bulkImportUpdated">{{ emp.code }} - {{ emp.name }}</li>
+              </ul>
+            </div>
+
+            <div *ngIf="bulkImportMissing.length > 0" class="information-message">
+              <span class="header-information-message">{{ bulkImportMissing.length }} موظف غير موجودين في الشيت الحالي </span>
+              <ul>
+                <li *ngFor="let code of bulkImportMissing">
+                  {{ code }}
+                </li>
+              </ul>
+            </div>
+
+            <div *ngIf="hasImportedCurrentSheet" class="success-banner">
+              ✅ تم الحفظ في السيستم بنجاح
+            </div>
           </div>
         </div>
       </section>

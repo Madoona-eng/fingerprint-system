@@ -103,13 +103,16 @@ export class AttendanceReportComponent {
         return 'status-late';
       case 'EarlyDeparture':
         return 'status-early';
-      case 'Permission':
-      case 'Vacation':
-      case 'Mission':
       case 'PersonalLeave':
+        return 'status-personal-leave';
+      case 'Mission':
+        return 'status-mission';
       case 'DrivingRoute':
+        return 'status-driving-route';
       case 'OnLeave':
-        return 'status-permission';
+        return 'status-on-leave';
+      case 'Online':
+        return 'status-online';
       default:
         return 'status-default';
     }

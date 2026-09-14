@@ -7,21 +7,21 @@
 
 .page-back-btn {
   align-self: flex-start;
-  margin-top: 20px;       /* مسافة خفيفة من الأعلى لو محتاجة */
+  margin-top: 20px; /* مسافة خفيفة من الأعلى لو محتاجة */
   margin-bottom: 18px;
-  margin-right: 24px;     /* التعديل هنا: يزق الزرار للشمال شوية ويدخله جوه الكارد */
-  padding: 10px 16px;     /* تضبيط البادنج ليكون متناسق أكثر */
+  margin-right: 24px; /* التعديل هنا: يزق الزرار للشمال شوية ويدخله جوه الكارد */
+  padding: 10px 16px; /* تضبيط البادنج ليكون متناسق أكثر */
   border-radius: 12px;
   background: #ffffff;
   border: 1px solid rgba(15, 75, 168, 0.12);
   color: #0f70a8;
   box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06); /* شادو أخف وأرقى بدل الـ 45px */
-   background-color: #3bc3e0;
+  background-color: #3bc3e0;
 }
 
 .page-back-btn:hover {
   background: #f8fbff;
-   background-color: #22d3ee;
+  background-color: #22d3ee;
 }
 
 @media (max-width: 768px) {
@@ -48,33 +48,17 @@
   box-sizing: border-box;
 }
 
-.employees-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
 .small-title {
   display: inline-flex;
   padding: 8px 14px;
   margin-bottom: 12px;
   border-radius: 999px;
   background: var(--main-color);
-     color: #0891b2;
+  color: #0891b2;
   font-size: 13px;
   font-weight: 900;
 }
 
-.employees-title h1 {
-  margin: 0;
-  font-size: 32px;
-  font-weight: 900;
-  color: #0f172a;
-}
-
-.employees-title p,
 .excel-upload-card p {
   margin: 10px 0 0;
   color: rgba(71, 85, 105, 0.82);
@@ -175,11 +159,12 @@
   background-color: #fee2e2;
   color: #991b1b;
   border: 1px solid #fca5a5;
+   white-space: pre-line;
 }
 .unknown-card {
   padding: 16px;
   border-radius: 18px;
-  color: #ffe7c7;
+  color: #27211a;
   background: rgba(255, 170, 70, 0.12);
   border: 1px solid rgba(255, 190, 90, 0.28);
 }
@@ -193,6 +178,24 @@
 .unknown-card p {
   margin: 0;
   color: rgba(255, 231, 199, 0.8);
+}
+
+.import-status {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.information-message {
+  padding: 14px 18px;
+  border-radius: 12px;
+  color: #27211a;
+  background: rgba(255, 231, 199, 0.95);
+  border: 1px solid rgba(255, 190, 90, 0.45);
+}
+
+.header-information-message {
+  font-weight: bold;
 }
 
 .department-map-list {
@@ -427,7 +430,7 @@ input:focus {
 /* ==========================================================================
    ⚙️ تعديل الحاويات لإلغاء السكرول وضبط ملاءمة الجدول بالكامل للشاشة
    ========================================================================== */
-.table-wrapper, 
+.table-wrapper,
 .details-table-wrapper {
   overflow-x: hidden; /* تم تعديله من auto لـ hidden لمنع السكرول نهائياً للشاشات الكبيرة */
   width: 100%;
@@ -468,17 +471,39 @@ td {
 }
 
 /* تحديد توزيع عرض ذكي لأعمدة جدول التفاصيل الـ 11 (المجموع = 100%) */
-.details-table-wrapper table th:nth-child(1)  { width: 11%; } /* التاريخ */
-.details-table-wrapper table th:nth-child(2)  { width: 9%; }  /* وقت الحضور */
-.details-table-wrapper table th:nth-child(3)  { width: 9%; }  /* وقت الانصراف */
-.details-table-wrapper table th:nth-child(4)  { width: 9%; }  /* معاد الحضور */
-.details-table-wrapper table th:nth-child(5)  { width: 9%; }  /* معاد الانصراف */
-.details-table-wrapper table th:nth-child(6)  { width: 9%; }  /* وقت السماح */
-.details-table-wrapper table th:nth-child(7)  { width: 9%; }  /* ساعات العمل */
-.details-table-wrapper table th:nth-child(8)  { width: 9%; }  /* دقائق التأخير */
-.details-table-wrapper table th:nth-child(9)  { width: 9%; }  /* دقائق الإضافي */
-.details-table-wrapper table th:nth-child(10) { width: 8%; }  /* الحالة */
-.details-table-wrapper table th:nth-child(11) { width: 11%; } /* ملاحظات */
+.details-table-wrapper table th:nth-child(1) {
+  width: 11%;
+} /* التاريخ */
+.details-table-wrapper table th:nth-child(2) {
+  width: 9%;
+} /* وقت الحضور */
+.details-table-wrapper table th:nth-child(3) {
+  width: 9%;
+} /* وقت الانصراف */
+.details-table-wrapper table th:nth-child(4) {
+  width: 9%;
+} /* معاد الحضور */
+.details-table-wrapper table th:nth-child(5) {
+  width: 9%;
+} /* معاد الانصراف */
+.details-table-wrapper table th:nth-child(6) {
+  width: 9%;
+} /* وقت السماح */
+.details-table-wrapper table th:nth-child(7) {
+  width: 9%;
+} /* ساعات العمل */
+.details-table-wrapper table th:nth-child(8) {
+  width: 9%;
+} /* دقائق التأخير */
+.details-table-wrapper table th:nth-child(9) {
+  width: 9%;
+} /* دقائق الإضافي */
+.details-table-wrapper table th:nth-child(10) {
+  width: 8%;
+} /* الحالة */
+.details-table-wrapper table th:nth-child(11) {
+  width: 11%;
+} /* ملاحظات */
 
 tr:hover td {
   background: rgba(248, 250, 252, 0.95);
@@ -736,7 +761,8 @@ tr:hover td {
   direction: rtl;
 }
 
-.actions-col, .actions-cell {
+.actions-col,
+.actions-cell {
   width: 160px;
   min-width: 160px;
   max-width: 160px;
@@ -782,7 +808,7 @@ tr:hover td {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(2,6,23,0.45);
+  background: rgba(2, 6, 23, 0.45);
   z-index: 1200;
 }
 
@@ -791,7 +817,7 @@ tr:hover td {
   background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
   padding: 22px;
-  box-shadow: 0 30px 60px rgba(2,6,23,0.4);
+  box-shadow: 0 30px 60px rgba(2, 6, 23, 0.4);
   border: 1px solid rgba(148, 163, 184, 0.12);
   text-align: center;
 }
@@ -820,7 +846,7 @@ tr:hover td {
 }
 
 .modal-card .cancel-action {
-  background: rgba(248,250,252,0.95);
+  background: rgba(248, 250, 252, 0.95);
   border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
@@ -900,7 +926,9 @@ tr:hover td {
   font-weight: 900;
   font-size: 14px;
   box-shadow: 0 10px 25px rgba(45, 212, 191, 0.25);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   min-width: auto;
 }
 
@@ -958,7 +986,9 @@ tr:hover td {
   outline: none;
   box-sizing: border-box;
   font-family: inherit;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .date-text-input:focus {
@@ -1061,9 +1091,9 @@ tr:hover td {
   table {
     table-layout: auto;
   }
-  .table-wrapper, 
+  .table-wrapper,
   .details-table-wrapper {
-    overflow-x: auto; 
+    overflow-x: auto;
   }
 }
 
@@ -1073,7 +1103,7 @@ tr:hover td {
     align-items: flex-start;
     gap: 16px;
   }
-  
+
   .details-back-btn {
     width: 100%;
   }
@@ -1086,22 +1116,14 @@ tr:hover td {
   .filter-field.date-field {
     width: 100%;
   }
-  
-  .details-main-btn, 
+
+  .details-main-btn,
   .details-secondary-btn {
     width: 100%;
   }
 }
 
 @media (max-width: 700px) {
-  .employees-title {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .employees-title h1 {
-    font-size: 25px;
-  }
 
   .form-row {
     grid-template-columns: 1fr;

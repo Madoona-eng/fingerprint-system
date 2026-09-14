@@ -81,4 +81,6 @@ export interface DailyAttendanceRowDto {
   lastModifiedByUserName: string | null;
   lastModifiedAt: string | null;
   reviewedAt: string | null;
+  rawIn: string | null;
+  rawOut: string | null;
 }

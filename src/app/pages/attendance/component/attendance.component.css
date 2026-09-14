@@ -24,7 +24,7 @@
   background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   color: #0369a1;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .upload-info h1 {
@@ -176,7 +176,6 @@
   direction: ltr;
   text-align: center;
   letter-spacing: 0.5px;
-  font-weight: 900;
 }
 
 .native-date-picker {
@@ -418,17 +417,6 @@
   transform: translateY(-1px);
 }
 
-.notes-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  z-index: 1000;
-}
-
 .notes-modal {
   width: min(560px, 100%);
   max-height: 80vh;
@@ -615,7 +603,6 @@
   padding: 8px 6px;
   text-align: center;
   font-size: 11px;
-  font-weight: 900;
   color: rgba(15, 23, 42, 0.9);
   background: rgba(248, 250, 252, 0.95);
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
@@ -637,7 +624,6 @@
   padding: 8px 6px;
   text-align: center;
   font-size: 11px;
-  font-weight: 800;
   color: rgba(15, 23, 42, 0.92);
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   white-space: normal;
@@ -669,45 +655,67 @@
   padding: 8px 14px;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 900;
   white-space: nowrap;
   text-transform: none;
 }
-
 .status-present {
   color: #065f46;
-  background: #d1fae5;
-  border: 1px solid rgba(16, 185, 129, 0.28);
+  background: #86efac;
+  border: 1px solid #16a34a;
 }
 
-.status-absent {
-  color: #991b1b;
-  background: #fee2e2;
-  border: 1px solid rgba(239, 68, 68, 0.28);
+.status-online {
+  color: #164e63;
+  background: #67e8f9;
+  border: 1px solid #0891b2;
 }
 
 .status-late {
-  color: #92400e;
-  background: #fef3c7;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #78350f;
+  background: #fcd34d;
+  border: 1px solid #d97706;
 }
 
 .status-early {
-  color: #5b21b6;
-  background: #ede9fe;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #581c87;
+  background: #d8b4fe;
+  border: 1px solid #9333ea;
 }
 
-.status-permission {
-  color: #1d4ed8;
-  background: #dbeafe;
-  border: 1px solid rgba(59, 130, 246, 0.28);
+.status-absent {
+  color: #7f1d1d;
+  background: #fca5a5;
+  border: 1px solid #dc2626;
+}
+
+.status-personal-leave {
+  color: #1e3a8a;
+  background: #93c5fd;
+  border: 1px solid #2563eb;
+}
+
+.status-on-leave {
+  color: #0c4a6e;
+  background: #7dd3fc;
+  border: 1px solid #0284c7;
+}
+
+.status-mission {
+  color: #312e81;
+  background: #a5b4fc;
+  border: 1px solid #4f46e5;
+}
+
+.status-driving-route {
+  color: #713f12;
+  background: #fde047;
+  border: 1px solid #ca8a04;
 }
 
 .status-default {
-  color: #475569;
-  background: rgba(248, 250, 252, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #334155;
+  background: #cbd5e1;
+  border: 1px solid #64748b;
 }
 
 /* Edit button */
@@ -718,7 +726,6 @@
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  font-weight: 900;
   color: #07111f;
   background: linear-gradient(135deg, #65e4e9, #2dd4bf);
   box-shadow: 0 8px 20px rgba(45, 212, 191, 0.25);
@@ -732,31 +739,6 @@
   box-shadow: 0 10px 24px rgba(45, 212, 191, 0.35);
 }
 
-/* Review */
-/* .review-btn {
-  min-width: 115px;
-  height: 38px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 900;
-  color: #4d0b0b;
-  background: linear-gradient(135deg, #f59169, #c71212);
-  box-shadow: 0 8px 18px rgba(155, 56, 10, 0.25);
-  white-space: nowrap;
-  transition: 0.2s ease;
-}
-
-.review-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(45, 212, 191, 0.35);
-}
-
-.review-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-} */
-
 .review-badge {
   display: inline-flex;
   align-items: center;
@@ -765,12 +747,11 @@
   height: 34px;
   padding: 0 12px;
   border-radius: 999px;
-  font-weight: 900;
   color: #7f1d1d;
   background: linear-gradient(135deg, #fca5a5, #bd2a2a);
   border: 1px solid rgba(239, 68, 68, 0.35);
   white-space: nowrap;
-  cursor:  cursor;
+  cursor: cursor;
 }
 
 .reviewed-badge {
@@ -781,7 +762,6 @@
   height: 34px;
   padding: 0 12px;
   border-radius: 999px;
-  font-weight: 900;
   color: #642407;
   background: linear-gradient(135deg, #7dd3fc, #22d3ee);
   border: 1px solid rgba(34, 197, 94, 0.35);
@@ -823,7 +803,6 @@
 
 .edit-attendance-summary strong {
   color: #0f172a;
-  font-weight: 900;
 }
 
 .attendance-edit-form {
