@@ -1,5 +1,5 @@
 <div class="employees-page" dir="rtl">
-
+  
   <section class="employee-page-tabs">
     <button
       type="button"
@@ -61,25 +61,46 @@
           </p>
         </div>
 
+        <!-- جديد: اختيار الموقع - يظهر بس للسوبر أدمن، لأن باقي المستخدمين موقعهم محدد تلقائيًا -->
+        <div class="location-selector" *ngIf="isSuperAdmin">
+          <label for="uploadLocationSelect">قم بإختيار الموقع أولًا</label>
+          <select
+            id="uploadLocationSelect"
+            [(ngModel)]="selectedLocationId"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onUploadLocationChanged($event)"
+          >
+            <option [ngValue]="null">-- اختار الموقع --</option>
+            <option *ngFor="let loc of locationOptions" [ngValue]="loc.id">
+              {{ loc.name }}
+            </option>
+          </select>
+        </div>
+
         <label
           class="upload-box"
+          [class.disabled]="isSuperAdmin && !selectedLocationId"
           (dragover)="onDragOver($event)"
           (dragleave)="onDragLeave($event)"
           (drop)="onFileDrop($event)"
         >
           <input
             type="file"
+            [disabled]="isSuperAdmin && !selectedLocationId"
             accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             (change)="onEmployeeSheetSelected($event)"
           />
-          <span>📁 قم بإختيار ملف Excel أو اسحبه هنا</span>
+          <span *ngIf="!isSuperAdmin || selectedLocationId">
+            📁 قم بإختيار ملف Excel أو اسحبه هنا
+          </span>
+          <span *ngIf="isSuperAdmin && !selectedLocationId" class="disabled-hint">
+            ⚠️ قم بإختيار الموقع أولًا قبل رفع الملف
+          </span>
         </label>
 
         <div *ngIf="excelFileName" class="file-name">الملف المختار: {{ excelFileName }}</div>
 
-        <div
-          *ngIf="excelSuccessMessage || excelErrorMessage || excelRowErrors.length > 0"
-        >
+        <div *ngIf="excelSuccessMessage || excelErrorMessage || excelRowErrors.length > 0">
           <div class="message-summary">
             <div *ngIf="excelSuccessMessage" class="success-message">
               {{ excelSuccessMessage }}
@@ -157,21 +178,27 @@
 
           <div class="import-status">
             <div *ngIf="bulkImportAdded.length > 0" class="information-message">
-              <span class="header-information-message">تمت إضافة {{ bulkImportAdded.length }} موظف جديد</span>
+              <span class="header-information-message"
+                >تمت إضافة {{ bulkImportAdded.length }} موظف جديد</span
+              >
               <ul>
                 <li *ngFor="let emp of bulkImportAdded">{{ emp.code }} - {{ emp.name }}</li>
               </ul>
             </div>
 
             <div *ngIf="bulkImportUpdated.length > 0" class="information-message">
-              <span class="header-information-message">تم تعديل {{ bulkImportUpdated.length }} موظف</span>
+              <span class="header-information-message"
+                >تم تعديل {{ bulkImportUpdated.length }} موظف</span
+              >
               <ul>
                 <li *ngFor="let emp of bulkImportUpdated">{{ emp.code }} - {{ emp.name }}</li>
               </ul>
             </div>
 
             <div *ngIf="bulkImportMissing.length > 0" class="information-message">
-              <span class="header-information-message">{{ bulkImportMissing.length }} موظف غير موجودين في الشيت الحالي </span>
+              <span class="header-information-message"
+                >{{ bulkImportMissing.length }} موظف غير موجودين في الشيت الحالي
+              </span>
               <ul>
                 <li *ngFor="let code of bulkImportMissing">
                   {{ code }}

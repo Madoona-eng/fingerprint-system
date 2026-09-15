@@ -1,17 +1,18 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
-  EmployeePayload,
-  UpdateEmployeePayload,
-  BulkImportEmployeePayload,
-  Employee,
   ApiResponse,
-  EmployeesPagedData
+  BulkImportEmployeePayload,
+  BulkImportEmployeesRequest,
+  Employee,
+  EmployeePayload,
+  EmployeesPagedData,
+  UpdateEmployeePayload,
 } from '../model/models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EmployeesService {
   private readonly apiUrl = 'https://civil-protect.minya.gov.eg:1089/api/Employees';
@@ -25,7 +26,7 @@ export class EmployeesService {
       localStorage.getItem('jwt');
 
     let headers = new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     });
 
     if (token) {
@@ -40,7 +41,7 @@ export class EmployeesService {
     pageNumber: number = 1,
     pageSize: number = 10,
     departmentId: number | null = null,
-    locationId: number | null = null
+    locationId: number | null = null,
   ): Observable<ApiResponse<EmployeesPagedData>> {
     let params = new HttpParams()
       .set('search', search || '')
@@ -57,7 +58,7 @@ export class EmployeesService {
 
     return this.http.get<ApiResponse<EmployeesPagedData>>(this.apiUrl, {
       headers: this.getHeaders(),
-      params
+      params,
     });
   }
 
@@ -70,47 +71,43 @@ export class EmployeesService {
 
     return this.http.get<any>('https://civil-protect.minya.gov.eg:1089/api/Departments', {
       headers: this.getHeaders(),
-      params
+      params,
     });
   }
 
   getLocations(): Observable<any> {
     return this.http.get<any>('https://civil-protect.minya.gov.eg:1089/api/Locations', {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
   }
 
-  addEmployee(
-    employee: EmployeePayload
-  ): Observable<ApiResponse<Employee | boolean>> {
+  addEmployee(employee: EmployeePayload): Observable<ApiResponse<Employee | boolean>> {
     return this.http.post<ApiResponse<Employee | boolean>>(this.apiUrl, employee, {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
   }
 
   updateEmployee(
     id: number,
-    employee: UpdateEmployeePayload
+    employee: UpdateEmployeePayload,
   ): Observable<ApiResponse<Employee | boolean>> {
-    return this.http.put<ApiResponse<Employee | boolean>>(
-      `${this.apiUrl}/${id}`,
-      employee,
-      {
-        headers: this.getHeaders()
-      }
-    );
+    return this.http.put<ApiResponse<Employee | boolean>>(`${this.apiUrl}/${id}`, employee, {
+      headers: this.getHeaders(),
+    });
   }
 
   bulkImportEmployees(
-    employees: BulkImportEmployeePayload[]
+    employees: BulkImportEmployeePayload[],
+    locationId: number,
   ): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(
-      `${this.apiUrl}/bulk-import`,
+    const payload: BulkImportEmployeesRequest = {
       employees,
-      {
-        headers: this.getHeaders()
-      }
-    );
+      locationId,
+    };
+
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/bulk-import`, payload, {
+      headers: this.getHeaders(),
+    });
   }
 
   getEmployeeById(
@@ -118,7 +115,7 @@ export class EmployeesService {
     from: string = '',
     to: string = '',
     pageNumber: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
   ): Observable<any> {
     let params = new HttpParams()
       .set('pageNumber', String(pageNumber))
@@ -134,13 +131,13 @@ export class EmployeesService {
 
     return this.http.get<any>(`${this.apiUrl}/${id}`, {
       headers: this.getHeaders(),
-      params
+      params,
     });
   }
 
   deleteEmployee(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`, {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
   }
 
@@ -149,18 +146,15 @@ export class EmployeesService {
       `${this.apiUrl}/${id}/notes`,
       { content },
       {
-        headers: this.getHeaders()
-      }
+        headers: this.getHeaders(),
+      },
     );
   }
 
   deleteEmployeeNote(noteId: number | string): Observable<ApiResponse<boolean>> {
-    return this.http.delete<ApiResponse<boolean>>(
-      `${this.apiUrl}/notes/${noteId}`,
-      {
-        headers: this.getHeaders()
-      }
-    );
+    return this.http.delete<ApiResponse<boolean>>(`${this.apiUrl}/notes/${noteId}`, {
+      headers: this.getHeaders(),
+    });
   }
 
   getEmployeesSummary(date: string): Observable<any> {
@@ -178,7 +172,7 @@ export class EmployeesService {
 
     return this.http.get<any>(`${this.apiUrl}/summary`, {
       headers,
-      params
+      params,
     });
   }
 
@@ -186,8 +180,8 @@ export class EmployeesService {
     return this.http.get<ApiResponse<boolean>>(
       'https://civil-protect.minya.gov.eg:1089/api/SystemSettings',
       {
-        headers: this.getHeaders()
-      }
+        headers: this.getHeaders(),
+      },
     );
   }
 
@@ -196,8 +190,8 @@ export class EmployeesService {
       'https://civil-protect.minya.gov.eg:1089/api/SystemSettings',
       { enabled },
       {
-        headers: this.getHeaders()
-      }
+        headers: this.getHeaders(),
+      },
     );
   }
 

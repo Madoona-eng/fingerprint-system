@@ -261,6 +261,7 @@ export class EmployeesComponent implements OnInit {
     'مكتب الإعلام',
     'مكتب المستشار القضائي',
     'مكتب مفوض الدولة',
+    'مكتب المستشار القانونى',
   ];
 
   departmentAliases: Record<string, string> = {
@@ -378,6 +379,9 @@ export class EmployeesComponent implements OnInit {
     'مكتب المستشار القضائي': 'مكتب المستشار القضائي',
 
     'مكتب مفوض الدولة': 'مكتب مفوض الدولة',
+
+    'مكتب المستشار القانوني': 'مكتب المستشار القانونى',
+    'مكتب المستشار القانونى': 'مكتب المستشار القانونى',
   };
 
   constructor(
@@ -449,6 +453,13 @@ export class EmployeesComponent implements OnInit {
       isChristian: [false],
       note: [''],
     });
+  }
+
+  onUploadLocationChanged(locationId: number | null): void {
+    this.selectedLocationId = locationId;
+    if (this.excelEmployees.length > 0) {
+      this.clearExcelData();
+    }
   }
 
   private loadLocations(): void {
@@ -1796,6 +1807,11 @@ export class EmployeesComponent implements OnInit {
   }
 
   private readEmployeeExcelFile(file: File): void {
+    if (this.isSuperAdmin && !this.selectedLocationId) {
+      this.excelErrorMessage = 'من فضلك اختر الموقع أولًا قبل رفع الشيت';
+      return;
+    }
+
     this.excelFileName = file.name;
     this.excelEmployees = [];
     this.excelErrorMessage = '';
@@ -2155,6 +2171,11 @@ export class EmployeesComponent implements OnInit {
   }
 
   bulkImportEmployees(): void {
+    if (this.isSuperAdmin && !this.selectedLocationId) {
+      this.excelErrorMessage = 'من فضلك اختر الموقع أولًا قبل الاستيراد';
+      return;
+    }
+
     if (this.excelEmployees.length === 0) {
       this.excelErrorMessage = 'لا توجد بيانات موظفين صالحة للاستيراد';
       return;
@@ -2201,8 +2222,9 @@ export class EmployeesComponent implements OnInit {
 
     console.table(departmentCompare);
     console.log('Final Payload Sent To API:', payload);
+    console.log('Selected Location ID:', this.selectedLocationId);
 
-    this.employeesService.bulkImportEmployees(payload).subscribe({
+    this.employeesService.bulkImportEmployees(payload, this.selectedLocationId!).subscribe({
       next: (response) => {
         console.log('Bulk import response:', response);
         console.log('Bulk import response JSON:', JSON.stringify(response, null, 2));
@@ -2298,7 +2320,6 @@ export class EmployeesComponent implements OnInit {
       employeeCode: employee.employeeCode,
       name: employee.name,
       departmentName: this.getBestDepartmentNameFromDatabase(employee.departmentName || ''),
-      locationId: employee.locationId,
       scheduleIn: employee.scheduleIn,
       scheduleOut: employee.scheduleOut,
       graceTime: employee.graceTime,

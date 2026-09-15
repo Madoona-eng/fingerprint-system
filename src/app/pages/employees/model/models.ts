@@ -25,12 +25,16 @@ export interface BulkImportEmployeePayload {
   employeeCode: string;
   name: string;
   departmentName: string;
-  locationId?: number;
   scheduleIn: string;
   scheduleOut: string;
   graceTime: string;
   note?: string;
   isChristian?: boolean;
+}
+
+export interface BulkImportEmployeesRequest {
+  employees: BulkImportEmployeePayload[];
+  locationId: number;
 }
 
 // ============ Employee Core Models ============
