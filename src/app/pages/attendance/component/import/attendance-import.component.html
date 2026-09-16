@@ -33,12 +33,11 @@
   </div>
 
   <ul *ngIf="rowErrors.length > 0" class="row-errors">
-    <li *ngFor="let rowError of rowErrors | slice: 0 : 6">
+    <li *ngFor="let rowError of rowErrors">
       {{ rowError }}
     </li>
-    <li *ngIf="rowErrors.length > 6">ويوجد {{ rowErrors.length - 6 }} أخطاء أخرى...</li>
   </ul>
-
+  
   <!-- <div class="actions" *ngIf="attendanceRowsLength > 0">
     <button
       type="button"

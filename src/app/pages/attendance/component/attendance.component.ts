@@ -1522,26 +1522,26 @@ export class AttendanceComponent implements OnInit {
           const failureDetails = failedRows
             .map((item: any) => {
               const message =
+                item?.reason ||
                 item?.message ||
                 item?.errorMessage ||
                 item?.error ||
                 item?.details ||
-                item?.reason ||
                 item?.statusMessage ||
                 '';
-              const employeeCode =
-                item?.employeeCode || item?.employee?.employeeCode || item?.employeeCode || '';
+              const employeeCode = item?.employeeCode || item?.employee?.employeeCode || '';
               const rowNumber = item?.rowNumber || item?.row || item?.index;
+
+              const codeAlreadyInMessage = employeeCode && message.includes(String(employeeCode));
 
               const parts = [
                 message,
-                employeeCode ? `رمز الموظف: ${employeeCode}` : '',
+                employeeCode && !codeAlreadyInMessage ? `رمز الموظف: ${employeeCode}` : '',
                 rowNumber ? `الصف: ${rowNumber}` : '',
               ].filter(Boolean);
               return parts.join(' | ');
             })
-            .filter((item: string) => item && item.trim() !== '')
-            .slice(0, 6);
+            .filter((item: string) => item && item.trim() !== '');
 
           if (failureDetails.length > 0) {
             this.rowErrors = [...this.rowErrors, ...failureDetails];
