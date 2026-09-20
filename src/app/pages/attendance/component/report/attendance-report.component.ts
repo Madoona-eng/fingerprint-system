@@ -140,6 +140,33 @@ export class AttendanceReportComponent {
     return Number.isFinite(row?.id) && row.id > 0 ? row.id : null;
   }
 
+  private parseApiDate(value: string | null | undefined): Date | null {
+    if (!value) return null;
+
+    const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return null;
+
+    // بنبني التاريخ بالمكوّنات (سنة، شهر، يوم) مش من الـ string
+    // عشان نتجنب مشكلة الـ timezone اللي بتزحزح اليوم لليوم اللي قبله
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
+  getDayName(value: string | null | undefined): string {
+    const date = this.parseApiDate(value);
+    if (!date) return '';
+
+    const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    return days[date.getDay()];
+  }
+
+  isWeekend(value: string | null | undefined): boolean {
+    const date = this.parseApiDate(value);
+    if (!date) return false;
+
+    const day = date.getDay(); // 5 = الجمعة، 6 = السبت
+    return day === 5 || day === 6;
+  }
+
   formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     if (value === null || value === undefined || value === '') {
       return '-';

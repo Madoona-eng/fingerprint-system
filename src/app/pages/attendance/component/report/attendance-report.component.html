@@ -173,6 +173,7 @@
         <tr>
           <th>اسم الموظف</th>
           <th>القسم</th>
+          <th class="day-name-header">اليوم</th>
           <th>التاريخ</th>
           <th>الحالة</th>
           <th>معاد الحضور</th>
@@ -197,6 +198,7 @@
           <td>
             {{ row.departmentName || '-' }}
           </td>
+          <td class="day-name-cell">{{ getDayName(row.date) }}</td>
           <td>{{ row.date || '-' }}</td>
           <td>
             <span class="status-badge" [ngClass]="getStatusClass(row.status)">
@@ -206,8 +208,8 @@
           <td>{{ row.scheduleIn || '-' }}</td>
           <td>{{ row.scheduleOut || '-' }}</td>
           <td>{{ row.graceTime || '-' }}</td>
-          <td >{{ row.rawIn || '-' }}</td>
-          <td >{{ row.rawOut || '-' }}</td>
+          <td>{{ row.rawIn || '-' }}</td>
+          <td>{{ row.rawOut || '-' }}</td>
           <td>{{ row.actualIn || '-' }}</td>
           <td>{{ row.actualOut || '-' }}</td>
           <td>{{ row.lateMinutes ?? '-' }}</td>

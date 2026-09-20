@@ -730,6 +730,26 @@
   border: 1px solid #64748b;
 }
 
+.table-wrapper td.day-name-cell,
+.table-wrapper th.day-name-header {
+  white-space: nowrap;
+  min-width: 70px;
+  text-align: center;
+}
+
+.weekend-row td {
+  background: #fff3e0;
+}
+
+.day-name-cell {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.weekend-row .day-name-cell {
+  color: #e65100;
+}
+
 /* Edit button */
 .edit-attendance-btn,
 .edit-btn {
