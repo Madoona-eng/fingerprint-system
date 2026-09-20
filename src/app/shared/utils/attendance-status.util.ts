@@ -1,13 +1,15 @@
 const STATUS_TRANSLATIONS: Record<string, string> = {
   present: 'حاضر',
   late: 'متأخر',
-  absent: 'غائب',
-  earlydeparture: 'ترك عمل',
+  absent: 'غياب',
+  earlydeparture: 'خروج قبل الميعاد',
   personalleave: 'اذن شخصي',
   mission: 'مأمورية',
   drivingroute: 'خط سير',
   onleave: 'أجازه',
-  online: 'أونلاين'
+  online: 'أونلاين',
+  missingcheckout: 'لم يتم توقيع الانصراف',
+  abandonedwork: 'ترك عمل'
 };
 
 export function getAttendanceStatusLabel(status: unknown): string {

@@ -29,6 +29,8 @@ export class AttendanceReportComponent {
     'Late',
     'Absent',
     'EarlyDeparture',
+    'MissingCheckOut',
+    'AbandonedWork',
     'PersonalLeave',
     'Mission',
     'DrivingRoute',
@@ -103,6 +105,10 @@ export class AttendanceReportComponent {
         return 'status-late';
       case 'EarlyDeparture':
         return 'status-early';
+      case 'MissingCheckOut':
+        return 'status-missing-checkout';
+      case 'AbandonedWork':
+        return 'status-abandoned-work';
       case 'PersonalLeave':
         return 'status-personal-leave';
       case 'Mission':
