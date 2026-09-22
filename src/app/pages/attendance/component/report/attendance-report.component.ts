@@ -159,14 +159,6 @@ export class AttendanceReportComponent {
     return days[date.getDay()];
   }
 
-  isWeekend(value: string | null | undefined): boolean {
-    const date = this.parseApiDate(value);
-    if (!date) return false;
-
-    const day = date.getDay(); // 5 = الجمعة، 6 = السبت
-    return day === 5 || day === 6;
-  }
-
   formatMinutesToHoursLabel(value: number | string | null | undefined): string {
     if (value === null || value === undefined || value === '') {
       return '-';

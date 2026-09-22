@@ -1,5 +1,4 @@
 <div class="employees-page" dir="rtl">
-  
   <section class="employee-page-tabs">
     <button
       type="button"
@@ -196,14 +195,21 @@
             </div>
 
             <div *ngIf="bulkImportMissing.length > 0" class="information-message">
-              <span class="header-information-message"
-                >{{ bulkImportMissing.length }} موظف غير موجودين في الشيت الحالي
+              <span class="header-information-message">
+                {{ bulkImportMissing.length }} موظف غير موجودين في الشيت الحالي
               </span>
               <ul>
-                <li *ngFor="let code of bulkImportMissing">
-                  {{ code }}
+                <li *ngFor="let emp of bulkImportMissing">
+                  {{ emp.employeeCode }} - {{ emp.name }}
                 </li>
               </ul>
+              <button type="button" class="reopen-missing-btn" (click)="openMissingDialog()">
+                مراجعة وحذف
+              </button>
+            </div>
+
+            <div *ngIf="missingDeleteMessage" class="success-message">
+              {{ missingDeleteMessage }}
             </div>
 
             <div *ngIf="hasImportedCurrentSheet" class="success-banner">
@@ -303,4 +309,59 @@
     (confirm)="confirmAddEmployeeNote($event)"
     (cancel)="cancelNoteModal()"
   ></app-employee-note-modal>
+</div>
+
+<div class="missing-overlay" *ngIf="showMissingDialog" (click)="closeMissingDialog()">
+  <div class="missing-card" (click)="$event.stopPropagation()">
+    <header class="missing-header">
+      <div class="missing-header-group">
+        <div class="missing-icon">⚠️</div>
+        <div class="missing-header-text">
+          <h2>موظفين غير موجودين في الشيت</h2>
+        </div>
+      </div>
+      <button type="button" class="missing-close" (click)="closeMissingDialog()">✕</button>
+    </header>
+
+    <div class="missing-body">
+      <p class="missing-hint">
+        الموظفين دول موجودين في السيستم لكن مش في الشيت اللي رفعته. اختار اللي عايز تحذفه، وأي
+        موظف تسيبه هيفضل زي ما هو.
+      </p>
+
+      <label class="missing-select-all">
+        <input type="checkbox" [checked]="allMissingSelected" (change)="toggleAllMissing()" />
+        <span>تحديد الكل</span>
+        <span class="missing-count">{{ bulkImportMissing.length }} موظف</span>
+      </label>
+
+      <ul class="missing-list">
+        <li *ngFor="let emp of bulkImportMissing">
+          <label>
+            <input
+              type="checkbox"
+              [checked]="selectedMissingIds.has(emp.id)"
+              (change)="toggleMissing(emp.id)"
+            />
+            <span class="missing-code">{{ emp.employeeCode }}</span>
+            <span class="missing-name">{{ emp.name }}</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <footer class="missing-footer">
+      <button type="button" class="missing-ignore-btn" (click)="closeMissingDialog()">
+        تجاهل، هراجع بعدين
+      </button>
+      <button
+        type="button"
+        class="missing-delete-btn"
+        [disabled]="selectedMissingIds.size === 0 || isDeletingMissing"
+        (click)="confirmDeleteMissing()"
+      >
+        {{ isDeletingMissing ? 'جاري الحذف...' : 'حذف المحدد (' + selectedMissingIds.size + ')' }}
+      </button>
+    </footer>
+  </div>
 </div>

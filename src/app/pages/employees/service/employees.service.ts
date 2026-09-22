@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   ApiResponse,
+  BulkDeleteResult,
   BulkImportEmployeePayload,
   BulkImportEmployeesRequest,
   Employee,
@@ -139,6 +140,17 @@ export class EmployeesService {
     return this.http.delete<any>(`${this.apiUrl}/${id}`, {
       headers: this.getHeaders(),
     });
+  }
+
+  bulkDeleteEmployees(
+    employeeIds: number[],
+    locationId: number,
+  ): Observable<ApiResponse<BulkDeleteResult>> {
+    return this.http.post<ApiResponse<BulkDeleteResult>>(
+      `${this.apiUrl}/bulk-delete`,
+      { employeeIds, locationId },
+      { headers: this.getHeaders() },
+    );
   }
 
   addEmployeeNote(id: number, content: string): Observable<ApiResponse<boolean>> {

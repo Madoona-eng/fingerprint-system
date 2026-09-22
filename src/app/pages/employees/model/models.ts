@@ -37,6 +37,16 @@ export interface BulkImportEmployeesRequest {
   locationId: number;
 }
 
+export interface MissingEmployee {
+  id: number;
+  employeeCode: string;
+  name: string;
+}
+
+export interface BulkDeleteResult {
+  deletedCount: number;
+  notFoundIds: number[];
+}
 // ============ Employee Core Models ============
 
 export interface EmployeeNote {

@@ -18,6 +18,7 @@ import {
   BulkImportEmployeePayload,
   Employee,
   EmployeePayload,
+  MissingEmployee,
   UpdateEmployeePayload,
 } from '../model/models';
 import { EmployeesService } from '../service/employees.service';
@@ -124,6 +125,11 @@ export class EmployeesComponent implements OnInit {
   systemSettingsMessage = '';
   systemSettingsErrorMessage = '';
 
+  showMissingDialog = false;
+  selectedMissingIds = new Set<number>();
+  isDeletingMissing = false;
+  missingDeleteMessage = '';
+
   employeesAnalyticsRaw: any = null;
   employeesAnalyticsRows: any[] = [];
 
@@ -146,7 +152,7 @@ export class EmployeesComponent implements OnInit {
 
   bulkImportAdded: { code: string; name: string }[] = [];
   bulkImportUpdated: { code: string; name: string }[] = [];
-  bulkImportMissing: string[] = [];
+  bulkImportMissing: MissingEmployee[] = [];
 
   unknownDepartments: UnknownDepartment[] = [];
 
@@ -2271,7 +2277,11 @@ export class EmployeesComponent implements OnInit {
           .map((item: any) => ({ code: item.employeeCode, name: item.name }));
 
         // جديد - الأكواد اللي اختفت من الشيت (من الـ DTO الجديد)
-        this.bulkImportMissing = data?.missingEmployeeCodes || [];
+        this.bulkImportMissing = data?.missingEmployees || [];
+        this.missingDeleteMessage = '';
+        if (this.bulkImportMissing.length > 0) {
+          this.openMissingDialog();
+        }
 
         console.log('Missing Departments From API Response:');
         console.table(this.missingDepartmentNames);
@@ -2311,6 +2321,81 @@ export class EmployeesComponent implements OnInit {
         this.excelErrorMessage =
           err?.error?.message || err?.message || 'حدث خطأ أثناء حفظ بيانات الشيت في السيستم';
         this.isImporting = false;
+      },
+    });
+  }
+
+  openMissingDialog(): void {
+    // مفيش أي تحديد مسبق: المستخدم هو اللي يختار عن قصد
+    this.selectedMissingIds = new Set<number>();
+    this.showMissingDialog = true;
+  }
+
+  closeMissingDialog(): void {
+    this.showMissingDialog = false;
+  }
+
+  toggleMissing(id: number): void {
+    if (this.selectedMissingIds.has(id)) {
+      this.selectedMissingIds.delete(id);
+    } else {
+      this.selectedMissingIds.add(id);
+    }
+  }
+
+  get allMissingSelected(): boolean {
+    return (
+      this.bulkImportMissing.length > 0 &&
+      this.selectedMissingIds.size === this.bulkImportMissing.length
+    );
+  }
+
+  toggleAllMissing(): void {
+    if (this.allMissingSelected) {
+      this.selectedMissingIds.clear();
+    } else {
+      this.selectedMissingIds = new Set(this.bulkImportMissing.map((e) => e.id));
+    }
+  }
+
+  confirmDeleteMissing(): void {
+    if (this.selectedMissingIds.size === 0 || !this.selectedLocationId) {
+      return;
+    }
+
+    const ids = Array.from(this.selectedMissingIds);
+    this.isDeletingMissing = true;
+    this.excelErrorMessage = '';
+
+    this.employeesService.bulkDeleteEmployees(ids, this.selectedLocationId).subscribe({
+      next: (response: any) => {
+        this.isDeletingMissing = false;
+
+        if (response?.isSuccess === false) {
+          this.excelErrorMessage = response?.message || 'فشل حذف الموظفين';
+          return;
+        }
+
+        const data = response?.data ?? response;
+        const notFoundCount = data?.notFoundIds?.length ?? 0;
+
+        this.missingDeleteMessage =
+          notFoundCount > 0
+            ? `${response?.message || 'تم الحذف'} (تعذر حذف ${notFoundCount} موظف، ربما تم حذفهم مسبقًا)`
+            : response?.message || 'تم الحذف بنجاح';
+
+        // شيلي اللي اتمسح من القايمة (وأي notFound كمان، لأنهم مش موجودين أصلاً)
+        this.bulkImportMissing = this.bulkImportMissing.filter(
+          (e) => !this.selectedMissingIds.has(e.id),
+        );
+        this.selectedMissingIds.clear();
+        this.showMissingDialog = false;
+        this.loadEmployees();
+      },
+      error: (err) => {
+        this.isDeletingMissing = false;
+        this.excelErrorMessage =
+          err?.error?.message || err?.message || 'حدث خطأ أثناء حذف الموظفين';
       },
     });
   }
@@ -2495,6 +2580,10 @@ export class EmployeesComponent implements OnInit {
     this.bulkImportAdded = [];
     this.bulkImportUpdated = [];
     this.bulkImportMissing = [];
+    
+    this.selectedMissingIds.clear();
+    this.showMissingDialog = false;
+    this.missingDeleteMessage = '';
 
     this.unknownDepartments = [];
     this.hasImportedCurrentSheet = false;
