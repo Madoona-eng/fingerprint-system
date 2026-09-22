@@ -1295,3 +1295,8 @@
 .notes-modal-close:hover {
   background: #eef2f7;
 }
+
+.worked-hours-badge.exceeds-threshold {
+  color: #f31d06 !important;
+  font-weight: bold;
+}

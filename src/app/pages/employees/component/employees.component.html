@@ -324,11 +324,7 @@
     </header>
 
     <div class="missing-body">
-      <p class="missing-hint">
-        الموظفين دول موجودين في السيستم لكن مش في الشيت اللي رفعته. اختار اللي عايز تحذفه، وأي
-        موظف تسيبه هيفضل زي ما هو.
-      </p>
-
+      <p class="missing-hint">موظفون مسجلون بالنظام غير موجودين بالشيت المرفوع.</p>
       <label class="missing-select-all">
         <input type="checkbox" [checked]="allMissingSelected" (change)="toggleAllMissing()" />
         <span>تحديد الكل</span>
@@ -351,9 +347,7 @@
     </div>
 
     <footer class="missing-footer">
-      <button type="button" class="missing-ignore-btn" (click)="closeMissingDialog()">
-        تجاهل، هراجع بعدين
-      </button>
+      <button type="button" class="missing-ignore-btn" (click)="closeMissingDialog()">إغلاق</button>
       <button
         type="button"
         class="missing-delete-btn"

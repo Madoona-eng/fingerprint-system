@@ -213,7 +213,11 @@
           <td>{{ row.actualIn || '-' }}</td>
           <td>{{ row.actualOut || '-' }}</td>
           <td>{{ row.lateMinutes ?? '-' }}</td>
-          <td>{{ formatMinutesToHoursLabel(row.workedMinutes) }}</td>
+          <td>
+            <span class="worked-hours-badge" [class.exceeds-threshold]="exceedsMaxHours(row)">
+              {{ formatMinutesToHoursLabel(row.workedMinutes) }}
+            </span>
+          </td>
           <td>
             <div class="attendance-notes-cell">
               <button type="button" class="notes-view-btn" (click)="openNotesModal.emit(row)">

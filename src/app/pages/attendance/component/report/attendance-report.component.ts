@@ -203,4 +203,8 @@ export class AttendanceReportComponent {
 
     return modifiedAt > reviewedAt;
   }
+
+  exceedsMaxHours(row: DailyAttendanceRowDto): boolean {
+    return (row?.workedMinutes ?? 0) > 780;
+  }
 }
