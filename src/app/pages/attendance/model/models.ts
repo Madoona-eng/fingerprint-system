@@ -63,6 +63,7 @@ export interface DailyAttendanceRowDto {
   employeeCode: string;
   employeeName: string;
   departmentName: string | null;
+  isEmployeeDeleted: boolean;
   status: string;
   scheduleIn: string;
   scheduleOut: string;

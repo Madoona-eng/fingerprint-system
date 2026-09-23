@@ -1300,3 +1300,34 @@
   color: #f31d06 !important;
   font-weight: bold;
 }
+.deleted-employee-badge {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 10px;
+  background-color: #f1f1f1;
+  color: #777;
+  border: 1px solid #ddd;
+}
+
+/* Deleted employee row styling */
+.table-wrapper tbody tr.deleted-employee-row td {
+  background: #e9e9ec;
+  color: #888;
+}
+
+.table-wrapper tbody tr.deleted-employee-row:hover td {
+  background: #dfdfe3;
+}
+
+.table-wrapper tbody tr.deleted-employee-row .status-badge,
+.table-wrapper tbody tr.deleted-employee-row .worked-hours-badge,
+.table-wrapper tbody tr.deleted-employee-row .late-minutes-badge {
+  opacity: 0.6;
+}
+
+.table-wrapper tbody tr.deleted-employee-row td:first-child {
+  color: #888;
+  font-style: italic;
+}

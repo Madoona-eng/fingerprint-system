@@ -176,8 +176,8 @@
           <th class="day-name-header">اليوم</th>
           <th>التاريخ</th>
           <th>الحالة</th>
-          <th>معاد الحضور</th>
-          <th>معاد الانصراف</th>
+          <th>ميعاد الحضور</th>
+          <th>ميعاد الانصراف</th>
           <th>فترة السماح</th>
           <th>البصمة الخام (دخول)</th>
           <th>البصمة الخام (خروج)</th>
@@ -191,9 +191,19 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let row of filteredDateRangeRows">
+        <tr
+          *ngFor="let row of filteredDateRangeRows"
+          [class.deleted-employee-row]="isEmployeeDeleted(row)"
+        >
           <td>
             {{ row.employeeName || '-' }}
+            <span
+              *ngIf="isEmployeeDeleted(row)"
+              class="deleted-employee-badge"
+              title="هذا الموظف تم حذفه "
+            >
+              موظف تم حذفه
+            </span>
           </td>
           <td>
             {{ row.departmentName || '-' }}

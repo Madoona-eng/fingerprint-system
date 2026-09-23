@@ -140,6 +140,10 @@ export class AttendanceReportComponent {
     return Number.isFinite(row?.id) && row.id > 0 ? row.id : null;
   }
 
+  isEmployeeDeleted(row: DailyAttendanceRowDto): boolean {
+    return row?.isEmployeeDeleted === true;
+  }
+
   private parseApiDate(value: string | null | undefined): Date | null {
     if (!value) return null;
 

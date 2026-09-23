@@ -67,7 +67,7 @@ export class EmployeesComponent implements OnInit {
   searchTerm = '';
   departmentId: number | null = null;
   pageNumber = 1;
-  pageSize = 10;
+  pageSize = 50;
   totalCount = 0;
   totalPages = 0;
 
