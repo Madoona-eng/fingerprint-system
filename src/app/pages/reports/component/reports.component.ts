@@ -202,7 +202,6 @@ export class ReportsComponent implements OnInit {
         value: s.abandonedWork,
         cssClass: 'val-default',
       },
-      { label: getAttendanceStatusLabel('WeeklyOff'), value: s.weeklyOff, cssClass: 'val-default' },
     ];
   }
 
@@ -242,7 +241,6 @@ export class ReportsComponent implements OnInit {
       online: this.pickNumber(data, ['online']),
       missingCheckOut: this.pickNumber(data, ['missingCheckOut']),
       abandonedWork: this.pickNumber(data, ['abandonedWork']),
-      weeklyOff: this.pickNumber(data, ['weeklyOff']),
     };
   }
 
@@ -270,7 +268,6 @@ export class ReportsComponent implements OnInit {
       { الإحصائية: getAttendanceStatusLabel('Online'), القيمة: s.online },
       { الإحصائية: getAttendanceStatusLabel('MissingCheckOut'), القيمة: s.missingCheckOut },
       { الإحصائية: getAttendanceStatusLabel('AbandonedWork'), القيمة: s.abandonedWork },
-      { الإحصائية: getAttendanceStatusLabel('WeeklyOff'), القيمة: s.weeklyOff },
     ];
 
     const fileName = `ملخص-اليوم-${this.analyticsDateDisplay ? this.analyticsDateDisplay.replace(/\//g, '-') : 'تقرير'}`;
@@ -292,7 +289,6 @@ export class ReportsComponent implements OnInit {
       online: 0,
       missingCheckOut: 0,
       abandonedWork: 0,
-      weeklyOff: 0,
     };
   }
 

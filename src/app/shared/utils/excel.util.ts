@@ -14,7 +14,6 @@ export function numberToColumn(n: number): string {
 export function styleWorksheetHeader(worksheet: any, headerColor = '1F4E78'): void {
   if (!worksheet || !worksheet['!ref']) return;
 
-  // 1. ضبط اتجاه الشيت من اليمين إلى اليسار (RTL)
   worksheet['!views'] = [{ rightToLeft: true, RTL: true }];
 
   const ref: string = worksheet['!ref'];
@@ -52,20 +51,49 @@ export function styleWorksheetHeader(worksheet: any, headerColor = '1F4E78'): vo
   }
 }
 
+// جديد: خريطة لعرض أعمدة معينة بالاسم (المفتاح زي ما هو في data[0])
+export interface ColumnWidthOptions {
+  /** عرض مخصص لأعمدة بعينها، بالاسم: { الكود: 8, يحتاج_مراجعة: 10 } */
+  columnWidths?: Record<string, number>;
+  /** عرض افتراضي لأي عمود مش موجود في columnWidths (اختياري) */
+  defaultWidth?: number;
+  /** أقصى عرض مسموح به لأي عمود بيتحسب تلقائي (اختياري) */
+  maxWidth?: number;
+}
+
 export function exportToExcel(
   data: any[],
   fileName: string = 'Export-Data',
   sheetName: string = 'Sheet1',
   wrapTextColumns: string[] = [],
+  columnWidthOptions?: ColumnWidthOptions,
 ): void {
   const worksheet = XLSX.utils.json_to_sheet(data);
 
-  // 2. حساب عرض الأعمدة تلقائياً لمنع قَطْع النصوص
   if (data && data.length > 0) {
     const keys = Object.keys(data[0]);
+
     worksheet['!cols'] = keys.map((key) => {
+      // 1. لو فيه عرض مخصص لهذا العمود بالاسم، استخدمه
+      const customWidth = columnWidthOptions?.columnWidths?.[key];
+      if (customWidth) {
+        return { wch: customWidth };
+      }
+
+      // 2. لو فيه عرض افتراضي عام، استخدمه
+      if (columnWidthOptions?.defaultWidth) {
+        return { wch: columnWidthOptions.defaultWidth };
+      }
+
+      // 3. غير كده، احسب تلقائي زي ما كان
       const maxLen = Math.max(key.length, ...data.map((row) => String(row[key] || '').length));
-      return { wch: Math.max(maxLen + 5, 15) };
+      let width = Math.max(maxLen + 5, 15);
+
+      if (columnWidthOptions?.maxWidth) {
+        width = Math.min(width, columnWidthOptions.maxWidth);
+      }
+
+      return { wch: width };
     });
 
     if (wrapTextColumns.length > 0) {
@@ -91,7 +119,6 @@ export function exportToExcel(
 
   const workbook = XLSX.utils.book_new();
 
-  // 3. ضبط اتجاه الـ Workbook بأمان بدون تعارض Types
   (workbook as any).Workbook = {
     Views: [{ RTL: true }],
   };

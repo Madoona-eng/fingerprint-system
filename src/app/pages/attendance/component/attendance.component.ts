@@ -61,7 +61,7 @@ export class AttendanceComponent implements OnInit {
   reviewingAttendanceId: number | null = null;
   employeeSearchTerm = '';
   dateRangePageNumber = 1;
-  dateRangePageSize = 10;
+  dateRangePageSize = 50;
   dateRangeTotalCount = 0;
   dateRangeTotalPages = 0;
   dateRangeFromDisplay = '';
@@ -127,7 +127,6 @@ export class AttendanceComponent implements OnInit {
     'DrivingRoute',
     'OnLeave',
     'Online',
-    'WeeklyOff',
   ];
 
   get statusOptions(): { value: string; label: string }[] {
@@ -779,7 +778,7 @@ export class AttendanceComponent implements OnInit {
       'التأخير (د)': row.lateMinutes ?? '-',
       'العمل (س)': this.formatWorkedHours(row.workedMinutes),
       'يحتاج مراجعة': row.needsReview ? 'نعم' : 'لا',
-      الملاحظات: row.notesSummary || 'لا توجد ملاحظات',
+      الملاحظات: row.notesSummary || '-',
     };
   }
 
@@ -849,6 +848,15 @@ export class AttendanceComponent implements OnInit {
           `تقرير-الحضور-${this.dateRangeFrom || 'تقرير'}`,
           'تقرير الحضور',
           ['الملاحظات'],
+          {
+            columnWidths: {
+              الكود: 6,
+              'يحتاج مراجعة': 15,
+              'التأخير (د)': 8,
+              الملاحظات: 45,
+            },
+            maxWidth: 20, // اختياري: يمنع أي عمود من الاتساع أكتر من كده
+          },
         );
       } catch (err) {
         console.error('Failed exporting attendance report', err);

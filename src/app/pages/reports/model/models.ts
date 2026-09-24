@@ -12,5 +12,4 @@ export interface AnalyticsStats {
   online: number;
   missingCheckOut: number;
   abandonedWork: number;
-  weeklyOff: number;
 }

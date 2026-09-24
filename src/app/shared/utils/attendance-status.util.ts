@@ -10,7 +10,6 @@ const STATUS_TRANSLATIONS: Record<string, string> = {
   online: 'أونلاين',
   missingcheckout: 'لم يتم توقيع الانصراف',
   abandonedwork: 'ترك عمل',
-  weeklyoff: 'عطلة نهاية الأسبوع',
 };
 
 export function getAttendanceStatusLabel(status: unknown): string {
