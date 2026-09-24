@@ -9,7 +9,8 @@ const STATUS_TRANSLATIONS: Record<string, string> = {
   onleave: 'أجازه',
   online: 'أونلاين',
   missingcheckout: 'لم يتم توقيع الانصراف',
-  abandonedwork: 'ترك عمل'
+  abandonedwork: 'ترك عمل',
+  weeklyoff: 'عطلة نهاية الأسبوع',
 };
 
 export function getAttendanceStatusLabel(status: unknown): string {

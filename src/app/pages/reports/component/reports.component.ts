@@ -1,19 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
-import { ReportsService } from '../service/reports.service';
-import { EmployeesService } from '../../employees/service/employees.service';
 import { AuthService } from '../../../auth/Services/auth.service';
-import { AnalyticsStats } from '../model/models';
+import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
 import { exportToExcel } from '../../../shared/utils/excel.util';
+import { EmployeesService } from '../../employees/service/employees.service';
+import { AnalyticsStats } from '../model/models';
+import { ReportsService } from '../service/reports.service';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './reports.component.html',
-  styleUrl: './reports.component.css'
+  styleUrl: './reports.component.css',
 })
 export class ReportsComponent implements OnInit {
   analyticsDate = '';
@@ -23,39 +23,23 @@ export class ReportsComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
-  rawData: any = null;
-  analyticsRows: any[] = [];
+  analyticsStats: AnalyticsStats = this.emptyStats();
 
-  analyticsStats: AnalyticsStats = {
-    total: 0,
-    present: 0,
-    absent: 0,
-    late: 0,
-    earlyDeparture: 0,
-    personalLeave: 0,
-    workLeave: 0,
-    mission: 0,
-    drivingRoute: 0,
-    onLeave: 0,
-    online: 0,
-    needsReview: 0,
-    reviewed: 0
-  };
-
-  departmentRows: any[] = [];
   selectedLocationId: number | null = null;
   locationOptions: Array<{ id: number; name: string }> = [];
 
   constructor(
     private reportsService: ReportsService,
     private employeesService: EmployeesService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
     this.setTodayDate();
     this.loadLocations();
-    this.loadAnalytics();
+    if (!this.isSuperAdminUser) {
+      this.loadAnalytics();
+    }
   }
 
   get isSuperAdminUser(): boolean {
@@ -64,35 +48,13 @@ export class ReportsComponent implements OnInit {
 
   setTodayDate(): void {
     const today = new Date();
-
     this.analyticsDate = this.dateToApi(today);
     this.analyticsDateDisplay = this.dateToDisplay(today);
-  }
-  
-  private extractAttendanceRows(data: any): any[] {
-    if (Array.isArray(data?.items)) {
-      return data.items;
-    }
-
-    if (Array.isArray(data?.records)) {
-      return data.records;
-    }
-
-    if (Array.isArray(data?.details)) {
-      return data.details;
-    }
-
-    if (Array.isArray(data)) {
-      return data;
-    }
-
-    return [];
   }
 
   setYesterdayDate(): void {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-
     this.analyticsDate = this.dateToApi(yesterday);
     this.analyticsDateDisplay = this.dateToDisplay(yesterday);
   }
@@ -116,17 +78,13 @@ export class ReportsComponent implements OnInit {
       input.showPicker();
       return;
     }
-
     input.click();
   }
 
   onAnalyticsNativeDatePicked(event: Event): void {
     const target = event.target as HTMLInputElement | null;
     const pickedValue = target?.value;
-
-    if (!pickedValue) {
-      return;
-    }
+    if (!pickedValue) return;
 
     this.analyticsDate = pickedValue;
     this.analyticsDateDisplay = this.apiDateToDisplay(pickedValue);
@@ -144,20 +102,21 @@ export class ReportsComponent implements OnInit {
       error: (err) => {
         console.error('Failed to load location options:', err);
         this.locationOptions = [];
-      }
+      },
     });
   }
 
   loadAnalytics(): void {
     if (!this.authService.isLoggedIn()) {
       this.errorMessage = 'لم يتم تسجيل الدخول بعد. يرجى تسجيل الدخول مرة أخرى ثم أعد المحاولة.';
-      this.rawData = null;
-      this.analyticsRows = [];
-      this.departmentRows = [];
       this.resetStats();
       return;
     }
 
+    if (this.isSuperAdminUser && this.selectedLocationId === null) {
+      this.errorMessage = 'من فضلك اختر الموقع أولاً قبل تطبيق الفلترة';
+      return;
+    }
     const apiDate = this.displayDateToApi(this.analyticsDateDisplay);
 
     if (!apiDate) {
@@ -172,67 +131,84 @@ export class ReportsComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    forkJoin({
-      attendance: this.reportsService.getAttendanceByDateRange(
-        this.analyticsDate,
-        this.analyticsDate,
-        null,
-        '',
-        1,
-        10000,
-        '',
-        null,
-        this.selectedLocationId ?? 0
-      ),
-      summary: this.reportsService.getAttendanceSummary(this.analyticsDate, this.selectedLocationId ?? 0)
-    }).subscribe({
-      next: (result: any) => {
-        const summaryData = result.summary?.data || result.summary;
-        const attendanceData = result.attendance?.data || result.attendance;
+    this.reportsService
+      .getAttendanceSummary(this.analyticsDate, this.selectedLocationId ?? 0)
+      .subscribe({
+        next: (result: any) => {
+          const summaryData = result?.data || result;
 
-        const attendanceRows = this.extractAttendanceRows(attendanceData);
+          this.analyticsStats = this.mapSummaryToStats(summaryData);
+          this.buildSummaryRows();
+          this.successMessage = 'تم تحميل تحليل البيانات بنجاح';
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.log('Reports analytics error:', err);
 
-        this.rawData = summaryData;
-        this.analyticsRows = attendanceRows.length
-          ? attendanceRows
-          : this.extractRows(summaryData);
+          this.resetStats();
 
-        this.analyticsStats = this.buildStats(summaryData, this.analyticsRows);
-        this.departmentRows = this.buildDepartmentRows(this.analyticsRows);
+          const token =
+            localStorage.getItem('token') ||
+            localStorage.getItem('accessToken') ||
+            localStorage.getItem('jwt');
 
-        this.successMessage = 'تم تحميل تحليل البيانات بنجاح';
-        this.isLoading = false;
+          this.errorMessage =
+            err?.status === 401 || err?.status === 403
+              ? token
+                ? 'فشل التحقق من الصلاحية. يرجى تسجيل الدخول مرة أخرى.'
+                : 'لم يتم تسجيل الدخول بعد. يرجى تسجيل الدخول مرة أخرى ثم أعد المحاولة.'
+              : err?.error?.message || err?.message || 'حدث خطأ أثناء تحميل تحليل البيانات';
+
+          this.isLoading = false;
+        },
+      });
+  }
+
+  statSummaryRows: Array<{ label: string; value: number; cssClass?: string }> = [];
+
+  private buildSummaryRows(): void {
+    const s = this.analyticsStats;
+
+    this.statSummaryRows = [
+      { label: 'إجمالي الموظفين', value: s.total, cssClass: 'val-total' },
+      { label: getAttendanceStatusLabel('Present'), value: s.present, cssClass: 'val-present' },
+      { label: getAttendanceStatusLabel('Absent'), value: s.absent, cssClass: 'val-absent' },
+      { label: getAttendanceStatusLabel('Late'), value: s.late, cssClass: 'val-late' },
+      {
+        label: getAttendanceStatusLabel('EarlyDeparture'),
+        value: s.earlyDeparture,
+        cssClass: 'val-early',
       },
-      error: (err) => {
-        console.log('Reports analytics error:', err);
-
-        this.rawData = null;
-        this.analyticsRows = [];
-        this.departmentRows = [];
-        this.resetStats();
-
-        const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || localStorage.getItem('jwt');
-
-        this.errorMessage =
-          (err?.status === 401 || err?.status === 403)
-            ? token
-              ? 'فشل التحقق من الصلاحية. يرجى تسجيل الدخول مرة أخرى.'
-              : 'لم يتم تسجيل الدخول بعد. يرجى تسجيل الدخول مرة أخرى ثم أعد المحاولة.'
-            : err?.error?.message ||
-              err?.message ||
-              'حدث خطأ أثناء تحميل تحليل البيانات';
-
-        this.isLoading = false;
-      }
-    });
+      {
+        label: getAttendanceStatusLabel('PersonalLeave'),
+        value: s.personalLeave,
+        cssClass: 'val-default',
+      },
+      { label: getAttendanceStatusLabel('OnLeave'), value: s.onLeave, cssClass: 'val-default' },
+      { label: getAttendanceStatusLabel('Mission'), value: s.mission, cssClass: 'val-default' },
+      {
+        label: getAttendanceStatusLabel('DrivingRoute'),
+        value: s.drivingRoute,
+        cssClass: 'val-default',
+      },
+      { label: getAttendanceStatusLabel('Online'), value: s.online, cssClass: 'val-default' },
+      {
+        label: getAttendanceStatusLabel('MissingCheckOut'),
+        value: s.missingCheckOut,
+        cssClass: 'val-default',
+      },
+      {
+        label: getAttendanceStatusLabel('AbandonedWork'),
+        value: s.abandonedWork,
+        cssClass: 'val-default',
+      },
+      { label: getAttendanceStatusLabel('WeeklyOff'), value: s.weeklyOff, cssClass: 'val-default' },
+    ];
   }
 
   clearAnalytics(): void {
     this.analyticsDate = '';
     this.analyticsDateDisplay = '';
-    this.rawData = null;
-    this.analyticsRows = [];
-    this.departmentRows = [];
     this.errorMessage = '';
     this.successMessage = '';
     this.resetStats();
@@ -247,352 +223,62 @@ export class ReportsComponent implements OnInit {
     return Math.max(total - absent - late - earlyDeparture, 0);
   }
 
-  get attendedCount(): number {
-    const total = Number(this.analyticsStats.total || 0);
-    const absent = Number(this.analyticsStats.absent || 0);
-
-    return Math.max(total - absent, 0);
-  }
-
-  get attendancePercent(): number {
-    if (!this.analyticsStats.total) {
-      return 0;
-    }
-
-    return Math.round((this.attendedCount / this.analyticsStats.total) * 100);
-  }
-
-  get leaveCount(): number {
-    return (
-      Number(this.analyticsStats.personalLeave || 0) +
-      Number(this.analyticsStats.workLeave || 0) +
-      Number(this.analyticsStats.onLeave || 0)
-    );
-  }
-
-  get latePercent(): number {
-    if (!this.analyticsStats.total) {
-      return 0;
-    }
-
-    return Math.round((this.analyticsStats.late / this.analyticsStats.total) * 100);
-  }
-
-  get absencePercent(): number {
-    if (!this.analyticsStats.total) {
-      return 0;
-    }
-
-    return Math.round((this.analyticsStats.absent / this.analyticsStats.total) * 100);
-  }
-
-  private extractRows(data: any): any[] {
-    if (Array.isArray(data?.items)) return data.items;
-    if (Array.isArray(data?.employees)) return data.employees;
-    if (Array.isArray(data?.details)) return data.details;
-    if (Array.isArray(data?.rows)) return data.rows;
-    if (Array.isArray(data)) return data;
-
-    return [];
-  }
-
-  private buildStats(data: any, rows: any[]): AnalyticsStats {
-    const calculatedStats: AnalyticsStats = {
-      total: rows.length,
-      present: 0,
-      absent: 0,
-      late: 0,
-      earlyDeparture: 0,
-      personalLeave: 0,
-      workLeave: 0,
-      mission: 0,
-      drivingRoute: 0,
-      onLeave: 0,
-      online: 0,
-      needsReview: 0,
-      reviewed: 0
-    };
-
-    rows.forEach((row: any) => {
-      const status = String(
-        row.status ||
-        row.attendanceStatus ||
-        row.todayStatus ||
-        ''
-      ).trim();
-
-      const notes = String(row.notes || '').toLowerCase();
-
-      if (status === 'Present') {
-        calculatedStats.present++;
-      } else if (status === 'Absent') {
-        calculatedStats.absent++;
-      } else if (status === 'Late') {
-        calculatedStats.late++;
-      } else if (status === 'EarlyDeparture') {
-        calculatedStats.earlyDeparture++;
-      } else if (status === 'PersonalLeave') {
-        calculatedStats.personalLeave++;
-      } else if (status === 'Mission') {
-        calculatedStats.mission++;
-      } else if (status === 'DrivingRoute') {
-        calculatedStats.drivingRoute++;
-      } else if (status === 'OnLeave') {
-        calculatedStats.onLeave++;
-      } else if (status === 'Online') {
-        calculatedStats.online++;
-      }
-
-      const reviewed =
-        row.isReviewed === true ||
-        row.reviewed === true ||
-        notes.includes('reviewed') ||
-        notes.includes('تمت المراجعة') ||
-        notes.includes('تمت مراجعه');
-
-      const needsReview =
-        !reviewed &&
-        (
-          row.needsReview === true ||
-          row.needReview === true ||
-          row.requiresReview === true ||
-          notes.includes('needs review') ||
-          notes.includes('يحتاج مراجعة') ||
-          notes.includes('يحتاج مراجعه') ||
-          notes.includes('حضور بدون انصراف') ||
-          notes.includes('انصراف بدون حضور') ||
-          notes.includes('checkin without checkout') ||
-          notes.includes('checkout without checkin') ||
-          status === 'Incomplete' ||
-          status === 'MissingIn' ||
-          status === 'MissingOut'
-        );
-
-      if (needsReview) {
-        calculatedStats.needsReview++;
-      }
-
-      if (reviewed) {
-        calculatedStats.reviewed++;
-      }
-    });
-
+  // ============================================================
+  // mapSummaryToStats — بيقرأ مباشرة من GetAttendanceSummaryQuery.
+  // مفيش إعادة حساب من أي rows، القيم كلها مصدرها الـ backend.
+  // ============================================================
+  private mapSummaryToStats(data: any): AnalyticsStats {
     return {
-      total:
-        this.pickNumber(data, ['total', 'totalEmployees', 'employeeCount', 'count']) ||
-        calculatedStats.total,
-
-      present:
-        this.pickNumber(data, ['present', 'presentCount', 'totalPresent']) ||
-        calculatedStats.present,
-
-      absent:
-        this.pickNumber(data, ['absent', 'absentCount', 'totalAbsent']) ||
-        calculatedStats.absent,
-
-      late:
-        this.pickNumber(data, ['late', 'lateCount', 'totalLate']) ||
-        calculatedStats.late,
-
-      earlyDeparture:
-        this.pickNumber(data, [
-          'earlyDeparture',
-          'earlyDepartureCount',
-          'totalEarlyDeparture'
-        ]) || calculatedStats.earlyDeparture,
-
-      personalLeave:
-        this.pickNumber(data, [
-          'personalLeave',
-          'personalLeaveCount',
-          'totalPersonalLeave'
-        ]) || calculatedStats.personalLeave,
-
-      workLeave:
-        this.pickNumber(data, [
-          'workLeave',
-          'workLeaveCount',
-          'totalWorkLeave'
-        ]) || calculatedStats.workLeave,
-
-      mission:
-        this.pickNumber(data, [
-          'mission',
-          'missionCount',
-          'totalMission'
-        ]) || calculatedStats.mission,
-
-      drivingRoute:
-        this.pickNumber(data, [
-          'drivingRoute',
-          'drivingRouteCount',
-          'totalDrivingRoute'
-        ]) || calculatedStats.drivingRoute,
-
-      onLeave:
-        this.pickNumber(data, [
-          'onLeave',
-          'onLeaveCount',
-          'totalOnLeave'
-        ]) || calculatedStats.onLeave,
-
-      online:
-        this.pickNumber(data, [
-          'online',
-          'onlineCount',
-          'totalOnline'
-        ]) || calculatedStats.online,
-
-      needsReview:
-        this.pickNumber(data, [
-          'needsReview',
-          'needReview',
-          'needsReviewCount',
-          'needReviewCount',
-          'pendingReview',
-          'pendingReviewCount',
-          'reviewRequired',
-          'reviewRequiredCount'
-        ]) || calculatedStats.needsReview,
-
-      reviewed:
-        this.pickNumber(data, [
-          'reviewed',
-          'reviewedCount',
-          'totalReviewed'
-        ]) || calculatedStats.reviewed
+      total: this.pickNumber(data, ['totalEmployees']),
+      present: this.pickNumber(data, ['present']),
+      absent: this.pickNumber(data, ['absent']),
+      late: this.pickNumber(data, ['late']),
+      earlyDeparture: this.pickNumber(data, ['earlyDeparture']),
+      personalLeave: this.pickNumber(data, ['personalLeave']),
+      workLeave: this.pickNumber(data, ['workLeave']),
+      mission: this.pickNumber(data, ['mission']),
+      drivingRoute: this.pickNumber(data, ['drivingRoute']),
+      onLeave: this.pickNumber(data, ['onLeave']),
+      online: this.pickNumber(data, ['online']),
+      missingCheckOut: this.pickNumber(data, ['missingCheckOut']),
+      abandonedWork: this.pickNumber(data, ['abandonedWork']),
+      weeklyOff: this.pickNumber(data, ['weeklyOff']),
     };
-  }
-
-  private buildDepartmentRows(rows: any[]): any[] {
-    const map = new Map<string, any>();
-
-    rows.forEach((row: any) => {
-      const departmentName =
-        row.departmentName ||
-        row.employee?.departmentName ||
-        row.department?.name ||
-        'غير محدد';
-
-      const status = String(
-        row.status || row.attendanceStatus || row.todayStatus || ''
-      ).trim();
-
-      if (!map.has(departmentName)) {
-        map.set(departmentName, {
-          departmentName,
-          total: 0,
-          present: 0,
-          absent: 0,
-          late: 0,
-          earlyDeparture: 0
-        });
-      }
-
-      const item = map.get(departmentName);
-
-      item.total++;
-
-      if (status === 'Present') {
-        item.present++;
-      } else if (status === 'Absent') {
-        item.absent++;
-      } else if (status === 'Late') {
-        item.late++;
-      } else if (status === 'EarlyDeparture') {
-        item.earlyDeparture++;
-      }
-    });
-
-    return Array.from(map.values());
   }
 
   private pickNumber(data: any, keys: string[]): number {
     for (const key of keys) {
       const value = Number(data?.[key]);
-
-      if (Number.isFinite(value)) {
-        return value;
-      }
+      if (Number.isFinite(value)) return value;
     }
-
     return 0;
   }
 
   exportSummaryToExcel(): void {
-    if (!this.rawData) {
-      this.errorMessage = 'لا توجد بيانات للتصدير';
-      return;
-    }
+    const s = this.analyticsStats;
 
     const exportData = [
-      {
-        'الإحصائية': 'إجمالي الموظفين',
-        'القيمة': this.pickNumber(this.rawData, ['total', 'totalEmployees', 'employeeCount', 'count'])
-      },
-      {
-        'الإحصائية': 'حاضر',
-        'القيمة': this.pickNumber(this.rawData, ['present', 'presentCount', 'totalPresent'])
-      },
-      {
-        'الإحصائية': 'غائب',
-        'القيمة': this.pickNumber(this.rawData, ['absent', 'absentCount', 'totalAbsent'])
-      },
-      {
-        'الإحصائية': 'متأخر',
-        'القيمة': this.pickNumber(this.rawData, ['late', 'lateCount', 'totalLate'])
-      },
-      {
-        'الإحصائية': 'ترك عمل',
-        'القيمة': this.pickNumber(this.rawData, ['earlyDeparture', 'earlyDepartureCount', 'totalEarlyDeparture'])
-      },
-      {
-        'الإحصائية': 'أجازات',
-        'القيمة': this.leaveCount
-      },
-      {
-        'الإحصائية': 'مأمورية',
-        'القيمة': this.pickNumber(this.rawData, ['mission', 'missionCount', 'totalMission'])
-      },
-      {
-        'الإحصائية': 'خط سير',
-        'القيمة': this.pickNumber(this.rawData, ['drivingRoute', 'drivingRouteCount', 'totalDrivingRoute'])
-      },
-      {
-        'الإحصائية': 'أونلاين',
-        'القيمة': this.pickNumber(this.rawData, ['online', 'onlineCount', 'totalOnline'])
-      },
-      {
-        'الإحصائية': 'يحتاج مراجعة',
-        'القيمة': this.analyticsStats.needsReview
-      }
+      { الإحصائية: 'إجمالي الموظفين', القيمة: s.total },
+      { الإحصائية: getAttendanceStatusLabel('Present'), القيمة: s.present },
+      { الإحصائية: getAttendanceStatusLabel('Absent'), القيمة: s.absent },
+      { الإحصائية: getAttendanceStatusLabel('Late'), القيمة: s.late },
+      { الإحصائية: getAttendanceStatusLabel('EarlyDeparture'), القيمة: s.earlyDeparture },
+      { الإحصائية: getAttendanceStatusLabel('PersonalLeave'), القيمة: s.personalLeave },
+      { الإحصائية: getAttendanceStatusLabel('OnLeave'), القيمة: s.onLeave },
+      { الإحصائية: getAttendanceStatusLabel('Mission'), القيمة: s.mission },
+      { الإحصائية: getAttendanceStatusLabel('DrivingRoute'), القيمة: s.drivingRoute },
+      { الإحصائية: getAttendanceStatusLabel('Online'), القيمة: s.online },
+      { الإحصائية: getAttendanceStatusLabel('MissingCheckOut'), القيمة: s.missingCheckOut },
+      { الإحصائية: getAttendanceStatusLabel('AbandonedWork'), القيمة: s.abandonedWork },
+      { الإحصائية: getAttendanceStatusLabel('WeeklyOff'), القيمة: s.weeklyOff },
     ];
 
     const fileName = `ملخص-اليوم-${this.analyticsDateDisplay ? this.analyticsDateDisplay.replace(/\//g, '-') : 'تقرير'}`;
     exportToExcel(exportData, fileName, 'ملخص اليوم');
   }
 
-  exportDepartmentToExcel(): void {
-    if (!this.departmentRows || this.departmentRows.length === 0) {
-      this.errorMessage = 'لا توجد بيانات أقسام للتصدير';
-      return;
-    }
-
-    const exportData = this.departmentRows.map((row: any) => ({
-      'القسم': row.departmentName,
-      'الإجمالي': row.total,
-      'حاضر': row.present,
-      'غائب': row.absent,
-      'متأخر': row.late,
-      'ترك عمل': row.earlyDeparture
-    }));
-
-    const fileName = `تحليل-الأقسام-${this.analyticsDateDisplay ? this.analyticsDateDisplay.replace(/\//g, '-') : 'تقرير'}`;
-    exportToExcel(exportData, fileName, 'تحليل الأقسام');
-  }
-
-  private resetStats(): void {
-    this.analyticsStats = {
+  private emptyStats(): AnalyticsStats {
+    return {
       total: 0,
       present: 0,
       absent: 0,
@@ -604,16 +290,21 @@ export class ReportsComponent implements OnInit {
       drivingRoute: 0,
       onLeave: 0,
       online: 0,
-      needsReview: 0,
-      reviewed: 0
+      missingCheckOut: 0,
+      abandonedWork: 0,
+      weeklyOff: 0,
     };
+  }
+
+  private resetStats(): void {
+    this.analyticsStats = this.emptyStats();
+    this.buildSummaryRows();
   }
 
   private dateToApi(date: Date): string {
     const year = date.getFullYear();
     const month = this.pad(date.getMonth() + 1);
     const day = this.pad(date.getDate());
-
     return `${year}-${month}-${day}`;
   }
 
@@ -621,13 +312,11 @@ export class ReportsComponent implements OnInit {
     const day = this.pad(date.getDate());
     const month = this.pad(date.getMonth() + 1);
     const year = date.getFullYear();
-
     return `${day}/${month}/${year}`;
   }
 
   private displayDateToApi(displayDate: string): string {
     const text = String(displayDate || '').trim();
-
     if (!text) return '';
 
     const normalizedText = text.replace(/[.\-]/g, '/');
@@ -644,10 +333,7 @@ export class ReportsComponent implements OnInit {
       year = Number(slashMatch[3]);
     } else {
       const digits = normalizedText.replace(/\D/g, '');
-
-      if (!/^\d{8}$/.test(digits)) {
-        return '';
-      }
+      if (!/^\d{8}$/.test(digits)) return '';
 
       day = Number(digits.slice(0, 2));
       month = Number(digits.slice(2, 4));
@@ -657,9 +343,7 @@ export class ReportsComponent implements OnInit {
     const date = new Date(year, month - 1, day);
 
     const isValidDate =
-      date.getFullYear() === year &&
-      date.getMonth() === month - 1 &&
-      date.getDate() === day;
+      date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 
     if (!isValidDate) return '';
 
@@ -667,12 +351,8 @@ export class ReportsComponent implements OnInit {
   }
 
   private apiDateToDisplay(apiDate: string): string {
-    if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) {
-      return '';
-    }
-
+    if (!apiDate || !/^\d{4}-\d{2}-\d{2}$/.test(apiDate)) return '';
     const [year, month, day] = apiDate.split('-');
-
     return `${day}/${month}/${year}`;
   }
 

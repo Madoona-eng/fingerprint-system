@@ -10,6 +10,7 @@ export interface AnalyticsStats {
   drivingRoute: number;
   onLeave: number;
   online: number;
-  needsReview: number;
-  reviewed: number;
+  missingCheckOut: number;
+  abandonedWork: number;
+  weeklyOff: number;
 }

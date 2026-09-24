@@ -36,6 +36,7 @@ export class AttendanceReportComponent {
     'DrivingRoute',
     'OnLeave',
     'Online',
+    'WeeklyOff',
   ];
 
   private _statusOptions: { value: string; label: string }[] = [];
@@ -119,6 +120,8 @@ export class AttendanceReportComponent {
         return 'status-on-leave';
       case 'Online':
         return 'status-online';
+      case 'WeeklyOff':
+        return 'status-weekly-off';
       default:
         return 'status-default';
     }

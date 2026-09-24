@@ -84,4 +84,5 @@ export interface DailyAttendanceRowDto {
   reviewedAt: string | null;
   rawIn: string | null;
   rawOut: string | null;
+  notesSummary?: string;
 }

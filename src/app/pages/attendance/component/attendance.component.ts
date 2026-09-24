@@ -127,6 +127,7 @@ export class AttendanceComponent implements OnInit {
     'DrivingRoute',
     'OnLeave',
     'Online',
+    'WeeklyOff',
   ];
 
   get statusOptions(): { value: string; label: string }[] {
@@ -777,6 +778,8 @@ export class AttendanceComponent implements OnInit {
       الحالة: this.getAttendanceStatusLabel(row.status),
       'التأخير (د)': row.lateMinutes ?? '-',
       'العمل (س)': this.formatWorkedHours(row.workedMinutes),
+      'يحتاج مراجعة': row.needsReview ? 'نعم' : 'لا',
+      الملاحظات: row.notesSummary || 'لا توجد ملاحظات',
     };
   }
 
@@ -841,7 +844,12 @@ export class AttendanceComponent implements OnInit {
 
         const exportData = allRows.map((row: any) => this.getAttendanceExportRow(row));
 
-        exportToExcel(exportData, `تقرير-الحضور-${this.dateRangeFrom || 'تقرير'}`, 'تقرير الحضور');
+        exportToExcel(
+          exportData,
+          `تقرير-الحضور-${this.dateRangeFrom || 'تقرير'}`,
+          'تقرير الحضور',
+          ['الملاحظات'],
+        );
       } catch (err) {
         console.error('Failed exporting attendance report', err);
         this.dateRangeErrorMessage = 'فشل تصدير ملف Excel';
@@ -2519,43 +2527,42 @@ export class AttendanceComponent implements OnInit {
     return getAttendanceStatusLabel(status);
   }
 
-//   // ============================================================
-//   // getStatusClass to return CSS class based on attendance status (for color coding)
-//   // ============================================================
-//   getStatusClass(status: string | null | undefined): string {
-//     const value = String(status || '').trim();
+  //   // ============================================================
+  //   // getStatusClass to return CSS class based on attendance status (for color coding)
+  //   // ============================================================
+  //   getStatusClass(status: string | null | undefined): string {
+  //     const value = String(status || '').trim();
 
-//     switch (value) {
-//       case 'Present':
-//         return 'status-present';
+  //     switch (value) {
+  //       case 'Present':
+  //         return 'status-present';
 
-//       case 'Late':
-//         return 'status-late';
+  //       case 'Late':
+  //         return 'status-late';
 
-//       case 'Absent':
-//         return 'status-absent';
+  //       case 'Absent':
+  //         return 'status-absent';
 
-//       case 'EarlyDeparture':
-//         return 'status-early';
+  //       case 'EarlyDeparture':
+  //         return 'status-early';
 
-//       case 'PersonalLeave':
-//         return 'status-personal-leave';
+  //       case 'PersonalLeave':
+  //         return 'status-personal-leave';
 
-//       case 'Mission':
-//         return 'status-mission';
+  //       case 'Mission':
+  //         return 'status-mission';
 
-//       case 'DrivingRoute':
-//         return 'status-driving-route';
+  //       case 'DrivingRoute':
+  //         return 'status-driving-route';
 
-//       case 'OnLeave':
-//         return 'status-on-leave';
+  //       case 'OnLeave':
+  //         return 'status-on-leave';
 
-//       case 'Online':
-//         return 'status-online';
+  //       case 'Online':
+  //         return 'status-online';
 
-//       default:
-//         return 'status-default';
-//     }
-//   }
-
+  //       default:
+  //         return 'status-default';
+  //     }
+  //   }
 }

@@ -1976,6 +1976,7 @@ export class EmployeesComponent implements OnInit {
     ]);
 
     const isChristian = this.getBooleanCellValue(row, [
+      'الاحد',
       'مسيحي',
       'christian',
       'isChristian',

@@ -45,26 +45,46 @@ export function styleWorksheetHeader(worksheet: any, headerColor = '1F4E78'): vo
         font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11, name: 'Segoe UI' },
         alignment: { horizontal: 'center', vertical: 'center' },
         border: {
-          bottom: { style: 'thin', color: { rgb: 'CCCCCC' } }
-        }
+          bottom: { style: 'thin', color: { rgb: 'CCCCCC' } },
+        },
       };
     }
   }
 }
 
-export function exportToExcel(data: any[], fileName: string = 'Export-Data', sheetName: string = 'Sheet1'): void {
+export function exportToExcel(
+  data: any[],
+  fileName: string = 'Export-Data',
+  sheetName: string = 'Sheet1',
+  wrapTextColumns: string[] = [],
+): void {
   const worksheet = XLSX.utils.json_to_sheet(data);
 
   // 2. حساب عرض الأعمدة تلقائياً لمنع قَطْع النصوص
   if (data && data.length > 0) {
     const keys = Object.keys(data[0]);
-    worksheet['!cols'] = keys.map(key => {
-      const maxLen = Math.max(
-        key.length,
-        ...data.map(row => String(row[key] || '').length)
-      );
+    worksheet['!cols'] = keys.map((key) => {
+      const maxLen = Math.max(key.length, ...data.map((row) => String(row[key] || '').length));
       return { wch: Math.max(maxLen + 5, 15) };
     });
+
+    if (wrapTextColumns.length > 0) {
+      keys.forEach((key, colIndex) => {
+        if (!wrapTextColumns.includes(key)) return;
+
+        for (let r = 1; r <= data.length; r++) {
+          const col = numberToColumn(colIndex + 1);
+          const addr = `${col}${r + 1}`;
+          const cell = worksheet[addr];
+          if (cell) {
+            cell.s = {
+              ...(cell.s || {}),
+              alignment: { ...(cell.s?.alignment || {}), wrapText: true, vertical: 'top' },
+            };
+          }
+        }
+      });
+    }
   }
 
   styleWorksheetHeader(worksheet, '1F4E78');
@@ -73,7 +93,7 @@ export function exportToExcel(data: any[], fileName: string = 'Export-Data', she
 
   // 3. ضبط اتجاه الـ Workbook بأمان بدون تعارض Types
   (workbook as any).Workbook = {
-    Views: [{ RTL: true }]
+    Views: [{ RTL: true }],
   };
 
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
