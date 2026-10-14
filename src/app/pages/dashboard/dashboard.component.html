@@ -59,20 +59,30 @@
         <span>📊</span>
         <b>عرض التقرير</b>
       </a>
-    </nav>
+      </nav>
 
-   <button
-      class="logout-btn"
-      (click)="logout()"
-      [matTooltip]="isSidebarCollapsed ? 'تسجيل الخروج' : ''"
-      matTooltipPosition="left"
-    >
-      <span> ➜] </span>
-      <b>تسجيل الخروج</b>
-    </button>
+    @if (!isSidebarCollapsed) {
+      <button mat-fab extended color="warn" class="logout-btn" type="button" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        تسجيل الخروج
+      </button>
+    } @else {
+      <button
+        mat-mini-fab
+        color="warn"
+        class="logout-btn-collapsed"
+        type="button"
+        (click)="logout()"
+        matTooltip="تسجيل الخروج"
+        matTooltipPosition="left"
+      >
+        <mat-icon>logout</mat-icon>
+      </button>
+    }
+
   </aside>
 
-  <section class="main-area">
+  <section class="main-area" [class.collapsed]="isSidebarCollapsed">
     <header class="topbar">
       <div>
         <h2>مرحباً بك {{ userName }} 👋</h2>
