@@ -60,7 +60,7 @@
   <div *ngIf="isLoading" class="status-box">جاري تحميل شيت البصمة...</div>
   <div *ngIf="errorMessage" class="status-box error">{{ errorMessage }}</div>
 
-  <div *ngIf="!isLoading && !errorMessage" class="sheet-card">
+  <div *ngIf="!errorMessage" class="sheet-card" [class.is-loading]="isLoading">
     <div *ngIf="records.length === 0" class="empty-message">
       لا توجد سجلات حضور مطابقة للفلتر المحدد.
     </div>
@@ -92,18 +92,10 @@
       </table>
     </div>
 
-    <div class="pagination">
-      <button type="button" class="page-btn" (click)="previousPage()" [disabled]="pageNumber === 1">
-        السابق
-      </button>
-      <button
-        type="button"
-        class="page-btn"
-        (click)="nextPage()"
-        [disabled]="pageNumber === totalPages"
-      >
-        التالي
-      </button>
-    </div>
+    <app-pagination
+      [pageNumber]="pageNumber"
+      [totalPages]="totalPages"
+      (pageChange)="onPageChange($event)"
+    ></app-pagination>
   </div>
 </section>

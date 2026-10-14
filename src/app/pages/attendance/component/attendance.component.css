@@ -870,41 +870,6 @@
   background: #fff;
 }
 
-/* Pagination */
-.pagination-box {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 14px;
-  margin-top: 20px;
-  color: rgba(15, 23, 42, 0.85);
-  font-weight: 800;
-}
-
-.pagination-box button {
-  min-width: 90px;
-  height: 40px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 900;
-  color: #07111f;
-  background: linear-gradient(135deg, #65e4e9, #2dd4bf);
-}
-
-.pagination-box button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  background: rgba(255, 255, 255, 0.18);
-  color: rgba(15, 23, 42, 0.45);
-}
-
-.pagination-box span {
-  background: rgba(248, 250, 252, 0.95);
-  padding: 9px 16px;
-  border-radius: 12px;
-}
-
 /* Empty */
 .empty-message {
   margin-top: 20px;

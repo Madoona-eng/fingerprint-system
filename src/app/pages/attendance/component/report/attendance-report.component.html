@@ -268,24 +268,11 @@
       </tbody>
     </table>
   </div>
-
-  <div class="pagination-box">
-    <button
-      type="button"
-      (click)="previousDateRangePage.emit()"
-      [disabled]="dateRangePageNumber === 1"
-    >
-      السابق
-    </button>
-    <span> صفحة {{ dateRangePageNumber }} من {{ dateRangeTotalPages }} </span>
-    <button
-      type="button"
-      (click)="nextDateRangePage.emit()"
-      [disabled]="dateRangePageNumber === dateRangeTotalPages"
-    >
-      التالي
-    </button>
-  </div>
+  <app-pagination
+    [pageNumber]="dateRangePageNumber"
+    [totalPages]="dateRangeTotalPages"
+    (pageChange)="pageChange.emit($event)"
+  ></app-pagination>
 </section>
 
 <div class="notes-modal-backdrop" *ngIf="notesModalOpen" (click)="closeNotesModal.emit()">

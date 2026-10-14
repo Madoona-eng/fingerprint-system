@@ -1,23 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Employee } from '../../model/models';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatButtonModule } from '@angular/material/button';
+import { PaginationComponent } from '../../../../shared/pagination/pagination.component';
+import { Employee } from '../../model/models';
 
 @Component({
   selector: 'app-employees-list',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    MatIconModule, 
-    MatSlideToggleModule, 
-    MatButtonModule
+    CommonModule,
+    FormsModule,
+    MatIconModule,
+    MatSlideToggleModule,
+    MatButtonModule,
+    PaginationComponent,
   ],
   templateUrl: './employees-list.component.html',
-  styleUrls: ['./employees-list.component.css']
+  styleUrls: ['./employees-list.component.css'],
 })
 export class EmployeesListComponent {
   @Input() employees: Employee[] = [];
@@ -28,12 +30,11 @@ export class EmployeesListComponent {
   @Input() departmentOptions: Array<{ id: number; name: string }> = [];
   @Input() isLoading = false;
   @Input() pageNumber = 1;
-  @Input() pageSize = 10;
   @Input() totalCount = 0;
   @Input() totalPages = 0;
   @Input() systemSettingsData: boolean | null = null;
   @Input() systemSettingsUpdating = false;
-  @Input() isSuperAdmin = false; 
+  @Input() isSuperAdmin = false;
 
   confirmToggle = false;
 
@@ -61,8 +62,7 @@ export class EmployeesListComponent {
   @Output() openDetails = new EventEmitter<Employee>();
   @Output() openNote = new EventEmitter<Employee>();
   @Output() deleteEmployee = new EventEmitter<Employee>();
-  @Output() previousPage = new EventEmitter<void>();
-  @Output() nextPage = new EventEmitter<void>();
+  @Output() pageChange = new EventEmitter<number>();
 
   onSearch(): void {
     this.search.emit();

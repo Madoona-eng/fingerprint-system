@@ -101,7 +101,7 @@ export class AttendanceComponent implements OnInit {
   lateSummaryEmployeeSearch = '';
   lateSummarySelectedEmployee: any = null;
   lateSummaryPageNumber = 1;
-  lateSummaryPageSize = 10;
+  lateSummaryPageSize = 50;
   lateSummaryTotalCount = 0;
   lateSummaryTotalPages = 0;
   isLoadingLateSummary = false;
@@ -1829,26 +1829,10 @@ export class AttendanceComponent implements OnInit {
     this.dateRangeToDisplay = '';
   }
 
-  // ============================================================
-  // nextDateRangePage
-  // ============================================================
-  nextDateRangePage(): void {
-    if (this.dateRangePageNumber < this.dateRangeTotalPages) {
-      this.dateRangePageNumber++;
-      this.loadAttendanceByDateRange();
-    }
+  onDateRangePageChange(page: number): void {
+    this.dateRangePageNumber = page;
+    this.loadAttendanceByDateRange();
   }
-
-  // ============================================================
-  // previousDateRangePage
-  // ============================================================
-  previousDateRangePage(): void {
-    if (this.dateRangePageNumber > 1) {
-      this.dateRangePageNumber--;
-      this.loadAttendanceByDateRange();
-    }
-  }
-
   // ============================================================
   // prepareDateRangeRows (private) --- currently a no-op passthrough (spreads row only)
   // ============================================================
@@ -2024,26 +2008,30 @@ export class AttendanceComponent implements OnInit {
     this.lateSummaryPageNumber = 1;
   }
 
-  // ============================================================
-  // previousLateSummaryPage
-  // ============================================================
-  previousLateSummaryPage(): void {
-    if (this.lateSummaryPageNumber > 1) {
-      this.lateSummaryPageNumber--;
-      this.loadLateSummary();
-    }
+  onLateSummaryPageChange(page: number): void {
+    this.lateSummaryPageNumber = page;
+    this.loadLateSummary();
   }
 
-  // ============================================================
-  // nextLateSummaryPage
-  // ============================================================
-  nextLateSummaryPage(): void {
-    if (this.lateSummaryPageNumber < this.lateSummaryTotalPages) {
-      this.lateSummaryPageNumber++;
-      this.loadLateSummary();
-    }
+  applyLateSummaryFilter(): void {
+    this.lateSummaryPageNumber = 1;
+    this.loadLateSummary();
   }
 
+  onLateSummaryLocationChange(locationId: number | null): void {
+    this.lateSummaryLocationId = locationId;
+    this.lateSummaryDepartmentId = null;
+    this.lateSummaryPageNumber = 1;
+
+    if (locationId !== null) {
+      this.employeesService.getDepartments(locationId).subscribe({
+        next: (response: any) => (this.departmentOptions = response?.data || []),
+        error: () => (this.departmentOptions = []),
+      });
+    } else {
+      this.departmentOptions = [];
+    }
+  }
   // ============================================================
   // loadLateSummary  ★★★ getLateSummary call (server-side filter + pagination)
   // ============================================================
@@ -2534,43 +2522,4 @@ export class AttendanceComponent implements OnInit {
   getAttendanceStatusLabel(status: any): string {
     return getAttendanceStatusLabel(status);
   }
-
-  //   // ============================================================
-  //   // getStatusClass to return CSS class based on attendance status (for color coding)
-  //   // ============================================================
-  //   getStatusClass(status: string | null | undefined): string {
-  //     const value = String(status || '').trim();
-
-  //     switch (value) {
-  //       case 'Present':
-  //         return 'status-present';
-
-  //       case 'Late':
-  //         return 'status-late';
-
-  //       case 'Absent':
-  //         return 'status-absent';
-
-  //       case 'EarlyDeparture':
-  //         return 'status-early';
-
-  //       case 'PersonalLeave':
-  //         return 'status-personal-leave';
-
-  //       case 'Mission':
-  //         return 'status-mission';
-
-  //       case 'DrivingRoute':
-  //         return 'status-driving-route';
-
-  //       case 'OnLeave':
-  //         return 'status-on-leave';
-
-  //       case 'Online':
-  //         return 'status-online';
-
-  //       default:
-  //         return 'status-default';
-  //     }
-  //   }
 }

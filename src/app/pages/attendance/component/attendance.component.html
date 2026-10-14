@@ -1,5 +1,4 @@
 <div class="attendance-page" dir="rtl">
-
   <!-- ==========================================
        أزرار التابات (رفع Excel / عرض السجلات / ملخص التأخير)
   ========================================== -->
@@ -85,8 +84,7 @@
         (applyDateRangeFilter)="applyDateRangeFilter()"
         (clearDateRangeFilter)="clearDateRangeFilter()"
         (exportAttendanceReportToExcel)="exportAttendanceReportToExcel()"
-        (previousDateRangePage)="previousDateRangePage()"
-        (nextDateRangePage)="nextDateRangePage()"
+        (pageChange)="onDateRangePageChange($event)"
         (onEmployeeSearchInputChange)="onEmployeeSearchInputChange()"
         (employeeSearchTermChange)="employeeSearchTerm = $event"
         (dateRangeNeedsReviewChange)="dateRangeNeedsReview = $event"
@@ -124,16 +122,19 @@
         (lateSummaryToDisplayChange)="onLateSummaryDateInputChange($event, 'to')"
         (lateSummaryEmployeeSearchChange)="lateSummaryEmployeeSearch = $event"
         (lateSummarySearchInput)="onLateSummarySearchInput()"
-        (lateSummaryLocationIdChange)="lateSummaryLocationId = $event; onLateSummaryLocationOrDepartmentChange()"
-        (lateSummaryDepartmentIdChange)="lateSummaryDepartmentId = $event; onLateSummaryLocationOrDepartmentChange()"
-        (loadLateSummary)="loadLateSummary()"
+        (lateSummaryLocationIdChange)="
+          lateSummaryLocationId = $event; onLateSummaryLocationOrDepartmentChange()
+        "
+        (lateSummaryDepartmentIdChange)="
+          lateSummaryDepartmentId = $event; onLateSummaryLocationOrDepartmentChange()
+        "
+        (loadLateSummary)="applyLateSummaryFilter()"
         (clearLateSummary)="clearLateSummary()"
         (exportLateSummaryToExcel)="exportLateSummaryToExcel()"
-        (onLocationChange)="onLocationChange($event)"
+        (onLocationChange)="onLateSummaryLocationChange($event)"
         (openNativeDatePicker)="openNativeDatePicker($event)"
         (nativeDatePicked)="onLateSummaryNativeDatePicked($event.event, $event.field)"
-        (previousLateSummaryPage)="previousLateSummaryPage()"
-        (nextLateSummaryPage)="nextLateSummaryPage()"
+        (pageChange)="onLateSummaryPageChange($event)"
       ></app-attendance-late-summary>
     </section>
 

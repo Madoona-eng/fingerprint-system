@@ -17,7 +17,13 @@
           [ngModelOptions]="{ standalone: true }"
           (input)="lateSummaryFromDisplayChange.emit($any($event.target).value)"
         />
-        <button type="button" class="calendar-btn" (click)="openNativeDatePicker.emit(lateFromDatePicker)">📅</button>
+        <button
+          type="button"
+          class="calendar-btn"
+          (click)="openNativeDatePicker.emit(lateFromDatePicker)"
+        >
+          📅
+        </button>
         <input
           #lateFromDatePicker
           class="native-date-picker"
@@ -41,7 +47,13 @@
           [ngModelOptions]="{ standalone: true }"
           (input)="lateSummaryToDisplayChange.emit($any($event.target).value)"
         />
-        <button type="button" class="calendar-btn" (click)="openNativeDatePicker.emit(lateToDatePicker)">📅</button>
+        <button
+          type="button"
+          class="calendar-btn"
+          (click)="openNativeDatePicker.emit(lateToDatePicker)"
+        >
+          📅
+        </button>
         <input
           #lateToDatePicker
           class="native-date-picker"
@@ -59,7 +71,9 @@
         placeholder="مثال: أحمد"
         [ngModel]="lateSummaryEmployeeSearch"
         [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="lateSummaryEmployeeSearchChange.emit($event); lateSummarySearchInput.emit()"
+        (ngModelChange)="
+          lateSummaryEmployeeSearchChange.emit($event); lateSummarySearchInput.emit()
+        "
       />
     </div>
 
@@ -88,19 +102,31 @@
   </div>
 
   <div class="filter-btns">
-    <button type="button" class="apply-search-btn" [disabled]="isLoadingLateSummary" (click)="loadLateSummary.emit()">
+    <button
+      type="button"
+      class="apply-search-btn"
+      [disabled]="isLoadingLateSummary"
+      (click)="loadLateSummary.emit()"
+    >
       {{ isLoadingLateSummary ? 'جاري التحميل...' : 'تطبيق الفلتر' }}
     </button>
 
-    <button type="button" class="clear-search-btn" (click)="clearLateSummary.emit()">مسح الفلتر</button>
+    <button type="button" class="clear-search-btn" (click)="clearLateSummary.emit()">
+      مسح الفلتر
+    </button>
 
-    <button type="button" class="export-excel-btn" (click)="exportLateSummaryToExcel.emit()"> 📥 تصدير إكسيل</button>
+    <button type="button" class="export-excel-btn" (click)="exportLateSummaryToExcel.emit()">
+      📥 تصدير إكسيل
+    </button>
   </div>
 
   <div *ngIf="lateSummaryErrorMessage" class="error-message">{{ lateSummaryErrorMessage }}</div>
 </section>
 
-<section *ngIf="lateSummaryData && lateSummaryRows.length > 0" class="json-preview-card late-summary-result">
+<section
+  *ngIf="lateSummaryData && lateSummaryRows.length > 0"
+  class="json-preview-card late-summary-result"
+>
   <div class="table-header">
     <h3>نتيجة ملخص التأخير</h3>
   </div>
@@ -127,17 +153,18 @@
           <td>
             <span class="late-minutes-badge" [class.exceeds-threshold]="row.exceedsThreshold">
               {{ row.totalLateMinutes || 0 }} دقيقة
-              <span *ngIf="row.exceedsThreshold" class="threshold-icon" title="تجاوز الحد 300 دقيقه">⚠️</span>
+              <span *ngIf="row.exceedsThreshold" class="threshold-icon" title="تجاوز الحد 300 دقيقه"
+                >⚠️</span
+              >
             </span>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
-
-  <div class="pagination-box" *ngIf="lateSummaryTotalPages > 1">
-    <button type="button" (click)="previousLateSummaryPage.emit()" [disabled]="lateSummaryPageNumber === 1">السابق</button>
-    <span>صفحة {{ lateSummaryPageNumber }} من {{ lateSummaryTotalPages }}</span>
-    <button type="button" (click)="nextLateSummaryPage.emit()" [disabled]="lateSummaryPageNumber === lateSummaryTotalPages">التالي</button>
-  </div>
+  <app-pagination
+    [pageNumber]="lateSummaryPageNumber"
+    [totalPages]="lateSummaryTotalPages"
+    (pageChange)="pageChange.emit($event)"
+  ></app-pagination>
 </section>

@@ -1293,6 +1293,11 @@ export class EmployeesComponent implements OnInit {
     }
   }
 
+  onPageChange(page: number): void {
+    this.pageNumber = page;
+    this.loadEmployees();
+  }
+
   async exportEmployeesListToExcel(): Promise<void> {
     const exportPageSize = 1000;
     const allEmployees: any[] = [];
@@ -2581,7 +2586,7 @@ export class EmployeesComponent implements OnInit {
     this.bulkImportAdded = [];
     this.bulkImportUpdated = [];
     this.bulkImportMissing = [];
-    
+
     this.selectedMissingIds.clear();
     this.showMissingDialog = false;
     this.missingDeleteMessage = '';

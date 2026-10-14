@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { PaginationComponent } from '../../../../shared/pagination/pagination.component';
 import { getAttendanceStatusLabel } from '../../../../shared/utils/attendance-status.util';
 import { AttendanceNoteEntry, DailyAttendanceRowDto } from '../../model/models';
 
 @Component({
   selector: 'app-attendance-report',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './attendance-report.component.html',
   styleUrls: ['../attendance.component.css'],
 })
@@ -76,8 +77,7 @@ export class AttendanceReportComponent {
   @Output() applyDateRangeFilter = new EventEmitter<void>();
   @Output() clearDateRangeFilter = new EventEmitter<void>();
   @Output() exportAttendanceReportToExcel = new EventEmitter<void>();
-  @Output() previousDateRangePage = new EventEmitter<void>();
-  @Output() nextDateRangePage = new EventEmitter<void>();
+  @Output() pageChange = new EventEmitter<number>();
   @Output() onEmployeeSearchInputChange = new EventEmitter<void>();
   @Output() employeeSearchTermChange = new EventEmitter<string>();
   @Output() dateRangeNeedsReviewChange = new EventEmitter<boolean | null>();

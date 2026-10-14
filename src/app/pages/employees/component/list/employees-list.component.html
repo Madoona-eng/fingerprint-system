@@ -16,9 +16,20 @@
         (keyup.enter)="onSearch()"
       />
       <button type="button" class="search-icon-btn" (click)="onSearch()" aria-label="بحث">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
-          <path d="M20 20L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+          <path
+            d="M20 20L16.65 16.65"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
         </svg>
       </button>
     </div>
@@ -57,11 +68,29 @@
     </div>
 
     <!-- كارت حالة النظام (تأكيد التفعيل / الإيقاف) -->
-    
 
     <!-- أزرار الإجراءات -->
-    <button type="button" class="apply-filter-btn" (click)="applyFilter.emit()">تطبيق الفلترة</button>
- <button type="button" class="clear-search-btn" (click)="onClear()" style="background-color: var(--filter-clear-color, #dc2626); color: #ffffff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; height: 46px;">مسح الفلترة</button>
+    <button type="button" class="apply-filter-btn" (click)="applyFilter.emit()">
+      تطبيق الفلترة
+    </button>
+    <button
+      type="button"
+      class="clear-search-btn"
+      (click)="onClear()"
+      style="
+        background-color: var(--filter-clear-color, #dc2626);
+        color: #ffffff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        height: 46px;
+      "
+    >
+      مسح الفلترة
+    </button>
     <div class="system-status-card" *ngIf="isSuperAdmin">
       <div
         class="status-card"
@@ -115,38 +144,28 @@
         </h3>
 
         <p>
-          {{ systemSettingsData
-            ? 'سيتم إيقاف تسجيل الحضور الإلكتروني وتحويل النظام للعمل المكتبي.'
-            : 'سيتم السماح للموظفين بتسجيل الحضور والعمل عن بُعد اليوم.' }}
+          {{
+            systemSettingsData
+              ? 'سيتم إيقاف تسجيل الحضور الإلكتروني وتحويل النظام للعمل المكتبي.'
+              : 'سيتم السماح للموظفين بتسجيل الحضور والعمل عن بُعد اليوم.'
+          }}
         </p>
 
         <div class="popup-actions">
-          <button
-            type="button"
-            class="confirm-btn"
-            (click)="confirmToggleYes()"
-          >
+          <button type="button" class="confirm-btn" (click)="confirmToggleYes()">
             {{ systemSettingsData ? 'تأكيد الإيقاف' : 'تأكيد التفعيل' }}
           </button>
 
-          <button
-            type="button"
-            class="cancel-btn"
-            (click)="confirmToggleNo()"
-          >
-            إلغاء
-          </button>
+          <button type="button" class="cancel-btn" (click)="confirmToggleNo()">إلغاء</button>
         </div>
       </div>
     </div>
     <button type="button" class="export-excel-btn" (click)="export.emit()">📥 تصدير إكسيل</button>
   </div>
 
-  <!-- حالة التحميل -->
-  <div *ngIf="isLoading" class="loading-box">جاري تحميل بيانات الموظفين...</div>
+  <div *ngIf="isLoading" class="loading-bar">جاري التحميل...</div>
 
-  <!-- الجدول -->
-  <div *ngIf="!isLoading" class="table-wrapper">
+  <div class="table-wrapper" [class.is-loading]="isLoading">
     <table>
       <thead>
         <tr>
@@ -179,9 +198,27 @@
               >
                 تعديل
               </button>
-              <button type="button" class="table-action-btn details-action" (click)="openDetails.emit(emp)">تفاصيل</button>
-              <button type="button" class="table-action-btn note-action" (click)="openNote.emit(emp)">إضافة ملاحظة</button>
-              <button type="button" class="table-action-btn delete-action" (click)="deleteEmployee.emit(emp)">حذف</button>
+              <button
+                type="button"
+                class="table-action-btn details-action"
+                (click)="openDetails.emit(emp)"
+              >
+                تفاصيل
+              </button>
+              <button
+                type="button"
+                class="table-action-btn note-action"
+                (click)="openNote.emit(emp)"
+              >
+                إضافة ملاحظة
+              </button>
+              <button
+                type="button"
+                class="table-action-btn delete-action"
+                (click)="deleteEmployee.emit(emp)"
+              >
+                حذف
+              </button>
             </div>
           </td>
         </tr>
@@ -193,10 +230,9 @@
     </table>
   </div>
 
-  <!-- التنقل بين الصفحات -->
-  <div class="pagination-box" *ngIf="totalPages > 1">
-    <button type="button" (click)="previousPage.emit()" [disabled]="pageNumber === 1">السابق</button>
-    <span>صفحة {{ pageNumber }} من {{ totalPages }}</span>
-    <button type="button" (click)="nextPage.emit()" [disabled]="pageNumber === totalPages">التالي</button>
-  </div>
+  <app-pagination
+    [pageNumber]="pageNumber"
+    [totalPages]="totalPages"
+    (pageChange)="pageChange.emit($event)"
+  ></app-pagination>
 </div>

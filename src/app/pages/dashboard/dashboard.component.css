@@ -20,7 +20,7 @@
 .sidebar {
   box-sizing: border-box;
   flex-shrink: 0;
-  width: 280px;
+  width: 300px;
   height: calc(100vh - 24px);
   margin: 12px;
   padding: 24px 18px;

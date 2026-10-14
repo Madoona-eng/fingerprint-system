@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { PaginationComponent } from '../../../../shared/pagination/pagination.component';
 import { EmployeeLateSummaryRow } from '../../model/models';
 
 @Component({
   selector: 'app-attendance-late-summary',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './attendance-late-summary.component.html',
   styleUrls: ['../attendance.component.css'],
 })
@@ -41,6 +42,5 @@ export class AttendanceLateSummaryComponent {
   @Output() onLocationChange = new EventEmitter<number | null>();
   @Output() openNativeDatePicker = new EventEmitter<HTMLInputElement>();
   @Output() nativeDatePicked = new EventEmitter<{ event: Event; field: 'from' | 'to' }>();
-  @Output() previousLateSummaryPage = new EventEmitter<void>();
-  @Output() nextLateSummaryPage = new EventEmitter<void>();
+  @Output() pageChange = new EventEmitter<number>();
 }

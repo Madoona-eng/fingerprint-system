@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { exportToExcel } from '../../../shared/utils/excel.util';
 import { RawPunchRecord } from '../model/models';
 import { FingerprintSheetService } from '../service/fingerprint-sheet.service';
@@ -8,7 +9,7 @@ import { FingerprintSheetService } from '../service/fingerprint-sheet.service';
 @Component({
   selector: 'app-fingerprint-sheet',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './fingerprint-sheet.component.html',
   styleUrls: ['./fingerprint-sheet.component.css'],
 })
@@ -19,7 +20,7 @@ export class FingerprintSheetComponent implements OnInit {
   searchTerm = '';
 
   pageNumber = 1;
-  pageSize = 10;
+  pageSize = 50;
 
   records: RawPunchRecord[] = [];
   isLoading = false;
@@ -292,17 +293,8 @@ export class FingerprintSheetComponent implements OnInit {
     this.loadData();
   }
 
-  nextPage(): void {
-    if (this.pageNumber < this.totalPages) {
-      this.pageNumber++;
-      this.loadData();
-    }
-  }
-
-  previousPage(): void {
-    if (this.pageNumber > 1) {
-      this.pageNumber--;
-      this.loadData();
-    }
+  onPageChange(page: number): void {
+    this.pageNumber = page;
+    this.loadData();
   }
 }
