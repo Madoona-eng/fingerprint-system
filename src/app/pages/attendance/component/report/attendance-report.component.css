@@ -246,7 +246,7 @@
 .no-review-needed { color: var(--c-muted); }
 
 .worked-hours-badge.exceeds-threshold {
-  color: #dc2626;
+  color: #dc2626  !important;;
   font-weight: 700;
 }
 
@@ -339,7 +339,7 @@
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: var(--c-main);
+  color: black;
 }
 
 .notes-modal-close {
@@ -411,7 +411,7 @@
   padding: 0 18px;
   border: none;
   border-radius: 10px;
-  background: #dc2626;
+  background: #da9a9a;
   color: #fff;
   font: inherit;
   font-size: 14px;
