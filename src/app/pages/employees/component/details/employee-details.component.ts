@@ -141,4 +141,7 @@ export class EmployeeDetailsComponent {
       },
     });
   }
+  hasRowNotes(row: AttendanceBasicRow): boolean {
+    return (row?.notesCount ?? 0) > 0;
+  }
 }

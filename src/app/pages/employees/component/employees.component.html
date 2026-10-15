@@ -132,7 +132,7 @@
 
         <div *ngIf="unknownDepartments.length > 0" class="unknown-card">
           <h4>إدارات غير مربوطة برقم قسم</h4>
-          <p>اكتب رقم القسم الصحيح لكل إدارة، وبعدها اضغطي تطبيق أرقام الأقسام.</p>
+          <p>اكتب رقم الإدارة الصحيح لكل إدارة، وبعدها اضغطي تطبيق أرقام الأقسام.</p>
 
           <div class="department-map-list">
             <div
@@ -143,7 +143,7 @@
               <input
                 type="number"
                 min="1"
-                placeholder="رقم القسم"
+                placeholder="رقم الإدارة"
                 [(ngModel)]="dep.id"
                 [ngModelOptions]="{ standalone: true }"
               />

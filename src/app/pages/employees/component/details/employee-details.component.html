@@ -93,7 +93,7 @@
     </div>
     <div class="employee-info-grid">
       <div class="info-box">
-        <span>القسم</span>
+        <span>الإدارة</span>
         <strong>{{
           selectedEmployeeForDetails?.departmentName ||
             selectedEmployeeForDetails?.departmentId ||
@@ -224,13 +224,16 @@
             <td>{{ row.overtimeMinutes != null ? row.overtimeMinutes : '-' }}</td>
             <td>{{ getStatusLabel(row.status) }}</td>
             <td>
-              <button
-                type="button"
-                class="table-action-btn notes-cell-btn"
-                (click)="openRowNotesModal(row)"
-              >
-                عرض الملاحظات
-              </button>
+              <div class="attendance-notes-cell">
+                <button
+                  type="button"
+                  class="notes-view-btn"
+                  [class.no-notes]="!hasRowNotes(row)"
+                  (click)="openRowNotesModal(row)"
+                >
+                  {{ hasRowNotes(row) ? 'عرض الملاحظات' : 'لا توجد ملاحظات' }}
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>

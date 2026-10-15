@@ -99,7 +99,7 @@ export class EmployeesComponent implements OnInit {
   employeeDetailsFromDisplay = '';
   employeeDetailsToDisplay = '';
   employeeDetailsPageNumber = 1;
-  employeeDetailsPageSize = 10;
+  employeeDetailsPageSize = 50;
   employeeDetailsTotalCount = 0;
   employeeDetailsTotalPages = 0;
   employeeDetailsStatusFilter = '';
@@ -1151,6 +1151,9 @@ export class EmployeesComponent implements OnInit {
           this.employeeDetailsAllRows = rows;
           this.applyEmployeeDetailsStatusFilter();
           this.isLoadingEmployeeDetails = false;
+
+                    console.log('first row:', rows[0]);
+          console.log('notesCount:', rows[0]?.notesCount);
         },
         error: (err) => {
           console.log('Get employee details error:', err);
@@ -1345,7 +1348,7 @@ export class EmployeesComponent implements OnInit {
     const exportData = allEmployees.map((emp) => ({
       الكود: emp.employeeCode || '-',
       الاسم: emp.name || '-',
-      القسم: emp.departmentName || emp.departmentId || '-',
+      الإدارة: emp.departmentName || emp.departmentId || '-',
       'وقت الحضور': this.timeForInput(emp.scheduleIn),
       'وقت الانصراف': this.timeForInput(emp.scheduleOut),
       'وقت السماح': this.timeForInput(emp.graceTime),
@@ -1354,19 +1357,91 @@ export class EmployeesComponent implements OnInit {
     exportToExcel(exportData, `الموظفين-${this.analyticsDateDisplay || 'قائمة'}`, 'موظفين');
   }
 
-  exportEmployeeDetailsToExcel(): void {
-    if (!this.employeeDetailsRows || this.employeeDetailsRows.length === 0) {
+  async exportEmployeeDetailsToExcel(): Promise<void> {
+    const employeeId = this.selectedEmployeeForDetails?.id;
+
+    if (!employeeId) {
+      this.errorMessage = 'قم بإختيار موظف أولًا للتصدير';
+      return;
+    }
+
+    const exportPageSize = 1000;
+    const allRows: any[] = [];
+
+    let page = 1;
+    let totalPages = 1;
+
+    this.isLoadingEmployeeDetails = true;
+    this.errorMessage = '';
+
+    try {
+      while (page <= totalPages) {
+        const resp: any = await firstValueFrom(
+          this.employeesService.getEmployeeById(
+            employeeId,
+            this.employeeDetailsFrom,
+            this.employeeDetailsTo,
+            page,
+            exportPageSize,
+          ),
+        );
+
+        const data = resp?.data || resp;
+        const attendanceData =
+          data?.attendance || data?.attendances || data?.attendanceData || null;
+
+        if (attendanceData?.items && Array.isArray(attendanceData.items)) {
+          allRows.push(...attendanceData.items);
+          totalPages = attendanceData.totalPages || 1;
+        } else if (Array.isArray(attendanceData)) {
+          allRows.push(...attendanceData);
+          totalPages = 1;
+        } else {
+          totalPages = 1;
+        }
+
+        page++;
+      }
+    } catch (err) {
+      console.error('Failed to fetch all employee details for export', err);
+      this.errorMessage = 'فشل تصدير ملف Excel';
+      this.isLoadingEmployeeDetails = false;
+      return;
+    }
+
+    this.isLoadingEmployeeDetails = false;
+
+    // نطبق فلتر الحالة (لو المستخدم مختار حالة معينة) على كل الصفحات
+    const rowsToExport = this.employeeDetailsStatusFilter
+      ? allRows.filter(
+          (row) =>
+            this.normalizeEmployeeDetailsStatus(row?.status) ===
+            this.normalizeEmployeeDetailsStatus(this.employeeDetailsStatusFilter),
+        )
+      : allRows;
+
+    if (rowsToExport.length === 0) {
       this.errorMessage = 'لا توجد بيانات تفاصيل للتصدير';
       return;
     }
 
-    const exportData = this.employeeDetailsRows.map((row) => ({
+    const employeeCode =
+      this.selectedEmployeeForDetails?.employeeCode ||
+      this.employeeDetailsInfo?.employeeCode ||
+      '-';
+
+    const employeeName =
+      this.selectedEmployeeForDetails?.name || this.employeeDetailsInfo?.name || '-';
+
+    const exportData = rowsToExport.map((row) => ({
+      'كود الموظف': row.employeeCode || employeeCode,
+      'اسم الموظف': row.employeeName || row.name || employeeName,
       التاريخ: row.date || row.attendanceDate || row.from || '-',
+      'ميعاد الحضور': row.scheduleIn || row.attendanceScheduleIn || '-',
+      'ميعاد الانصراف': row.scheduleOut || row.attendanceScheduleOut || '-',
+      'وقت السماح': row.graceTime || row.attendanceGraceTime || '-',
       'وقت الحضور': row.actualIn || row.checkIn || row.in || '-',
       'وقت الانصراف': row.actualOut || row.checkOut || row.out || '-',
-      'معاد الحضور': row.scheduleIn || row.attendanceScheduleIn || '-',
-      'معاد الانصراف': row.scheduleOut || row.attendanceScheduleOut || '-',
-      'وقت السماح': row.graceTime || row.attendanceGraceTime || '-',
       'ساعات العمل': this.formatWorkedHours(row.workedMinutes),
       'دقائق التأخير': row.lateMinutes != null ? row.lateMinutes : '-',
       'دقائق الإضافي': row.overtimeMinutes != null ? row.overtimeMinutes : '-',
@@ -1375,7 +1450,7 @@ export class EmployeesComponent implements OnInit {
 
     exportToExcel(
       exportData,
-      `تفاصيل-الموظف-${this.selectedEmployeeForDetails?.employeeCode || 'تفاصيل'}`,
+      `تفاصيل-الموظف-${employeeCode !== '-' ? employeeCode : 'تفاصيل'}`,
       'تفاصيل الموظف',
     );
   }
@@ -1583,7 +1658,7 @@ export class EmployeesComponent implements OnInit {
     }
 
     if (!employee.departmentId || employee.departmentId <= 0) {
-      this.errorMessage = 'رقم القسم مطلوب ويجب أن يكون صحيح';
+      this.errorMessage = 'رقم الإدارة مطلوب ويجب أن يكون صحيح';
       this.isSaving = false;
       return;
     }

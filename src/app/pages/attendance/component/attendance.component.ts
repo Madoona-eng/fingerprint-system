@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { WorkBook, WorkSheet, read, utils } from 'xlsx';
 import { AuthService } from '../../../auth/Services/auth.service';
 import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
-import { exportToExcel } from '../../../shared/utils/excel.util';
+import { exportToExcel, exportToExcelMultiSheet } from '../../../shared/utils/excel.util';
 import { EmployeesService } from '../../employees/service/employees.service';
 import { AttendancePayload, DailyAttendanceRowDto, FingerprintPunch } from '../model/models';
 import { AttendanceService } from '../service/attendance.service';
@@ -757,29 +757,38 @@ export class AttendanceComponent implements OnInit {
   // getAttendanceExportRow
   // ============================================================
   getAttendanceExportRow(row: DailyAttendanceRowDto): any {
-    const fromDate =
-      this.dateRangeFromDisplay ||
-      this.formatDateToDisplay(this.dateRangeFrom ? new Date(this.dateRangeFrom) : new Date());
-    const toDate =
-      this.dateRangeToDisplay ||
-      this.formatDateToDisplay(this.dateRangeTo ? new Date(this.dateRangeTo) : new Date());
-
     return {
-      الكود: row.employeeCode || '-',
+      'كود الموظف': row.employeeCode || '-',
       اسم_الموظف: row.employeeName || '-',
-      القسم: row.departmentName || '-',
-      'التاريخ من': fromDate || '-',
-      'التاريخ إلى': toDate || '-',
+      الإدارة: row.departmentName || '-',
+      اليوم: this.getDayNameForExport(row.date),
+      التاريخ: this.apiDateToDisplay(row.date) || row.date || '-',
       'ميعاد الحضور': row.scheduleIn || '-',
       'ميعاد الانصراف': row.scheduleOut || '-',
-      الحضور: row.actualIn || '-',
-      الانصراف: row.actualOut || '-',
+      'فترة السماح': row.graceTime || '-',
+      'وقت الحضور': row.actualIn || '-',
+      'وقت الانصراف': row.actualOut || '-',
       الحالة: this.getAttendanceStatusLabel(row.status),
       'التأخير (د)': row.lateMinutes ?? '-',
       'العمل (س)': this.formatWorkedHours(row.workedMinutes),
       'يحتاج مراجعة': row.needsReview ? 'نعم' : 'لا',
       الملاحظات: row.notesSummary || '-',
     };
+  }
+
+  private getDayNameForExport(value: string | null | undefined): string {
+    const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return '';
+
+    const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    return days[date.getDay()];
+  }
+
+  private dayToSheetName(apiDate: string): string {
+    const m = String(apiDate || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return apiDate || 'Sheet';
+    return `${Number(m[3])}-${Number(m[2])}`;
   }
 
   // ============================================================
@@ -841,23 +850,34 @@ export class AttendanceComponent implements OnInit {
           return;
         }
 
-        const exportData = allRows.map((row: any) => this.getAttendanceExportRow(row));
+        // تجميع الصفوف حسب اليوم
+        const byDay = new Map<string, any[]>();
+        allRows.forEach((row: any) => {
+          const key = String(row.date || '').substring(0, 10);
+          if (!byDay.has(key)) byDay.set(key, []);
+          byDay.get(key)!.push(row);
+        });
 
-        exportToExcel(
-          exportData,
-          `تقرير-الحضور-${this.dateRangeFrom || 'تقرير'}`,
-          'تقرير الحضور',
-          ['الملاحظات'],
-          {
-            columnWidths: {
-              الكود: 6,
-              'يحتاج مراجعة': 15,
-              'التأخير (د)': 8,
-              الملاحظات: 45,
-            },
-            maxWidth: 20, // اختياري: يمنع أي عمود من الاتساع أكتر من كده
+        const days = Array.from(byDay.keys()).sort();
+
+        const sheets = days.map((day) => ({
+          sheetName: this.dayToSheetName(day),
+          data: byDay.get(day)!.map((row) => this.getAttendanceExportRow(row)),
+        }));
+
+        const firstLabel = this.dayToSheetName(days[0]);
+        const lastLabel = this.dayToSheetName(days[days.length - 1]);
+        const rangeLabel = days.length === 1 ? firstLabel : `${firstLabel} الى ${lastLabel}`;
+
+        exportToExcelMultiSheet(sheets, `الديوان${rangeLabel}`, ['الملاحظات'], {
+          columnWidths: {
+            'كود الموظف': 12,
+            'يحتاج مراجعة': 15,
+            'التأخير (د)': 8,
+            الملاحظات: 45,
           },
-        );
+          maxWidth: 20,
+        });
       } catch (err) {
         console.error('Failed exporting attendance report', err);
         this.dateRangeErrorMessage = 'فشل تصدير ملف Excel';
@@ -926,7 +946,7 @@ export class AttendanceComponent implements OnInit {
         const exportData = allRows.map((row: any) => ({
           كود_الموظف: row.employeeCode || '-',
           اسم_الموظف: row.employeeName || '-',
-          القسم: row.departmentName || '-',
+          الإدارة: row.departmentName || '-',
           'من تاريخ': row.from || '-',
           'إلى تاريخ': row.to || '-',
           'إجمالي دقائق التأخير': row.totalLateMinutes || 0,

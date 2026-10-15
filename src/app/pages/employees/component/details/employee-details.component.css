@@ -203,7 +203,7 @@
   background-color: var(--filter-clear-hover);
 }
 /* ==========================================
-   بطاقة بيانات الموظف (القسم)
+   بطاقة بيانات الموظف (الإدارة)
    ========================================== */
 .employee-info-card {
   background-color: #ffffff;
@@ -677,4 +677,40 @@ table th:nth-child(11) {
 .date-text-input:-ms-input-placeholder {
   color: #4a5568 !important;
   opacity: 1 !important;
+}
+
+
+.attendance-notes-cell {
+  display: flex;
+  justify-content: center;
+}
+
+.notes-view-btn {
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid #bcd2fb;
+  border-radius: 8px;
+  background: #e8f0ff;
+  color: #2563eb;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.notes-view-btn:hover {
+  background: #cfe0ff;
+}
+
+.notes-view-btn.no-notes {
+  border-color: #e2e8f0;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 500;
+  cursor: default;
+}
+
+.notes-view-btn.no-notes:hover {
+  background: transparent;
 }

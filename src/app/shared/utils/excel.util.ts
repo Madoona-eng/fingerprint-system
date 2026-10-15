@@ -128,3 +128,75 @@ export function exportToExcel(
   const finalFileName = fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`;
   XLSX.writeFile(workbook, finalFileName);
 }
+
+export interface SheetData {
+  sheetName: string;
+  data: any[];
+}
+
+export function exportToExcelMultiSheet(
+  sheets: SheetData[],
+  fileName: string = 'Export-Data',
+  wrapTextColumns: string[] = [],
+  columnWidthOptions?: ColumnWidthOptions,
+): void {
+  const workbook = XLSX.utils.book_new();
+
+  (workbook as any).Workbook = {
+    Views: [{ RTL: true }],
+  };
+
+  const usedNames = new Set<string>();
+
+  sheets.forEach(({ sheetName, data }) => {
+    const worksheet = XLSX.utils.json_to_sheet(data);
+
+    if (data && data.length > 0) {
+      const keys = Object.keys(data[0]);
+
+      worksheet['!cols'] = keys.map((key) => {
+        const customWidth = columnWidthOptions?.columnWidths?.[key];
+        if (customWidth) return { wch: customWidth };
+
+        if (columnWidthOptions?.defaultWidth) return { wch: columnWidthOptions.defaultWidth };
+
+        const maxLen = Math.max(key.length, ...data.map((row) => String(row[key] || '').length));
+        let width = Math.max(maxLen + 5, 15);
+        if (columnWidthOptions?.maxWidth) width = Math.min(width, columnWidthOptions.maxWidth);
+        return { wch: width };
+      });
+
+      if (wrapTextColumns.length > 0) {
+        keys.forEach((key, colIndex) => {
+          if (!wrapTextColumns.includes(key)) return;
+          for (let r = 1; r <= data.length; r++) {
+            const addr = `${numberToColumn(colIndex + 1)}${r + 1}`;
+            const cell = worksheet[addr];
+            if (cell) {
+              cell.s = {
+                ...(cell.s || {}),
+                alignment: { ...(cell.s?.alignment || {}), wrapText: true, vertical: 'top' },
+              };
+            }
+          }
+        });
+      }
+    }
+
+    styleWorksheetHeader(worksheet, '1F4E78');
+
+    // اسم التاب: أقصى 31 حرف، من غير رموز ممنوعة، وفريد
+    let safeName = String(sheetName).replace(/[\\/:?*\[\]]/g, '-').substring(0, 31) || 'Sheet';
+    let candidate = safeName;
+    let i = 2;
+    while (usedNames.has(candidate)) {
+      candidate = `${safeName.substring(0, 28)}-${i++}`;
+    }
+    usedNames.add(candidate);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, candidate);
+  });
+
+  const finalFileName = fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`;
+  XLSX.writeFile(workbook, finalFileName);
+}

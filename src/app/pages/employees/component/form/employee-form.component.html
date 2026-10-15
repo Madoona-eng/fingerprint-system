@@ -34,7 +34,7 @@
       </div>
 
       <div class="form-group full-width-field">
-        <label>القسم / الإدارة <span class="required-mark">*</span></label>
+        <label>الإدارة <span class="required-mark">*</span></label>
         <select
           formControlName="departmentId"
           class="department-select"
@@ -45,10 +45,10 @@
             *ngIf="!isDepartmentSelectionEnabled || departmentOptions.length === 0"
           >
             {{
-              isDepartmentSelectionEnabled ? 'قم بإختيار القسم' : 'اختر الموقع أولاً لعرض الأقسام'
+              isDepartmentSelectionEnabled ? 'قم بإختيار الإدارة' : 'اختر الموقع أولاً لعرض الأقسام'
             }}
           </option>
-          <option *ngIf="departmentOptions.length > 0" [ngValue]="null">قم بإختيار القسم</option>
+          <option *ngIf="departmentOptions.length > 0" [ngValue]="null">قم بإختيار الإدارة</option>
           <option *ngFor="let dep of departmentOptions" [ngValue]="dep.id">{{ dep.name }}</option>
         </select>
       </div>

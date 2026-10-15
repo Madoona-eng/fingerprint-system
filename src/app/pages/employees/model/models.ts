@@ -92,6 +92,7 @@ export interface AttendanceBasicRow {
   overtimeMinutes?: number | null;
   status: string;
   isManualOverride: boolean;
+  notesCount?: number;
 }
 
 // ============ Shared API Wrappers ============

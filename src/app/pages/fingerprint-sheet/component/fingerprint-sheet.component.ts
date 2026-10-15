@@ -273,7 +273,7 @@ export class FingerprintSheetComponent implements OnInit {
     const rows = records.map((item) => ({
       الكود: item.employeeCode || '-',
       الموظف: item.employeeName || 'غير محدد',
-      القسم: item.departmentRaw || '-',
+      الإدارة: item.departmentRaw || '-',
       التاريخ: this.formatDisplayValue(item.punchDate || '-'),
       الدخول: item.inRaw || '-',
       الخروج: item.outRaw || '-',
