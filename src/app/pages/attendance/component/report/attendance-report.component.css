@@ -1,0 +1,437 @@
+@import '../../../../shared/styles/action-buttons.css';
+
+:host {
+  display: block;
+  --c-main: var(--main-color, #002d62);
+  --c-line: #e6ebf2;
+  --c-text: #2b3a4f;
+  --c-muted: #7a8799;
+  --c-soft: #f6f8fb;
+}
+
+/* ---------- الكروت ---------- */
+.attendance-card,
+.json-preview-card {
+  background: #fff;
+  border: 1px solid var(--c-line);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 6px 24px rgba(0, 45, 98, 0.05);
+  min-width: 0;
+}
+
+.json-preview-card {
+  margin-top: 20px;
+}
+
+.upload-info h1 {
+  margin: 0 0 20px;
+  font-size: 22px;
+  font-weight: 600;
+  color: black;
+}
+
+/* ---------- الفلاتر ---------- */
+.attendance-filter-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 150px;
+  min-width: 140px;
+}
+
+.filter-field.date-field,
+.filter-field.search-field {
+  flex: 1 1 200px;
+}
+
+.filter-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-muted);
+}
+
+.filter-field input,
+.filter-field select {
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding-inline: 12px;
+  border: 1px solid #d8dee8;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--c-text);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.filter-field input:focus,
+.filter-field select:focus {
+  border-color: var(--c-main);
+  box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1);
+}
+
+.filter-field select:disabled {
+  background: var(--c-soft);
+  color: var(--c-muted);
+  cursor: not-allowed;
+}
+
+/* ---------- حقل التاريخ ---------- */
+.date-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input-wrap .date-text-input {
+  flex: 1;
+  direction: ltr;
+  text-align: center;
+}
+
+.calendar-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #d8dee8;
+  border-radius: 10px;
+  background: var(--c-soft);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.calendar-btn:hover {
+  background: #eef4ff;
+}
+
+.native-date-picker {
+  position: absolute;
+  inset-inline-end: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- الأزرار ---------- */
+.filter-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.error-message {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid #f3b4b4;
+  border-radius: 10px;
+  background: #fff1f1;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+/* ---------- عنوان النتائج ---------- */
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.table-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--c-main);
+}
+
+.table-header span {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: var(--c-main);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ---------- الجدول ---------- */
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+}
+
+.table-wrapper table {
+  width: 100%;
+  min-width: 1150px;
+  border-collapse: collapse;
+  direction: rtl;
+}
+
+.table-wrapper thead th {
+  padding: 10px 6px;
+  background: var(--c-main);
+  color: #fff;
+  font-size: 12px ;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table-wrapper tbody td {
+  padding: 8px 6px;
+  border-bottom: 1px solid #eef1f6;
+  color: var(--c-text);
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.table-wrapper tbody tr:hover {
+  background: #f1f5f9;
+}
+
+.table-wrapper tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.day-name-cell {
+  font-weight: 600;
+}
+
+/* ---------- Badges ---------- */
+.status-badge,
+.review-badge,
+.reviewed-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 70px;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-present { color: #065f46; background: #86efac; border-color: #16a34a; }
+.status-online { color: #164e63; background: #67e8f9; border-color: #0891b2; }
+.status-late { color: #78350f; background: #fcd34d; border-color: #d97706; }
+.status-early { color: #581c87; background: #d8b4fe; border-color: #9333ea; }
+.status-absent { color: #7f1d1d; background: #fca5a5; border-color: #dc2626; }
+.status-missing-checkout { color: #7c2d12; background: #fdba74; border-color: #ea580c; }
+.status-abandoned-work { color: #450a0a; background: #f87171; border-color: #b91c1c; }
+.status-personal-leave { color: #1e3a8a; background: #93c5fd; border-color: #2563eb; }
+.status-on-leave { color: #0c4a6e; background: #7dd3fc; border-color: #0284c7; }
+.status-mission { color: #312e81; background: #a5b4fc; border-color: #4f46e5; }
+.status-driving-route { color: #713f12; background: #fde047; border-color: #ca8a04; }
+.status-default { color: #334155; background: #cbd5e1; border-color: #64748b; }
+
+.review-badge { color: #991b1b; background: #ffeaea; border-color: #f7b8b8; }
+.reviewed-badge { color: #166534; background: #e6f7ec; border-color: #b7e4c7; }
+.no-review-needed { color: var(--c-muted); }
+
+.worked-hours-badge.exceeds-threshold {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+/* ---------- زرار الملاحظات ---------- */
+.attendance-notes-cell {
+  display: flex;
+  justify-content: center;
+}
+
+.notes-view-btn {
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid #bcd2fb;
+  border-radius: 8px;
+  background: #e8f0ff;
+  color: #2563eb;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.notes-view-btn:hover { background: #cfe0ff; }
+
+.notes-view-btn.no-notes {
+  border-color: #e2e8f0;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.notes-view-btn.no-notes:hover { background: #f1f5f9; }
+
+/* ---------- موظف محذوف ---------- */
+.deleted-employee-badge {
+  display: inline-block;
+  margin-inline-start: 6px;
+  padding: 2px 8px;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  background: #f1f1f1;
+  color: #777;
+  font-size: 11px;
+}
+
+.table-wrapper tbody tr.deleted-employee-row td {
+  background: #eeeff2;
+  color: #888;
+}
+
+.table-wrapper tbody tr.deleted-employee-row .status-badge,
+.table-wrapper tbody tr.deleted-employee-row .worked-hours-badge {
+  opacity: 0.6;
+}
+
+/* ---------- مودال الملاحظات ---------- */
+.notes-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 24, 39, 0.45);
+}
+
+.notes-modal {
+  display: flex;
+  flex-direction: column;
+  width: 560px;
+  max-width: 92vw;
+  max-height: 85vh;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.notes-modal-header {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.notes-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--c-main);
+}
+
+.notes-modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--c-muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.notes-modal-close:hover { background: #eef2f7; }
+
+.notes-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  background: var(--c-soft);
+}
+
+.notes-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notes-modal-item {
+  padding: 14px 16px;
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.notes-modal-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.notes-modal-user { font-weight: 700; color: var(--c-text); }
+.notes-modal-time { color: var(--c-muted); direction: ltr; }
+
+.notes-modal-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--c-text);
+  word-break: break-word;
+}
+
+.notes-modal-empty {
+  padding: 36px 0;
+  text-align: center;
+  color: var(--c-muted);
+}
+
+.notes-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-line);
+}
+
+.review-btn {
+  min-width: 150px;
+  height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 10px;
+  background: #dc2626;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.review-btn:hover:not(:disabled) { background: #b91c1c; }
+.review-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+@media (max-width: 768px) {
+  .attendance-card,
+  .json-preview-card { padding: 16px; }
+
+  .filter-field,
+  .filter-field.date-field,
+  .filter-field.search-field { flex: 1 1 100%; }
+}
+
+.json-preview-card {
+  margin-top: 20px;
+  padding: 16px;
+}

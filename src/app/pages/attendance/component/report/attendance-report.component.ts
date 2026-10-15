@@ -12,7 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
   standalone: true,
   imports: [CommonModule, FormsModule, PaginationComponent, MatIconModule, MatButtonModule],
   templateUrl: './attendance-report.component.html',
-  styleUrls: ['../attendance.component.css'],
+  styleUrls: ['./attendance-report.component.css'],
 })
 export class AttendanceReportComponent {
   @Input() dateRangeFrom = '';
