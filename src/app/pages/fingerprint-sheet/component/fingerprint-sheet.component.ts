@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { exportToExcel } from '../../../shared/utils/excel.util';
 import { RawPunchRecord } from '../model/models';
@@ -9,7 +11,7 @@ import { FingerprintSheetService } from '../service/fingerprint-sheet.service';
 @Component({
   selector: 'app-fingerprint-sheet',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaginationComponent, MatIconModule, MatButtonModule],
   templateUrl: './fingerprint-sheet.component.html',
   styleUrls: ['./fingerprint-sheet.component.css'],
 })

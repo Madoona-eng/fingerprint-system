@@ -1,0 +1,65 @@
+/* ---------- أزرار الفلترة ---------- */
+button[mat-flat-button].btn-apply,
+button[mat-flat-button].btn-export,
+button[mat-stroked-button].btn-clear {
+  height: 44px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.btn-apply {
+  background: var(--main-color, #002d62) !important;
+  color: #fff !important;
+}
+.btn-apply:hover {
+  background: var(--main-color-hover, #00408a) !important;
+}
+
+.btn-clear {
+  color: #dc2626 !important;
+  border-color: #f3b4b4 !important;
+}
+.btn-clear:hover {
+  background: #fff1f1;
+}
+
+.btn-export {
+  background: #107c41 !important;
+  color: #fff !important;
+}
+.btn-export:hover {
+  background: #0b5c30 !important;
+}
+
+/* ---------- أزرار الإجراءات ---------- */
+.row-actions {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+.act {
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  border-radius: 10px;
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+.act:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.act.edit { color: #d97706; background: #fff4e0; }
+.act.edit:hover:not(:disabled) { background: #ffe5b8; }
+.act.details { color: #2563eb; background: #e8f0ff; }
+.act.details:hover { background: #cfe0ff; }
+.act.note { color: #16a34a; background: #e6f7ec; }
+.act.note:hover { background: #c9eed6; }
+.act.delete { color: #dc2626; background: #ffeaea; }
+.act.delete:hover { background: #ffcccc; }
+
+.act:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

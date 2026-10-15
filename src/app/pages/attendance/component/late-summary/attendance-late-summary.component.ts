@@ -1,13 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { PaginationComponent } from '../../../../shared/pagination/pagination.component';
 import { EmployeeLateSummaryRow } from '../../model/models';
 
 @Component({
   selector: 'app-attendance-late-summary',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaginationComponent, MatIconModule, MatButtonModule],
   templateUrl: './attendance-late-summary.component.html',
   styleUrls: ['../attendance.component.css'],
 })

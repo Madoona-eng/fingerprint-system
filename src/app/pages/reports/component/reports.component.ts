@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../auth/Services/auth.service';
 import { getAttendanceStatusLabel } from '../../../shared/utils/attendance-status.util';
 import { exportToExcel } from '../../../shared/utils/excel.util';
@@ -11,7 +13,7 @@ import { ReportsService } from '../service/reports.service';
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatButtonModule],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.css',
 })

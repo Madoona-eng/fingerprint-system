@@ -1,3 +1,5 @@
+@import '../../../shared/styles/action-buttons.css';
+
 .attendance-page {
   display: grid;
   gap: 24px;
@@ -29,8 +31,8 @@
 
 .upload-info h1 {
   margin: 0;
-  font-size: 32px;
-  font-weight: 900;
+  font-size: 22px;
+  font-weight: 600;
   color: #0f172a;
 }
 
@@ -402,19 +404,33 @@
 }
 
 .notes-view-btn {
-  border: none;
-  border-radius: 999px;
-  padding: 6px 10px;
-  background: linear-gradient(135deg, #65e4e9, #2dd4bf);
-  color: #07111f;
-  font-size: 0.75rem;
-  font-weight: 900;
-  cursor: pointer;
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid #bcd2fb;
+  border-radius: 8px;
+  background: #e8f0ff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 600;
   white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
 .notes-view-btn:hover {
-  transform: translateY(-1px);
+  background: #cfe0ff;
+}
+
+/* مفيش ملاحظات: باهت */
+.notes-view-btn.no-notes {
+  border-color: #e2e8f0;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.notes-view-btn.no-notes:hover {
+  background: #f1f5f9;
 }
 
 .notes-modal {
@@ -639,7 +655,7 @@
 }
 
 .table-wrapper tbody tr:hover {
-  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+  background: #f1f5f9;
 }
 
 .table-wrapper tbody td button {
@@ -658,6 +674,7 @@
   white-space: nowrap;
   text-transform: none;
 }
+
 .status-present {
   color: #065f46;
   background: #86efac;
@@ -898,10 +915,6 @@
   .table-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .upload-info h1 {
-    font-size: 25px;
   }
 }
 .search-field {

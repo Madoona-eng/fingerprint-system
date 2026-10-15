@@ -3,7 +3,6 @@
   <section class="reports-hero-card">
     <div>
       <h1>تحليل بيانات الحضور والانصراف</h1>
-      <p>قم بإختيار التاريخ لعرض لوحة تحليل حضور وانصراف الموظفين.</p>
     </div>
 
     <div class="reports-filter-box">
@@ -54,23 +53,30 @@
       </div>
 
       <button
+        mat-flat-button
         type="button"
-        class="apply-search-btn"
+        class="btn-apply"
         [disabled]="isLoading"
         (click)="loadAnalytics()"
       >
-        {{ isLoading ? 'جاري التحميل...' : 'تطبيق الفلتره' }}
+        <mat-icon>filter_alt</mat-icon>
+        {{ isLoading ? 'جاري التحميل...' : 'تطبيق الفلترة' }}
       </button>
 
-      <button type="button" class="clear-search-btn" (click)="clearAnalytics()">مسح</button>
+      <button mat-stroked-button type="button" class="btn-clear" (click)="clearAnalytics()">
+        <mat-icon>filter_alt_off</mat-icon>
+        مسح الفلترة
+      </button>
 
       <button
+        mat-flat-button
         type="button"
-        class="export-excel-btn"
-        [disabled]="isLoading"
+        class="btn-export"
+        [disabled]="isLoading || !analyticsDate"
         (click)="exportSummaryToExcel()"
       >
-        📥 تصدير إكسيل
+        <mat-icon>table_view</mat-icon>
+        تصدير إكسيل
       </button>
     </div>
   </section>

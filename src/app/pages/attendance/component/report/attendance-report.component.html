@@ -138,23 +138,36 @@
       </select>
     </div>
   </div>
-
   <div class="filter-btns">
     <button
+      mat-flat-button
       type="button"
-      class="apply-search-btn"
+      class="btn-apply"
       [disabled]="isLoadingDateRange"
       (click)="applyDateRangeFilter.emit()"
     >
+      <mat-icon>filter_alt</mat-icon>
       {{ isLoadingDateRange ? 'جاري التحميل...' : 'تطبيق الفلتر' }}
     </button>
 
-    <button type="button" class="clear-search-btn" (click)="clearDateRangeFilter.emit()">
+    <button
+      mat-stroked-button
+      type="button"
+      class="btn-clear"
+      (click)="clearDateRangeFilter.emit()"
+    >
+      <mat-icon>filter_alt_off</mat-icon>
       مسح الفلتر
     </button>
 
-    <button type="button" class="export-excel-btn" (click)="exportAttendanceReportToExcel.emit()">
-      📥 تصدير إكسيل
+    <button
+      mat-flat-button
+      type="button"
+      class="btn-export"
+      (click)="exportAttendanceReportToExcel.emit()"
+    >
+      <mat-icon>table_view</mat-icon>
+      تصدير إكسيل
     </button>
   </div>
 
@@ -187,7 +200,7 @@
           <th>العمل (س)</th>
           <th>ملاحظات</th>
           <th>المراجعة</th>
-          <th>تعديل</th>
+          <th>إجراء</th>
         </tr>
       </thead>
       <tbody>
@@ -230,7 +243,12 @@
           </td>
           <td>
             <div class="attendance-notes-cell">
-              <button type="button" class="notes-view-btn" (click)="openNotesModal.emit(row)">
+              <button
+                type="button"
+                class="notes-view-btn"
+                [class.no-notes]="!(row.notesCount > 0)"
+                (click)="openNotesModal.emit(row)"
+              >
                 {{ row.notesCount > 0 ? 'عرض الملاحظات' : 'لا توجد ملاحظات' }}
               </button>
             </div>
@@ -256,13 +274,17 @@
             >
           </td>
           <td>
-            <button
-              type="button"
-              class="edit-attendance-btn"
-              (click)="openAttendanceEdit.emit(row)"
-            >
-              تعديل
-            </button>
+            <div class="row-actions">
+              <button
+                mat-icon-button
+                type="button"
+                class="act edit"
+                title="تعديل"
+                (click)="openAttendanceEdit.emit(row)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>

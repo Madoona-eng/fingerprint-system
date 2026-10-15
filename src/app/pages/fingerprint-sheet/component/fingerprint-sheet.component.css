@@ -1,27 +1,10 @@
+@import '../../../shared//styles/action-buttons.css';
+
 .fingerprint-sheet-page {
   padding: 8px 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-  gap: 12px;
-}
-
-.page-header h2 {
-  margin: 0 0 6px;
-  font-size: 24px;
-  color: #0f172a;
-}
-
-.page-header p {
-  margin: 0;
-  color: rgba(15, 23, 42, 0.65);
 }
 
 .sheet-card {
@@ -119,22 +102,6 @@
   pointer-events: none;
 }
 
-.date-shortcuts {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-
-.date-shortcuts button {
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: rgba(245, 158, 11, 0.15);
-  color: #c27900;
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-weight: 900;
-  cursor: pointer;
-}
 /* Actions */
 .actions {
   display: flex;
@@ -205,25 +172,6 @@
   cursor: not-allowed;
 }
 
-
-.sheet-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-}
-
-.sheet-row:hover {
-  background: rgba(248, 250, 252, 0.7);
-  border-radius: 12px;
-}
-
-.sheet-row:last-child {
-  border-bottom: none;
-}
-
 .status-box {
   margin: 12px 0 16px;
   padding: 12px 14px;
@@ -272,19 +220,6 @@
 
 .data-table tbody tr:hover {
   background: rgba(248, 250, 252, 0.8);
-}
-
-@media (max-width: 600px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .sheet-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
 }
 
 .date-field input {

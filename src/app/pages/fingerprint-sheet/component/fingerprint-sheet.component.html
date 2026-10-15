@@ -42,17 +42,25 @@
     </div>
 
     <div class="actions">
-      <button type="button" class="apply-search-btn" (click)="applyFilters()">تطبيق الفلتره</button>
+      <button mat-flat-button type="button" class="btn-apply" (click)="applyFilters()">
+        <mat-icon>filter_alt</mat-icon>
+        تطبيق الفلترة
+      </button>
 
-      <button type="button" class="clear-search-btn" (click)="clearFilters()">مسح الفلتر</button>
+      <button mat-stroked-button type="button" class="btn-clear" (click)="clearFilters()">
+        <mat-icon>filter_alt_off</mat-icon>
+        مسح الفلترة
+      </button>
 
       <button
+        mat-flat-button
         type="button"
-        class="export-excel-btn"
+        class="btn-export"
         (click)="exportToExcel()"
         [disabled]="isExporting"
       >
-        {{ isExporting ? 'جاري التصدير...' : ' 📥 تصدير إكسيل' }}
+        <mat-icon>table_view</mat-icon>
+        {{ isExporting ? 'جاري التصدير...' : 'تصدير إكسيل' }}
       </button>
     </div>
   </div>

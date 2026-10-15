@@ -101,25 +101,33 @@
     </div>
   </div>
 
-  <div class="filter-btns">
-    <button
-      type="button"
-      class="apply-search-btn"
-      [disabled]="isLoadingLateSummary"
-      (click)="loadLateSummary.emit()"
-    >
-      {{ isLoadingLateSummary ? 'جاري التحميل...' : 'تطبيق الفلتر' }}
-    </button>
+<div class="filter-btns">
+  <button
+    mat-flat-button
+    type="button"
+    class="btn-apply"
+    [disabled]="isLoadingLateSummary"
+    (click)="loadLateSummary.emit()"
+  >
+    <mat-icon>filter_alt</mat-icon>
+    {{ isLoadingLateSummary ? 'جاري التحميل...' : 'تطبيق الفلترة' }}
+  </button>
 
-    <button type="button" class="clear-search-btn" (click)="clearLateSummary.emit()">
-      مسح الفلتر
-    </button>
+  <button mat-stroked-button type="button" class="btn-clear" (click)="clearLateSummary.emit()">
+    <mat-icon>filter_alt_off</mat-icon>
+    مسح الفلترة
+  </button>
 
-    <button type="button" class="export-excel-btn" (click)="exportLateSummaryToExcel.emit()">
-      📥 تصدير إكسيل
-    </button>
-  </div>
-
+  <button
+    mat-flat-button
+    type="button"
+    class="btn-export"
+    (click)="exportLateSummaryToExcel.emit()"
+  >
+    <mat-icon>table_view</mat-icon>
+    تصدير إكسيل
+  </button>
+</div>
   <div *ngIf="lateSummaryErrorMessage" class="error-message">{{ lateSummaryErrorMessage }}</div>
 </section>
 

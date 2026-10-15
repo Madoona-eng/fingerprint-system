@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { PaginationComponent } from '../../../../shared/pagination/pagination.component';
 import { getAttendanceStatusLabel } from '../../../../shared/utils/attendance-status.util';
 import { AttendanceNoteEntry, DailyAttendanceRowDto } from '../../model/models';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-attendance-report',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaginationComponent, MatIconModule, MatButtonModule],
   templateUrl: './attendance-report.component.html',
   styleUrls: ['../attendance.component.css'],
 })
